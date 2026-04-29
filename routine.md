@@ -59,17 +59,11 @@ Types de commits recommandés :
 ### 3. Créer une Pull Request
 
 Quand la tâche est terminée, créer une Pull Request sur GitHub :
+https://github.com/BeratMertCibikci/mr-jack-pocket
 
-```text
+
 base: develop
 compare: votre-branche
-```
-
-Exemple :
-
-```text
-feature/ihm → develop
-```
 
 La Pull Request doit contenir :
 

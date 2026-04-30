@@ -22,4 +22,8 @@ public class ActionTokens{
             }
         }
     }
+
+    public Token[] getActionTokens() {
+        return actionTokens;
+    }
 }

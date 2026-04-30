@@ -51,7 +51,7 @@ public class MenuPrincipalPanel extends JPanel {
         // 7. Buton aksiyonları
         jouerButton.addActionListener(e -> {
             System.out.println("Bouton Jouer cliqué");
-            String[] options = {"Humain vs Humain", "Humain vs IA", "IA vs IA"};
+            String[] options = {"Humain vs Humain", "Humain vs IA", "IA vs IA"}; // options du jeu
             int choix = JOptionPane.showOptionDialog(
                 MenuPrincipalPanel.this,
                 "Sélectionnez un mode de jeu:",
@@ -60,8 +60,28 @@ public class MenuPrincipalPanel extends JPanel {
                 JOptionPane.QUESTION_MESSAGE,
                 null,
                 options,
-                options[0]
+                options[0] // par défaut
             );
+
+            if (choix != JOptionPane.CLOSED_OPTION) {
+                GameMode selectedMode = null;
+            
+                switch(choix) {
+                    case 0: // Humain vs Humain
+                        selectedMode = GameMode.HUMAN_VS_HUMAN;
+                        break;
+                    case 1: // Humain vs IA
+                        selectedMode = GameMode.HUMAN_VS_IA;
+                        break;
+                    case 2: // IA vs IA
+                        selectedMode = GameMode.IA_VS_IA;
+                        break;
+                    default:
+                        return;
+                }
+
+                System.out.println("Mode séléctionné: " + selectedMode);
+            }
         });
 
         reglesButton.addActionListener(e -> {

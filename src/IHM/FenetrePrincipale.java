@@ -1,11 +1,11 @@
 package IHM;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class FenetrePrincipale extends JFrame {
 
-    private SoundManager musique;
+    private MainMusique musique;
 
     public FenetrePrincipale() {
         setTitle("Mr Jack Pocket");
@@ -13,7 +13,7 @@ public class FenetrePrincipale extends JFrame {
         setSize(900, 600);
         setLocationRelativeTo(null);
 
-        musique = new SoundManager();
+        musique = new MainMusique();
         musique.jouerMusique("sounds/menu.wav");
 
         MenuPrincipalPanel menuPrincipalPanel = new MenuPrincipalPanel();

@@ -1,7 +1,7 @@
 package IHM;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class MenuPrincipalPanel extends JPanel {
 
@@ -19,11 +19,11 @@ public class MenuPrincipalPanel extends JPanel {
         setOpaque(false);
 
         // 3. Başlık
-        JLabel titreLabel = new JLabel("MR. JACK POCKET", SwingConstants.CENTER);
+        /*JLabel titreLabel = new JLabel("MR. JACK POCKET", SwingConstants.CENTER);
         titreLabel.setFont(new Font("Arial", Font.BOLD, 42));
         titreLabel.setForeground(Color.WHITE);
         titreLabel.setOpaque(false); // pour qu'on ne bloque pas l'arriere-plan
-        titreLabel.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0)); 
+        titreLabel.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0)); */
 
         // 4. Butonları tutan panel
         JPanel boutonsPanel = new JPanel();
@@ -45,7 +45,7 @@ public class MenuPrincipalPanel extends JPanel {
         boutonsPanel.add(quitterButton);
 
         // 6. Ekrana ekleme
-        add(titreLabel, BorderLayout.NORTH);
+        //add(titreLabel, BorderLayout.NORTH);
         add(boutonsPanel, BorderLayout.CENTER);
 
         // 7. Buton aksiyonları

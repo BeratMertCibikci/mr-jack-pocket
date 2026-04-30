@@ -3,7 +3,7 @@ package IHM;
 import javax.sound.sampled.*;
 import java.io.File;
 
-public class SoundManager {
+public class MainMusique {
 
     private Clip clip;
 

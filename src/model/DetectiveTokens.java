@@ -6,7 +6,7 @@ public class DetectiveTokens{
     private final Token TOBY = new Token("Toby", "");
     Token[] detectiveTokens;
 
-    DetectiveTokens{
+    DetectiveTokens(){
         detectiveTokens = new Token[]{HOLMES, WATSON, TOBY};
     }
 

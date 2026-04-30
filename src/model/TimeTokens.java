@@ -36,6 +36,17 @@ public class TimeTokens{
             default:
                 System.err.println("Token pas reconnue");
         }
+        return 0;
+    }
+
+    public Token extraite(){
+        int i = 0;
+        while(timeTokens[i] != null){
+            i++;
+        }
+        Token t = timeTokens[i];
+        timeTokens[i] = null;
+        return t;
     }
 
 }

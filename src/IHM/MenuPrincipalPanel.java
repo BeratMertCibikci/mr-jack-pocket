@@ -6,24 +6,28 @@ import javax.swing.*;
 public class MenuPrincipalPanel extends JPanel {
 
     private Image backgroundImage;
+    private BoutonClickMusique boutonClickMusique;
 
-    public MenuPrincipalPanel() {
+    public MenuPrincipalPanel(FenetrePrincipale fenetre) {
 
         // 1. Arka plan fotoğrafını yükleme
-        String cheminImage = System.getProperty("user.dir") + "/images/pic1519530.jpg"; // chemin absolu de l'image
+        String cheminImage = System.getProperty("user.dir") + "/images/deneme2.jpg"; // chemin absolu de l'image
         ImageIcon icon = new ImageIcon(cheminImage);
         backgroundImage = icon.getImage();
+
+        //buton click
+        boutonClickMusique = new BoutonClickMusique();
 
         // 2. Ana panel düzeni
         setLayout(new BorderLayout());
         setOpaque(false);
 
         // 3. Başlık
-        JLabel titreLabel = new JLabel("MR. JACK POCKET", SwingConstants.CENTER);
+        /*JLabel titreLabel = new JLabel("MR. JACK POCKET", SwingConstants.CENTER);
         titreLabel.setFont(new Font("Arial", Font.BOLD, 42));
         titreLabel.setForeground(Color.WHITE);
         titreLabel.setOpaque(false); // pour qu'on ne bloque pas l'arriere-plan
-        titreLabel.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0)); 
+        titreLabel.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0)); */
 
         // 4. Butonları tutan panel
         JPanel boutonsPanel = new JPanel();
@@ -45,51 +49,28 @@ public class MenuPrincipalPanel extends JPanel {
         boutonsPanel.add(quitterButton);
 
         // 6. Ekrana ekleme
-        add(titreLabel, BorderLayout.NORTH);
+        //add(titreLabel, BorderLayout.NORTH);
         add(boutonsPanel, BorderLayout.CENTER);
 
         // 7. Buton aksiyonları
         jouerButton.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
             System.out.println("Bouton Jouer cliqué");
-            String[] options = {"Humain vs Humain", "Humain vs IA", "IA vs IA"}; // options du jeu
-            int choix = JOptionPane.showOptionDialog(
-                MenuPrincipalPanel.this,
-                "Sélectionnez un mode de jeu:",
-                "Mode de Jeu",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0] // par défaut
-            );
-
-            if (choix != JOptionPane.CLOSED_OPTION) {
-                GameMode selectedMode = null;
-            
-                switch(choix) {
-                    case 0: // Humain vs Humain
-                        selectedMode = GameMode.HUMAN_VS_HUMAN;
-                        break;
-                    case 1: // Humain vs IA
-                        selectedMode = GameMode.HUMAN_VS_IA;
-                        break;
-                    case 2: // IA vs IA
-                        selectedMode = GameMode.IA_VS_IA;
-                        break;
-                    default:
-                        return;
-                }
-
-                System.out.println("Mode séléctionné: " + selectedMode);
-            }
+            fenetre.afficherChoixMode();
         });
 
         reglesButton.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
             System.out.println("Bouton Règles cliqué");
         });
 
         quitterButton.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
             System.exit(0);
+
+            Timer timer = new Timer(200, event -> System.exit(0));
+            timer.setRepeats(false);
+            timer.start();
         });
     }
 

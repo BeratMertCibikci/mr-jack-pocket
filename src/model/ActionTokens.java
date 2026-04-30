@@ -1,6 +1,5 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 public class ActionTokens{
@@ -15,13 +14,7 @@ public class ActionTokens{
         actionTokens.add(new Token("Joker", "Rotate"));
     }
 
-    public void lancer(){
-        for (Token t : actionTokens){
-            if (rand.nextBoolean()){
-                t.turn();
-            }
-        }
-    }
+    
 
     public ArrayList<Token> getActionTokens() {
         return actionTokens;

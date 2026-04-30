@@ -1,4 +1,4 @@
-package src.IHM;
+package IHM;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,6 +62,22 @@ public class MenuPrincipalPanel extends JPanel {
                 options,
                 options[0]
             );
+
+            if (choix != JOptionPane.CLOSED_OPTION) {
+                switch(choix) {
+                    case 0:
+                        System.out.println("Mode séléctionné: " + GameMode.HUMAN_VS_HUMAN);
+                        break;
+                    case 1:
+                        System.out.println("Mode séléctionné: " + GameMode.HUMAN_VS_IA);
+                        break;
+                    case 2:
+                        System.out.println("Mode séléctionné: " + GameMode.IA_VS_IA);
+                        break;
+                    default:
+                        return;
+                }
+            }
         });
 
         reglesButton.addActionListener(e -> {

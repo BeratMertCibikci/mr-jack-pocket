@@ -15,12 +15,19 @@ public class MainMusique {
             clip = AudioSystem.getClip();
             clip.open(audioStream);
 
-            // Müziği sürekli döndürür
+            // Volume de la musique de fond
+            // 0.0f = volume normal
+            // -10.0f = plus bas
+            // -15.0f = assez discret
+            FloatControl volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            volumeControl.setValue(-40.0f);
+
+            // La musique tourne en boucle
             clip.loop(Clip.LOOP_CONTINUOUSLY);
             clip.start();
 
         } catch (Exception e) {
-            System.out.println("Erreur lors de la lecture du son : " + e.getMessage());
+            System.out.println("Erreur lors de la lecture de la musique : " + e.getMessage());
         }
     }
 

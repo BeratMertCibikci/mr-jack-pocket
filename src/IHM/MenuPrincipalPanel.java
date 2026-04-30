@@ -6,13 +6,17 @@ import javax.swing.*;
 public class MenuPrincipalPanel extends JPanel {
 
     private Image backgroundImage;
+    private BoutonClickMusique boutonClickMusique;
 
-    public MenuPrincipalPanel() {
+    public MenuPrincipalPanel(FenetrePrincipale fenetre) {
 
         // 1. Arka plan fotoğrafını yükleme
-        String cheminImage = System.getProperty("user.dir") + "/images/pic1519530.jpg"; // chemin absolu de l'image
+        String cheminImage = System.getProperty("user.dir") + "/images/deneme2.jpg"; // chemin absolu de l'image
         ImageIcon icon = new ImageIcon(cheminImage);
         backgroundImage = icon.getImage();
+
+        //buton click
+        boutonClickMusique = new BoutonClickMusique();
 
         // 2. Ana panel düzeni
         setLayout(new BorderLayout());
@@ -50,46 +54,23 @@ public class MenuPrincipalPanel extends JPanel {
 
         // 7. Buton aksiyonları
         jouerButton.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
             System.out.println("Bouton Jouer cliqué");
-            String[] options = {"Humain vs Humain", "Humain vs IA", "IA vs IA"}; // options du jeu
-            int choix = JOptionPane.showOptionDialog(
-                MenuPrincipalPanel.this,
-                "Sélectionnez un mode de jeu:",
-                "Mode de Jeu",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0] // par défaut
-            );
-
-            if (choix != JOptionPane.CLOSED_OPTION) {
-                GameMode selectedMode = null;
-            
-                switch(choix) {
-                    case 0: // Humain vs Humain
-                        selectedMode = GameMode.HUMAN_VS_HUMAN;
-                        break;
-                    case 1: // Humain vs IA
-                        selectedMode = GameMode.HUMAN_VS_IA;
-                        break;
-                    case 2: // IA vs IA
-                        selectedMode = GameMode.IA_VS_IA;
-                        break;
-                    default:
-                        return;
-                }
-
-                System.out.println("Mode séléctionné: " + selectedMode);
-            }
+            fenetre.afficherChoixMode();
         });
 
         reglesButton.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
             System.out.println("Bouton Règles cliqué");
         });
 
         quitterButton.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
             System.exit(0);
+
+            Timer timer = new Timer(200, event -> System.exit(0));
+            timer.setRepeats(false);
+            timer.start();
         });
     }
 

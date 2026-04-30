@@ -6,6 +6,8 @@ import javax.swing.*;
 public class FenetrePrincipale extends JFrame {
 
     private MainMusique musique;
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
 
     public FenetrePrincipale() {
         setTitle("Mr Jack Pocket");
@@ -16,9 +18,25 @@ public class FenetrePrincipale extends JFrame {
         musique = new MainMusique();
         musique.jouerMusique("sounds/menu.wav");
 
-        MenuPrincipalPanel menuPrincipalPanel = new MenuPrincipalPanel();
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        mainPanel.add(new MenuPrincipalPanel(this), "menu");
+        mainPanel.add(new ChoixModePanel(this), "choixMode");
 
-        add(menuPrincipalPanel, BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
+        afficherMenu();
+    }
+
+    public void afficherMenu() {
+        cardLayout.show(mainPanel, "menu");
+    }
+
+    public void afficherChoixMode() {
+        cardLayout.show(mainPanel, "choixMode");
+    }
+
+    public void lancerJeu(GameMode mode) {
+        System.out.println("Mode séléctionné: " + mode);
     }
 
     public static void main(String[] args) {

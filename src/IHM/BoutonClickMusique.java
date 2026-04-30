@@ -2,20 +2,29 @@ package IHM;
 
 import javax.sound.sampled.*;
 import java.io.File;
+import javax.swing.Timer;
 
 public class BoutonClickMusique {
 
-    public void jouerEffet(String cheminFichier) {
+    public void jouerClick() {
         try {
-            File fichierAudio = new File(cheminFichier);
+            File fichierAudio = new File("sounds/click.wav");
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(fichierAudio);
 
-            Clip effet = AudioSystem.getClip();
-            effet.open(audioStream);
-            effet.start();
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+
+            // 2 saniye sonra click sesini durdurur
+            Timer timer = new Timer(400, e -> {
+                clip.stop();
+                clip.close();
+            });
+            timer.setRepeats(false);
+            timer.start();
 
         } catch (Exception e) {
-            System.out.println("Erreur lors de la lecture de l'effet sonore : " + e.getMessage());
+            System.out.println("Erreur son bouton : " + e.getMessage());
         }
     }
 }

@@ -1,6 +1,6 @@
 package model;
 
-public class TimeTokens{
+public class TimeTokens {
     private Token one = new Token("one", "Hourglass");
     private Token two = new Token("two", "Hourglass");
     private Token three = new Token("three", "Hourglass");
@@ -9,14 +9,15 @@ public class TimeTokens{
     private Token six = new Token("six", "Hourglass");
     private Token seven = new Token("seven", "Hourglass");
     private Token eight = new Token("eight", "Hourglass");
-    Token[] timeTokens;
 
-    TimeTokens(){
+    private Token[] timeTokens;
+
+    public TimeTokens() {
         timeTokens = new Token[]{one, two, three, four, five, six, seven, eight};
     }
 
-    public int value(Token t){
-        switch(t.head()){
+    public int value(Token token) {
+        switch (token.head()) {
             case "one":
                 return 1;
             case "two":
@@ -35,18 +36,23 @@ public class TimeTokens{
                 return 8;
             default:
                 System.err.println("Token pas reconnue");
+                return 0;
         }
-        return 0;
     }
 
-    public Token extraite(){
-        int i = 0;
-        while(timeTokens[i] != null){
-            i++;
+    public Token extraite() {
+        for (int i = 0; i < timeTokens.length; i++) {
+            if (timeTokens[i] != null) {
+                Token token = timeTokens[i];
+                timeTokens[i] = null;
+                return token;
+            }
         }
-        Token t = timeTokens[i];
-        timeTokens[i] = null;
-        return t;
+
+        return null;
     }
 
+    public Token[] getTimeTokens() {
+        return timeTokens;
+    }
 }

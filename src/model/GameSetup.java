@@ -15,7 +15,7 @@ public class GameSetup {
         randomizeTileOrientations(board);
         placeDetectives(board);
 
-        Character mrJackIdentity = chooseMrJackIdentity();
+        GameCharacter mrJackIdentity = chooseMrJackIdentity();
 
         List<AlibiCard> alibiDeck = prepareAlibiDeck();
         List<TurnToken> turnTokens = prepareTurnTokens();
@@ -55,8 +55,8 @@ public class GameSetup {
         board.placeDetective(toby, 6);
     }
 
-    private Character chooseMrJackIdentity() {
-        List<Character> characters = createAllCharacters();
+    private GameCharacter chooseMrJackIdentity() {
+        List<GameCharacter> characters = createAllCharacters();
         Collections.shuffle(characters);
 
         return characters.get(0);
@@ -102,17 +102,17 @@ public class GameSetup {
         return tiles;
     }
 
-    private List<Character> createAllCharacters() {
-        List<Character> characters = new ArrayList<>();
+    private List<GameCharacter> createAllCharacters() {
+        List<GameCharacter> characters = new ArrayList<>();
 
-        characters.add(new Character("Sherlock"));
-        characters.add(new Character("Watson"));
-        characters.add(new Character("Toby"));
-        characters.add(new Character("Lestrade"));
-        characters.add(new Character("Goodley"));
-        characters.add(new Character("Bert"));
-        characters.add(new Character("Smith"));
-        characters.add(new Character("Stealthy"));
+        characters.add(new GameCharacter("Sherlock"));
+        characters.add(new GameCharacter("Watson"));
+        characters.add(new GameCharacter("Toby"));
+        characters.add(new GameCharacter("Lestrade"));
+        characters.add(new GameCharacter("Goodley"));
+        characters.add(new GameCharacter("Bert"));
+        characters.add(new GameCharacter("Smith"));
+        characters.add(new GameCharacter("Stealthy"));
 
         return characters;
     }
@@ -120,7 +120,7 @@ public class GameSetup {
     private List<AlibiCard> createAllAlibiCards() {
         List<AlibiCard> cards = new ArrayList<>();
 
-        for (Character character : createAllCharacters()) {
+        for (GameCharacter character : createAllCharacters()) {
             cards.add(new AlibiCard(character));
         }
 

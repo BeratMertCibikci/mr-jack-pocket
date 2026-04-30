@@ -1,4 +1,4 @@
-package ihm;
+package IHM;
 
 public enum GameMode {
     HUMAN_VS_HUMAN,

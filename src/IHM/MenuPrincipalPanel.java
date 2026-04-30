@@ -66,13 +66,13 @@ public class MenuPrincipalPanel extends JPanel {
             if (choix != JOptionPane.CLOSED_OPTION) {
                 switch(choix) {
                     case 0:
-                        System.out.println("Mode séléctionné: " + GameMode.HUMAN_VS_HUMAN);
+                        System.out.println("Mode séléctionné: " + options[0]);
                         break;
                     case 1:
-                        System.out.println("Mode séléctionné: " + GameMode.HUMAN_VS_IA);
+                        System.out.println("Mode séléctionné: " + options[1]);
                         break;
                     case 2:
-                        System.out.println("Mode séléctionné: " + GameMode.IA_VS_IA);
+                        System.out.println("Mode séléctionné: " + options[2]);
                         break;
                     default:
                         return;

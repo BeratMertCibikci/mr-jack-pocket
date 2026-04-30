@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class Tile {
     private int id;
-    private Character character;
+    private GameCharacter character;
 
     private Orientation orientation;
 
@@ -18,7 +18,7 @@ public class Tile {
 
     private boolean hasBarricade;
 
-    public Tile(int id, Character character, Position position) {
+    public Tile(int id, GameCharacter character, Position position) {
         this.id = id;
         this.character = character;
         this.position = position;
@@ -28,6 +28,10 @@ public class Tile {
         this.isEliminated = false;
         this.walls = new HashSet<>();
         this.hasBarricade = false;
+
+        if (character != null) {
+            character.setTile(this);
+        }
     }
 
     public Tile(int id, Position position) {
@@ -38,7 +42,7 @@ public class Tile {
         return id;
     }
 
-    public Character getCharacter() {
+    public GameCharacter getCharacter() {
         return character;
     }
 
@@ -46,8 +50,12 @@ public class Tile {
         return character != null && isSuspectSide && !isEliminated;
     }
 
-    public void setCharacter(Character character) {
+    public void setCharacter(GameCharacter character) {
         this.character = character;
+
+        if (character != null) {
+            character.setTile(this);
+        }
     }
 
     public Orientation getOrientation() {
@@ -83,6 +91,10 @@ public class Tile {
     public void eliminate() {
         this.isEliminated = true;
         this.isSuspectSide = false;
+
+        if (character != null) {
+            character.eliminate();
+        }
     }
 
     public Set<Direction> getWalls() {
@@ -115,6 +127,14 @@ public class Tile {
 
     public void setPosition(Position position) {
         this.position = position;
+    }
+
+    public void setRow(int row) {
+        this.position.setRow(row);
+    }
+
+    public void setCol(int col) {
+        this.position.setCol(col);
     }
 
     public boolean hasBarricade() {

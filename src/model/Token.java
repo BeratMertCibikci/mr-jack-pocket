@@ -4,7 +4,7 @@ public class Token{
     private String head;
     private String tail;
 
-    Token(String h, String t){
+    protected Token(String h, String t){
         head = h;
         tail = t;
     }

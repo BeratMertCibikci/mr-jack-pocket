@@ -7,6 +7,7 @@ public class ActionTokens{
     private Token t2 = new Token("Watson", "The Dog");
     private Token t3 = new Token("Exchange", "Rotate");
     private Token t4 = new Token("Joker", "Rotate");
+    private Random rand = new Random();
     Token[] actionTokens;
 
     ActionTokens(){
@@ -15,8 +16,7 @@ public class ActionTokens{
 
     public void lancer(){
         for (int i = 0; i < actionTokens.length; i++){
-            int r = new Random().nextInt(10);
-            while (r != 0){
+            if (rand.nextBoolean()){
                 actionTokens[i].turn();
             }
         }

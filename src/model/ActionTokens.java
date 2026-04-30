@@ -1,23 +1,24 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class ActionTokens{
-    private Token t1 = new Token("Holmes", "Alibi");
-    private Token t2 = new Token("Watson", "The Dog");
-    private Token t3 = new Token("Exchange", "Rotate");
-    private Token t4 = new Token("Joker", "Rotate");
+    private ArrayList<Token> actionTokens;
     private Random rand = new Random();
-    Token[] actionTokens;
 
     ActionTokens(){
-        actionTokens = new Token[]{t1, t2, t3, t4};
+        actionTokens = new ArrayList<>();
+        actionTokens.add(new Token("Holmes", "Alibi"));
+        actionTokens.add(new Token("Watson", "The Dog"));
+        actionTokens.add(new Token("Exchange", "Rotate"));
+        actionTokens.add(new Token("Joker", "Rotate"));
     }
 
     public void lancer(){
-        for (int i = 0; i < actionTokens.length; i++){
+        for (Token t : actionTokens){
             if (rand.nextBoolean()){
-                actionTokens[i].turn();
+                t.turn();
             }
         }
     }

@@ -40,13 +40,13 @@ public class TimeTokens{
     }
 
     public Token extraite(){
-        int i = 0;
-        while(timeTokens[i] != null){
-            i++;
+        for (int i = 0; i < timeTokens.length; i++){
+            if (timeTokens[i] != null){
+                Token t = timeTokens[i];
+                timeTokens[i] = null;
+                return t;
+            }
         }
-        Token t = timeTokens[i];
-        timeTokens[i] = null;
-        return t;
+        return null; 
     }
-
 }

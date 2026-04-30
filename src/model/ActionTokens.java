@@ -23,7 +23,7 @@ public class ActionTokens{
         }
     }
 
-    public Token[] getActionTokens() {
+    public ArrayList<Token> getActionTokens() {
         return actionTokens;
     }
 }

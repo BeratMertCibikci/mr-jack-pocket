@@ -1,3 +1,5 @@
+package model;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +25,7 @@ public class Board {
 
         if (tile != null) {
             tile.setRow(row);
-            tile.setColumn(column);
+            tile.setCol(column);
         }
     }
 
@@ -33,10 +35,10 @@ public class Board {
         }
 
         int rowA = tileA.getRow();
-        int columnA = tileA.getColumn();
+        int columnA = tileA.getCol();
 
         int rowB = tileB.getRow();
-        int columnB = tileB.getColumn();
+        int columnB = tileB.getCol();
 
         validatePosition(rowA, columnA);
         validatePosition(rowB, columnB);
@@ -45,10 +47,10 @@ public class Board {
         tiles[rowB][columnB] = tileA;
 
         tileA.setRow(rowB);
-        tileA.setColumn(columnB);
+        tileA.setCol(columnB);
 
         tileB.setRow(rowA);
-        tileB.setColumn(columnA);
+        tileB.setCol(columnA);
     }
 
     public List<Tile> getAllTiles() {

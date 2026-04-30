@@ -1,9 +1,9 @@
 package model;
 
 public class DetectiveTokens{
-    private final Token HOLMES = new Token("Holmes", "");
-    private final Token WATSON = new Token("Watson", "");
-    private final Token TOBY = new Token("Toby", "");
+    private final Token HOLMES = new Token("Holmes", "Holmes");
+    private final Token WATSON = new Token("Watson", "Watson");
+    private final Token TOBY = new Token("Toby", "Toby");
     Token[] detectiveTokens;
 
     DetectiveTokens(){

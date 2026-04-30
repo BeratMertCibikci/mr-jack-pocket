@@ -1,7 +1,7 @@
-package src.IHM;
+package ihm;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class MenuPrincipalPanel extends JPanel {
 

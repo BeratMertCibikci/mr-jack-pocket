@@ -4,6 +4,7 @@ public class TurnManager {
     private int roundNumber;
     private int currentActionIndex;
     private String currentPlayer;
+    private String startingPlayer;
 
     public TurnManager() {
         this.roundNumber = 1;
@@ -31,14 +32,12 @@ public class TurnManager {
         return currentPlayer.equals("Jack");
     }
 
-    public void nextActionTurn() {
+    public void completeActionTurn() {
         currentActionIndex++;
 
-        if (currentActionIndex >= 4) {
-            return;
+        if (!isRoundOver()) {
+            switchPlayer();
         }
-
-        switchPlayer();
     }
 
     public boolean isRoundOver() {
@@ -63,7 +62,6 @@ public class TurnManager {
         if (roundNumber % 2 == 1) {
             return "Investigator";
         }
-
         return "Jack";
     }
 }

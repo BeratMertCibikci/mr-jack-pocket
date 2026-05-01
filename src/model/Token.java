@@ -10,8 +10,9 @@ public class Token {
     private boolean isFrontSideUp;
 
     private int position;
+    private boolean used;
 
-    public Token(int id, String name, int initialPosition) {
+    public Token(int id, String name, int initialPosition) { //constructor for detective token
         this.id = id;
         this.name = name;
         this.type = "DETECTIVE";
@@ -21,9 +22,10 @@ public class Token {
         this.frontSide = name;
         this.backSide = "Standard";
         this.isFrontSideUp = true;
+        this.used = false;
     }
 
-    public Token(String frontSide, String backSide) {
+    public Token(String frontSide, String backSide) { //constructor for time tokens
         this.id = 0;
         this.name = frontSide;
         this.type = detectType(frontSide, backSide);
@@ -33,9 +35,10 @@ public class Token {
         this.frontSide = frontSide;
         this.backSide = backSide;
         this.isFrontSideUp = true;
+        this.used = false;
     }
 
-    public Token(int id, String frontSide, String backSide) {
+    public Token(int id, String frontSide, String backSide) { // constructor for action tokens
         this.id = id;
         this.name = frontSide;
         this.type = detectType(frontSide, backSide);
@@ -45,6 +48,7 @@ public class Token {
         this.frontSide = frontSide;
         this.backSide = backSide;
         this.isFrontSideUp = true;
+        this.used = false;
     }
 
     private String detectType(String frontSide, String backSide) {
@@ -117,5 +121,20 @@ public class Token {
 
     public void turn() {
         this.isFrontSideUp = !this.isFrontSideUp;
+    }
+    public boolean isUsed() {
+        return used;
+    }
+
+    public void setUsed(boolean used) {
+        this.used = used;
+    }
+
+    public void use() {
+        this.used = true;
+    }
+
+    public void resetUsed() {
+        this.used = false;
     }
 }

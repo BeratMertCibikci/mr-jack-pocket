@@ -32,20 +32,36 @@ public class MenuPrincipalPanel extends JPanel {
         // 4. Butonları tutan panel
         JPanel boutonsPanel = new JPanel();
         boutonsPanel.setOpaque(false); // pour qu'on ne bloque pas l'arriere-plan
-        boutonsPanel.setLayout(new GridLayout(3, 1, 15, 15)); // 3 lignes, 1 colonne, 15 pixels entre les boutons
-        boutonsPanel.setBorder(BorderFactory.createEmptyBorder(100, 300, 100, 300)); // le comptour des boutons sont vides
+        //boutonsPanel.setLayout(new GridLayout(3, 1, 15, 15)); // 3 lignes, 1 colonne, 15 pixels entre les boutons
+        boutonsPanel.setLayout(new BoxLayout(boutonsPanel, BoxLayout.Y_AXIS));
+        boutonsPanel.setBorder(BorderFactory.createEmptyBorder(330, 90, 40, 0)); // le comptour des boutons sont vides
 
         // 5. Butonlar
         JButton jouerButton = new JButton("Jouer");
         JButton reglesButton = new JButton("Règles");
         JButton quitterButton = new JButton("Quitter");
 
+        /* 
         jouerButton.setFont(new Font("Arial", Font.BOLD, 20));
         reglesButton.setFont(new Font("Arial", Font.BOLD, 20));
         quitterButton.setFont(new Font("Arial", Font.BOLD, 20));
 
         boutonsPanel.add(jouerButton);
         boutonsPanel.add(reglesButton);
+        boutonsPanel.add(quitterButton);*/
+
+        BoutonTexte(jouerButton);
+        BoutonTexte(reglesButton);
+        BoutonTexte(quitterButton);
+
+        jouerButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        reglesButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        quitterButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        boutonsPanel.add(jouerButton);
+        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(reglesButton);
+        boutonsPanel.add(Box.createVerticalStrut(10));
         boutonsPanel.add(quitterButton);
 
         // 6. Ekrana ekleme
@@ -62,17 +78,30 @@ public class MenuPrincipalPanel extends JPanel {
         reglesButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
             System.out.println("Bouton Règles cliqué");
+            fenetre.afficherRegles();
         });
 
         quitterButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
-            System.exit(0);
+            //System.exit(0);
 
             Timer timer = new Timer(200, event -> System.exit(0));
             timer.setRepeats(false);
             timer.start();
         });
     }
+
+    private void BoutonTexte(JButton bouton) {
+
+            bouton.setFont(new Font("Arial", Font.BOLD, 20));
+            bouton.setForeground(new Color(245, 235, 210));
+            bouton.setContentAreaFilled(false);
+            bouton.setOpaque(false);
+            bouton.setBorderPainted(false);
+            bouton.setFocusPainted(false);
+            bouton.setMargin(new Insets(4, 8, 4, 8));
+            bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
 
     @Override
     protected void paintComponent(Graphics g) {

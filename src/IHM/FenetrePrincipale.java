@@ -22,6 +22,7 @@ public class FenetrePrincipale extends JFrame {
         mainPanel = new JPanel(cardLayout);
         mainPanel.add(new MenuPrincipalPanel(this), "menu");
         mainPanel.add(new ChoixModePanel(this), "choixMode");
+        mainPanel.add(new ReglesPanel(this), "regles");
 
         add(mainPanel, BorderLayout.CENTER);
         afficherMenu();
@@ -33,6 +34,10 @@ public class FenetrePrincipale extends JFrame {
 
     public void afficherChoixMode() {
         cardLayout.show(mainPanel, "choixMode");
+    }
+
+    public void afficherRegles() {
+        cardLayout.show(mainPanel, "regles");
     }
 
     public void lancerJeu(GameMode mode) {

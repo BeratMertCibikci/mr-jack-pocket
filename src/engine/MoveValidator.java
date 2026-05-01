@@ -15,12 +15,8 @@ public class MoveValidator {
             throw new IllegalArgumentException("Token must be a detective token.");
         }
 
-        if (steps <= 0) {
-            throw new IllegalArgumentException("Detective must move at least 1 step.");
-        }
-
-        if (steps > 12) {
-            throw new IllegalArgumentException("Detective cannot move more than 12 steps.");
+        if (steps < 1 || steps > 2) {
+            throw new IllegalArgumentException("Detective must move 1 or 2 steps.");
         }
     }
 

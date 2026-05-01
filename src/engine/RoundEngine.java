@@ -17,15 +17,21 @@ public class RoundEngine {
         }
 
         gameState.applyWitnessPhase();
-
         gameState.getTurnManager().startNextRound();
 
-        if (gameState.getTurnManager().getRoundNumber() > MAX_ROUNDS) {
+        int nextRound = gameState.getTurnManager().getRoundNumber();
+
+        if (nextRound > MAX_ROUNDS) {
             gameState.finishGame("Jack");
             return;
         }
 
-        gameState.getActionTokens().lancer();
+        if (nextRound % 2 == 1) {
+            gameState.getActionTokens().lancer();
+        } else {
+            gameState.getActionTokens().flipTokensForEvenRound();
+        }
+
         gameState.updateVisibility();
     }
 }

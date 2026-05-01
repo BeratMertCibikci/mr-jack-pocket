@@ -75,7 +75,7 @@ public class ReglesPanel extends JPanel {
     }
 
     private void afficherPage() {
-        String chemin = System.getProperty("user.dir") + "/images/regles/page" + pageActuelle + ".png";
+        String chemin = System.getProperty("user.dir") + "/assets/images/regles/page" + pageActuelle + ".png";
         ImageIcon icon = new ImageIcon(chemin);
 
         Image image = icon.getImage();

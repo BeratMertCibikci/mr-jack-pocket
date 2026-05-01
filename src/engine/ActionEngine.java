@@ -104,17 +104,18 @@ public class ActionEngine {
         finishAction();
     }
 
-    public void rotateTile(Tile tile) {
+    public void rotateTile(Tile tile, int rotations) {
         ensureSelectedActionIs(ActionType.ROTATE);
 
         moveValidator.validateRotateTile(gameState.getBoard(), tile);
 
-        tile.rotate();
+        for (int i = 0; i < rotations; i++) {
+            tile.rotate();
+        }
+        
         gameState.updateVisibility();
-
         finishAction();
     }
-
     public void exchangeTiles(Tile tileA, Tile tileB) {
         ensureSelectedActionIs(ActionType.EXCHANGE);
 
@@ -126,50 +127,31 @@ public class ActionEngine {
         finishAction();
     }
 
-    public void useJokerAsRotate(Tile tile) {
+    public void moveDetectiveWithJoker(String detectiveName, int steps) {
         ensureSelectedActionIs(ActionType.JOKER);
 
-        moveValidator.validateRotateTile(gameState.getBoard(), tile);
+        Token detective;
+        if (detectiveName.equalsIgnoreCase("Holmes")) {
+            detective = gameState.getDetectiveTokens().getHolmes();
+        } else if (detectiveName.equalsIgnoreCase("Watson")) {
+            detective = gameState.getDetectiveTokens().getWatson();
+        } else if (detectiveName.equalsIgnoreCase("Toby")) {
+            detective = gameState.getDetectiveTokens().getToby();
+        } else {
+            throw new IllegalArgumentException("Unknown detective: " + detectiveName);
+        }
 
-        tile.rotate();
+        moveValidator.validateDetectiveMove(detective, steps);
+
+        detective.move(steps);
         gameState.updateVisibility();
 
         finishAction();
     }
 
-    public GameCharacter useJokerAsAlibiForInvestigator() {
-        ensureSelectedActionIs(ActionType.JOKER);
+    
 
-        if (!gameState.getTurnManager().isInvestigatorTurn()) {
-            throw new IllegalStateException("Only Investigator can use Joker as investigator alibi.");
-            }
-
-        GameCharacter eliminatedCharacter =
-                gameState.getAlibiDeckManager().investigatorDraws();
-
-        if (eliminatedCharacter != null && eliminatedCharacter.getTile() != null) {
-            eliminatedCharacter.getTile().flipToEmptySide();
-        }
-
-        gameState.updateVisibility();
-
-        finishAction();
-
-        return eliminatedCharacter;
-    }
-
-    public void useJokerAsAlibiForJack() {
-        ensureSelectedActionIs(ActionType.JOKER);
-
-        if (!gameState.getTurnManager().isJackTurn()) {
-            throw new IllegalStateException("Only Jack can use Joker as Jack alibi.");
-        }
-
-        gameState.getAlibiDeckManager().mrJackDraws(false);
-
-        finishAction();
-    }
-
+    
     private void finishAction() {
         selectedActionToken = null;
         gameState.getTurnManager().completeActionTurn();

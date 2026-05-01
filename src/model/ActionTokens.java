@@ -54,4 +54,11 @@ public class ActionTokens {
     public Token[] getActionTokens() {
         return actionTokens;
     }
+
+    public void flipTokensForEvenRound() {
+        for (Token token : actionTokens) {
+            token.resetUsed();
+            token.turn();
+        }
+    }
 }

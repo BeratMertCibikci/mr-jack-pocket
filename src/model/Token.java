@@ -48,7 +48,7 @@ public class Token {
     }
 
     private String detectType(String frontSide, String backSide) {
-        if (backSide.equals("Hourglass")) {
+        if ("Hourglass".equals(backSide)) {
             return "TIME";
         }
 

@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class ActionTokens {
     private Token t1 = new Token("Holmes", "Alibi");
-    private Token t2 = new Token("Watson", "The Dog");
+    private Token t2 = new Token("Watson", "Toby");
     private Token t3 = new Token("Exchange", "Rotate");
     private Token t4 = new Token("Joker", "Rotate");
 

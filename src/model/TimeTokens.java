@@ -17,7 +17,7 @@ public class TimeTokens {
     }
 
     public int value(Token token) {
-        switch (token.head()) {
+        switch (token.getFrontSide()) {
             case "one":
                 return 1;
             case "two":

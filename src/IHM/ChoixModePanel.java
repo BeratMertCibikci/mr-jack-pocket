@@ -23,11 +23,11 @@ public class ChoixModePanel extends JPanel {
         setOpaque(false);
 
         // 4. Başlık
-        JLabel titre = new JLabel("Choix du mode de jeu", SwingConstants.CENTER);
+        JLabel titre = new JLabel("Choix du mode de jeu", SwingConstants.LEFT);
         titre.setFont(new Font("Arial", Font.BOLD, 32));
         titre.setForeground(new Color(245, 235, 210));
         titre.setOpaque(false);
-        titre.setBorder(BorderFactory.createEmptyBorder(30, 0, 20, 0));
+        titre.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
         // 5. Butonları tutan panel
         JPanel panel = new JPanel();
@@ -36,7 +36,7 @@ public class ChoixModePanel extends JPanel {
 
         // Değerler: üst, sol, alt, sağ
         // Sol değeri artırırsan yazılar sağa gider, azaltırsan sola gider.
-        panel.setBorder(BorderFactory.createEmptyBorder(250, 90, 40, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(0, 0,   0, 0));
 
         // 6. Butonlar
         JButton humainVsHumainButton = new JButton("Humain vs Humain");
@@ -63,8 +63,18 @@ public class ChoixModePanel extends JPanel {
         panel.add(retourButton);
 
         // 7. Ekrana ekleme
-        add(titre, BorderLayout.NORTH);
-        add(panel, BorderLayout.CENTER);
+        JPanel contenuPanel = new JPanel();
+        contenuPanel.setOpaque(false);
+        contenuPanel.setLayout(new BoxLayout(contenuPanel, BoxLayout.Y_AXIS));
+        contenuPanel.setBorder(BorderFactory.createEmptyBorder(280, 90, 40, 0));
+
+        titre.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        contenuPanel.add(titre);
+        contenuPanel.add(Box.createVerticalStrut(55));
+        contenuPanel.add(panel);
+
+        add(contenuPanel, BorderLayout.CENTER);
 
         // 8. Buton aksiyonları
         humainVsHumainButton.addActionListener(e -> {

@@ -21,17 +21,25 @@ public class GameState {
     private String currentPlayer;
     private int currentTurn;
     private boolean gameStarted;
+    private TurnManager turnManager;
+    private WinConditionChecker winConditionChecker;
+    private boolean gameOver;
+    private String winner;
+    private static final int MAX_ROUNDS = 8;
 
     public GameState() {
         this.gameStarted = false;
         this.currentTurn = 1;
         this.currentPlayer = "Investigator";
+        this.gameOver = false;
+        this.winner = null;
     }
 
     public void setupGame() {
         this.characters = CharacterFactory.createCharacters();
 
         this.alibiDeckManager = new AlibiDeckManager(characters);
+        this.alibiDeckManager.shuffleCards();
         this.jackCharacter = chooseJackIdentityFromAlibiDeck();
 
         this.areaSet = new AreaSet(characters);
@@ -45,10 +53,11 @@ public class GameState {
 
         this.lineOfSightService = new LineOfSightService();
         this.witnessManager = new WitnessManager();
+        this.turnManager = new TurnManager();
 
         this.actionTokens.lancer();
         this.lineOfSightService.updateVisibility(board, detectiveTokens, characters);
-
+        this.winConditionChecker = new WinConditionChecker();
         this.gameStarted = true;
     }
 
@@ -118,6 +127,9 @@ public class GameState {
     public int getCurrentTurn() {
         return currentTurn;
     }
+    public TurnManager getTurnManager() {
+        return turnManager;
+    }
     public void updateVisibility() {
         lineOfSightService.updateVisibility(board, detectiveTokens, characters);
     }
@@ -137,5 +149,58 @@ public class GameState {
                 jackCharacter
         );
     }
-    
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public String getWinner() {
+        return winner;
+    }
+
+    public WinConditionChecker getWinConditionChecker() {
+        return winConditionChecker;
+    }
+    public void endRound() {
+        if (!gameStarted) {
+            throw new IllegalStateException("Game has not started.");
+        }
+
+        if (gameOver) {
+            throw new IllegalStateException("Game is already over.");
+        }
+
+        if (!actionTokens.allTokensUsed()) {
+            throw new IllegalStateException("Cannot end round before all action tokens are used.");
+        }
+
+        applyWitnessPhase();
+
+        turnManager.startNextRound();
+
+        if (winConditionChecker.hasJackWonByTime(turnManager.getRoundNumber(), MAX_ROUNDS)) {
+            gameOver = true;
+            winner = "Jack";
+            return;
+        }
+
+        actionTokens.lancer();
+        updateVisibility();
+    }
+    public void accuse(GameCharacter accusedCharacter) {
+        if (!gameStarted) {
+            throw new IllegalStateException("Game has not started.");
+        }
+
+        if (gameOver) {
+            throw new IllegalStateException("Game is already over.");
+        }
+
+        if (winConditionChecker.hasInvestigatorWonByAccusation(accusedCharacter)) {
+            gameOver = true;
+            winner = "Investigator";
+        } else if (winConditionChecker.hasJackWonByWrongAccusation(accusedCharacter)) {
+            gameOver = true;
+            winner = "Jack";
+        }
+    }
 }

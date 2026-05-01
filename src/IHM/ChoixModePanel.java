@@ -79,17 +79,32 @@ public class ChoixModePanel extends JPanel {
         // 8. Buton aksiyonları
         humainVsHumainButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
-            fenetre.lancerJeu(GameMode.HUMAN_VS_HUMAN);
+
+            String[] roles = {"Investigator", "Jack"};
+
+            String roleChoisi = (String) JOptionPane.showInputDialog(
+                    this,
+                    "Choisissez le rôle du Joueur 1 :",
+                    "Choix du rôle",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    roles,
+                    roles[0]
+            );
+
+            if (roleChoisi != null) {
+                fenetre.lancerJeu(GameMode.HUMAN_VS_HUMAN, roleChoisi);
+            }
         });
 
         humainVsIAButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
-            fenetre.lancerJeu(GameMode.HUMAN_VS_IA);
+            fenetre.lancerJeu(GameMode.HUMAN_VS_IA, "Investigator");
         });
 
         iaVsIAButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
-            fenetre.lancerJeu(GameMode.IA_VS_IA);
+            fenetre.lancerJeu(GameMode.IA_VS_IA,"Investigator");
         });
 
         retourButton.addActionListener(e -> {

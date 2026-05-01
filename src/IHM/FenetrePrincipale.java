@@ -40,8 +40,13 @@ public class FenetrePrincipale extends JFrame {
         cardLayout.show(mainPanel, "regles");
     }
 
-    public void lancerJeu(GameMode mode) {
-        System.out.println("Mode séléctionné: " + mode);
+    public void lancerJeu(GameMode mode, String player1Role) {
+        System.out.println("Mode sélectionné: " + mode);
+        System.out.println("Rôle Joueur 1 : " + player1Role);
+
+        JeuPanel jeuPanel = new JeuPanel(mode, player1Role, this);
+        mainPanel.add(jeuPanel, "jeu");// yeni oyun ekranı oluşturma
+        cardLayout.show(mainPanel, "jeu"); // CardLayout içine ekleme yani ekranda menü değil oyun ekranı döndürüyoz
     }
 
     public static void main(String[] args) {

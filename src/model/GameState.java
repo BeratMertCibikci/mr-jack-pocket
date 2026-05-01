@@ -24,11 +24,25 @@ public class GameState {
     private boolean gameStarted;
     private boolean gameOver;
     private String winner;
+   
 
-    public GameState() {
+    private String player1Role;
+    private String player2Role;
+
+    public GameState(String player1Role) {
         this.gameStarted = false;
         this.gameOver = false;
         this.winner = null;
+        this.player1Role = player1Role;
+        this.player2Role = player1Role.equals("Investigator") ? "Jack" : "Investigator";
+    }
+
+    public String getPlayer1Role() {
+        return player1Role;
+    }
+
+    public String getPlayer2Role() {
+        return player2Role;
     }
 
     public void setupGame() {

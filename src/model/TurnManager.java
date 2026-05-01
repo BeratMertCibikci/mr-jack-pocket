@@ -4,6 +4,7 @@ public class TurnManager {
     private int roundNumber;
     private int currentActionIndex;
     private String currentPlayer;
+    private String startingPlayer;
 
     public TurnManager() {
         this.roundNumber = 1;
@@ -63,7 +64,6 @@ public class TurnManager {
         if (roundNumber % 2 == 1) {
             return "Investigator";
         }
-
         return "Jack";
     }
 }

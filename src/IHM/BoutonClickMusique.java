@@ -8,7 +8,7 @@ public class BoutonClickMusique {
 
     public void jouerClick() {
         try {
-            File fichierAudio = new File("/assets/sounds/click.wav");
+            File fichierAudio = new File("assets/sounds/click.wav");
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(fichierAudio);
 
             Clip clip = AudioSystem.getClip();

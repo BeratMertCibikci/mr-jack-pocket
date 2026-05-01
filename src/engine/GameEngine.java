@@ -10,8 +10,8 @@ public class GameEngine {
     private ActionEngine actionEngine;
     private RoundEngine roundEngine;
 
-    public GameEngine() {
-        this.gameState = new GameState();
+    public GameEngine(String player1Role) {
+        this.gameState = new GameState(player1Role);
     }
 
     public void startGame() {

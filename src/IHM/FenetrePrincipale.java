@@ -16,7 +16,7 @@ public class FenetrePrincipale extends JFrame {
         setLocationRelativeTo(null);
 
         musique = new MainMusique();
-        musique.jouerMusique("sounds/menu.wav");
+        musique.jouerMusique("/assets/sounds/menu.wav");
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);

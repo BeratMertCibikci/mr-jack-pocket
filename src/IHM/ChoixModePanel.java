@@ -14,7 +14,7 @@ public class ChoixModePanel extends JPanel {
         boutonClickMusique = new BoutonClickMusique();
 
         // 2. Arka plan fotoğrafını yükleme
-        String cheminImage = System.getProperty("user.dir") + "/images/deneme2.jpg";
+        String cheminImage = System.getProperty("user.dir") + "/assets/images/deneme2.jpg";
         ImageIcon icon = new ImageIcon(cheminImage);
         backgroundImage = icon.getImage();
 

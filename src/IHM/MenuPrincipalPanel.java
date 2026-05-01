@@ -78,6 +78,7 @@ public class MenuPrincipalPanel extends JPanel {
         reglesButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
             System.out.println("Bouton Règles cliqué");
+            fenetre.afficherRegles();
         });
 
         quitterButton.addActionListener(e -> {

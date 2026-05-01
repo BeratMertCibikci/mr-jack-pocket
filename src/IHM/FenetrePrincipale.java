@@ -6,6 +6,7 @@ import javax.swing.*;
 public class FenetrePrincipale extends JFrame {
 
     private MainMusique musique;
+    private boolean musiqueActive = false;
     private CardLayout cardLayout;
     private JPanel mainPanel;
 
@@ -16,7 +17,6 @@ public class FenetrePrincipale extends JFrame {
         setLocationRelativeTo(null);
 
         musique = new MainMusique();
-        musique.jouerMusique("assets/sounds/menu.wav");
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
@@ -42,6 +42,25 @@ public class FenetrePrincipale extends JFrame {
 
     public void lancerJeu(GameMode mode) {
         System.out.println("Mode séléctionné: " + mode);
+    }
+
+    public void toggleMusique() {
+        if (musiqueActive) {
+            musique.arreterMusique();
+            musiqueActive = false;
+        } else {
+            musique = new MainMusique();
+            musique.jouerMusique("assets/sounds/menu.wav");
+            musiqueActive = true;
+        }
+    }
+
+    public boolean estMusiqueActivee() {
+        return musiqueActive;
+    }
+
+    public void changerVolumeMusique(int volume) {
+        if (musique != null) musique.changerVolume(volume);
     }
 
     public static void main(String[] args) {

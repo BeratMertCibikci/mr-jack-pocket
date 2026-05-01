@@ -1,120 +1,93 @@
 package main;
 
+import engine.ActionType;
+import engine.GameEngine;
 import model.GameCharacter;
-import model.GameState;
 import model.Tile;
 import model.Token;
 
 public class Main {
     public static void main(String[] args) {
-        GameState gameState = new GameState();
-        gameState.setupGame();
+        GameEngine engine = new GameEngine();
+        engine.startGame();
 
-        printGameInfo(gameState);
-        printCharacters(gameState);
-        printBoard(gameState);
-        printActionTokens(gameState);
-        printDetectiveTokens(gameState);
-    }
+        printStatus(engine);
 
-    private static void printGameInfo(GameState gameState) {
-        System.out.println("=== GAME INFO ===");
-        System.out.println("Game started: " + gameState.isGameStarted());
-        System.out.println("Game over: " + gameState.isGameOver());
-        System.out.println("Winner: " + gameState.getWinner());
-        System.out.println("Round: " + gameState.getTurnManager().getRoundNumber());
-        System.out.println("Current player: " + gameState.getTurnManager().getCurrentPlayer());
+        playOneAction(engine, 0);
+        printStatus(engine);
 
-        GameCharacter jack = gameState.getJackCharacter();
-        System.out.println("Mr. Jack identity: " + jack.getName());
-        System.out.println();
-    }
+        playOneAction(engine, 1);
+        printStatus(engine);
 
-    private static void printCharacters(GameState gameState) {
-        System.out.println("=== CHARACTERS ===");
+        playOneAction(engine, 2);
+        printStatus(engine);
 
-        for (GameCharacter character : gameState.getCharacters()) {
-            System.out.println(
-                    character.getId()
-                            + " - " + character.getName()
-                            + " | color=" + character.getColor()
-                            + " | suspect=" + character.isSuspect()
-                            + " | jack=" + character.isJack()
-                            + " | visible=" + character.isVisible()
-                            + " | tile=" + getTileInfo(character.getTile())
-            );
+        playOneAction(engine, 3);
+        printStatus(engine);
+
+        if (engine.isRoundOver()) {
+            engine.endRound();
         }
 
-        System.out.println();
+        printStatus(engine);
     }
 
-    private static String getTileInfo(Tile tile) {
-        if (tile == null) {
-            return "none";
-        }
+    private static void playOneAction(GameEngine engine, int tokenIndex) {
+        Token selectedToken = engine.selectActionToken(tokenIndex);
+        ActionType actionType = engine.getSelectedActionType();
 
-        return "Area " + tile.getId()
-                + " (" + tile.getRow()
-                + "," + tile.getCol()
-                + ")";
-    }
+        System.out.println("Selected token: " + selectedToken.getCurrentSide());
+        System.out.println("Action type: " + actionType);
 
-    private static void printBoard(GameState gameState) {
-        System.out.println("=== BOARD ===");
+        switch (actionType) {
+            case HOLMES:
+                engine.moveHolmes(1);
+                break;
 
-        Tile[][] board = gameState.getBoard().getBoardForUI();
+            case WATSON:
+                engine.moveWatson(1);
+                break;
 
-        for (int row = 0; row < gameState.getBoard().getSize(); row++) {
-            for (int col = 0; col < gameState.getBoard().getSize(); col++) {
-                Tile tile = board[row][col];
+            case TOBY:
+                engine.moveToby(1);
+                break;
 
-                if (tile == null) {
-                    System.out.print("[Empty] ");
+            case ROTATE:
+                Tile tileToRotate = engine.getGameState().getBoard().getTile(1, 1);
+                engine.rotateTile(tileToRotate);
+                break;
+
+            case EXCHANGE:
+                Tile tileA = engine.getGameState().getBoard().getTile(0, 0);
+                Tile tileB = engine.getGameState().getBoard().getTile(2, 2);
+                engine.exchangeTiles(tileA, tileB);
+                break;
+
+            case ALIBI:
+                if (engine.getGameState().getTurnManager().isInvestigatorTurn()) {
+                    GameCharacter eliminated = engine.investigatorDrawsAlibi();
+                    System.out.println("Investigator drew alibi: " + eliminated.getName());
                 } else {
-                    String characterName = tile.getCharacter() != null
-                            ? tile.getCharacter().getName()
-                            : "No Character";
-
-                    System.out.print("[A" + tile.getId() + ": " + characterName + "] ");
+                    engine.jackDrawsAlibi();
+                    System.out.println("Jack drew alibi.");
                 }
-            }
+                break;
 
-            System.out.println();
+            case JOKER:
+                Tile jokerTile = engine.getGameState().getBoard().getTile(0, 1);
+                engine.useJokerAsRotate(jokerTile);
+                break;
         }
-
-        System.out.println();
     }
 
-    private static void printActionTokens(GameState gameState) {
-        System.out.println("=== ACTION TOKENS ===");
-
-        Token[] actionTokens = gameState.getActionTokens().getActionTokens();
-
-        for (int i = 0; i < actionTokens.length; i++) {
-            Token token = actionTokens[i];
-
-            System.out.println(
-                    i
-                            + " - front=" + token.getFrontSide()
-                            + " | back=" + token.getBackSide()
-                            + " | current=" + token.getCurrentSide()
-                            + " | used=" + token.isUsed()
-            );
-        }
-
-        System.out.println();
-    }
-
-    private static void printDetectiveTokens(GameState gameState) {
-        System.out.println("=== DETECTIVES ===");
-
-        for (Token detective : gameState.getDetectiveTokens().getAllDetectives()) {
-            System.out.println(
-                    detective.getName()
-                            + " | position=" + detective.getPosition()
-            );
-        }
-
+    private static void printStatus(GameEngine engine) {
+        System.out.println("----- STATUS -----");
+        System.out.println("Round: " + engine.getRoundNumber());
+        System.out.println("Current player: " + engine.getCurrentPlayer());
+        System.out.println("Current action index: " + engine.getCurrentActionIndex());
+        System.out.println("Round over: " + engine.isRoundOver());
+        System.out.println("Game over: " + engine.getGameState().isGameOver());
+        System.out.println("Winner: " + engine.getGameState().getWinner());
         System.out.println();
     }
 }

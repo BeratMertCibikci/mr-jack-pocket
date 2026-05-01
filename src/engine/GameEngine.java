@@ -126,4 +126,19 @@ public class GameEngine {
             throw new IllegalStateException("Game is already over.");
         }
     }
+    public String getCurrentPlayer() {
+        return gameState.getTurnManager().getCurrentPlayer();
+    }
+
+    public int getRoundNumber() {
+        return gameState.getTurnManager().getRoundNumber();
+    }
+
+    public int getCurrentActionIndex() {
+        return gameState.getTurnManager().getCurrentActionIndex();
+    }
+
+    public boolean isRoundOver() {
+        return gameState.getTurnManager().isRoundOver();
+    }
 }

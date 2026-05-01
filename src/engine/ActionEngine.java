@@ -74,6 +74,10 @@ public class ActionEngine {
     public GameCharacter investigatorDrawsAlibi() {
         ensureSelectedActionIs(ActionType.ALIBI);
 
+        if (!gameState.getTurnManager().isInvestigatorTurn()) {
+            throw new IllegalStateException("Only Investigator can draw investigator alibi.");
+        }
+
         GameCharacter eliminatedCharacter =
                 gameState.getAlibiDeckManager().investigatorDraws();
 
@@ -90,6 +94,10 @@ public class ActionEngine {
 
     public void jackDrawsAlibi() {
         ensureSelectedActionIs(ActionType.ALIBI);
+
+        if (!gameState.getTurnManager().isJackTurn()) {
+            throw new IllegalStateException("Only Jack can draw Jack alibi.");
+        }
 
         gameState.getAlibiDeckManager().mrJackDraws(false);
 
@@ -132,6 +140,10 @@ public class ActionEngine {
     public GameCharacter useJokerAsAlibiForInvestigator() {
         ensureSelectedActionIs(ActionType.JOKER);
 
+        if (!gameState.getTurnManager().isInvestigatorTurn()) {
+            throw new IllegalStateException("Only Investigator can use Joker as investigator alibi.");
+            }
+
         GameCharacter eliminatedCharacter =
                 gameState.getAlibiDeckManager().investigatorDraws();
 
@@ -149,18 +161,18 @@ public class ActionEngine {
     public void useJokerAsAlibiForJack() {
         ensureSelectedActionIs(ActionType.JOKER);
 
+        if (!gameState.getTurnManager().isJackTurn()) {
+            throw new IllegalStateException("Only Jack can use Joker as Jack alibi.");
+        }
+
         gameState.getAlibiDeckManager().mrJackDraws(false);
 
         finishAction();
     }
 
-    public boolean hasSelectedAction() {
-        return selectedActionToken != null;
-    }
-
     private void finishAction() {
         selectedActionToken = null;
-        gameState.getTurnManager().nextActionTurn();
+        gameState.getTurnManager().completeActionTurn();
     }
 
     private void ensureActionSelected() {
@@ -200,5 +212,8 @@ public class ActionEngine {
             default:
                 throw new IllegalArgumentException("Unknown action type: " + actionName);
         }
+    }
+    public boolean hasSelectedAction() {
+        return selectedActionToken != null;
     }
 }

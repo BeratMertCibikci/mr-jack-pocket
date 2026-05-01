@@ -32,14 +32,12 @@ public class TurnManager {
         return currentPlayer.equals("Jack");
     }
 
-    public void nextActionTurn() {
+    public void completeActionTurn() {
         currentActionIndex++;
 
-        if (currentActionIndex >= 4) {
-            return;
+        if (!isRoundOver()) {
+            switchPlayer();
         }
-
-        switchPlayer();
     }
 
     public boolean isRoundOver() {

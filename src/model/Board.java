@@ -1,16 +1,55 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 public class Board {
 
     private static final int SIZE = 3;
 
     private Tile[][] tiles;
+    private Random random;
 
     public Board() {
         tiles = new Tile[SIZE][SIZE];
+        random = new Random();
+    }
+
+    public void setupRandomBoard(Tile[] areas) {
+        if (areas == null || areas.length != SIZE * SIZE) {
+            throw new IllegalArgumentException("Board needs exactly 9 areas.");
+        }
+
+        List<Tile> shuffledAreas = new ArrayList<>();
+
+        for (Tile area : areas) {
+            shuffledAreas.add(area);
+        }
+
+        Collections.shuffle(shuffledAreas);
+
+        int index = 0;
+
+        for (int row = 0; row < SIZE; row++) {
+            for (int column = 0; column < SIZE; column++) {
+                Tile tile = shuffledAreas.get(index);
+
+                randomizeOrientation(tile);
+                setTile(row, column, tile);
+
+                index++;
+            }
+        }
+    }
+
+    private void randomizeOrientation(Tile tile) {
+        int rotations = random.nextInt(4);
+
+        for (int i = 0; i < rotations; i++) {
+            tile.rotate();
+        }
     }
 
     public Tile getTile(int row, int column) {
@@ -83,10 +122,14 @@ public class Board {
         return boardCopy;
     }
 
+    public int getSize() {
+        return SIZE;
+    }
+
     private void validatePosition(int row, int column) {
         if (row < 0 || row >= SIZE || column < 0 || column >= SIZE) {
             throw new IndexOutOfBoundsException(
-                "Invalid board position: row=" + row + ", column=" + column
+                    "Invalid board position: row=" + row + ", column=" + column
             );
         }
     }

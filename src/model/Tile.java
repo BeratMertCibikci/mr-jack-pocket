@@ -12,13 +12,20 @@ public class Tile {
     private boolean isSuspectSide;
     private boolean isEliminated;
 
-    private Set<Direction> walls;
+    private Set<Direction> suspectSideRoads;
+    private Set<Direction> emptySideRoads;
 
     private Position position;
 
     private boolean hasBarricade;
 
-    public Tile(int id, GameCharacter character, Position position) {
+    public Tile(
+            int id,
+            GameCharacter character,
+            Position position,
+            Set<Direction> suspectSideRoads,
+            Set<Direction> emptySideRoads
+    ) {
         this.id = id;
         this.character = character;
         this.position = position;
@@ -26,16 +33,15 @@ public class Tile {
         this.orientation = Orientation.NORTH;
         this.isSuspectSide = true;
         this.isEliminated = false;
-        this.walls = new HashSet<>();
+
+        this.suspectSideRoads = new HashSet<>(suspectSideRoads);
+        this.emptySideRoads = new HashSet<>(emptySideRoads);
+
         this.hasBarricade = false;
 
         if (character != null) {
             character.setTile(this);
         }
-    }
-
-    public Tile(int id, Position position) {
-        this(id, null, position);
     }
 
     public int getId() {
@@ -46,10 +52,6 @@ public class Tile {
         return character;
     }
 
-    public boolean hasCharacter() {
-        return character != null && isSuspectSide && !isEliminated;
-    }
-
     public void setCharacter(GameCharacter character) {
         this.character = character;
 
@@ -58,20 +60,16 @@ public class Tile {
         }
     }
 
-    public Orientation getOrientation() {
-        return orientation;
-    }
-
-    public void setOrientation(Orientation orientation) {
-        this.orientation = orientation;
-    }
-
-    public void rotateClockwise() {
-        this.orientation = this.orientation.rotateClockwise();
+    public boolean hasCharacter() {
+        return character != null && isSuspectSide && !isEliminated;
     }
 
     public boolean isSuspectSide() {
         return isSuspectSide;
+    }
+
+    public boolean isEmptySide() {
+        return !isSuspectSide;
     }
 
     public void flipToEmptySide() {
@@ -97,20 +95,69 @@ public class Tile {
         }
     }
 
-    public Set<Direction> getWalls() {
-        return walls;
+    public boolean isSuspectVisible() {
+        return hasCharacter();
     }
 
-    public void addWall(Direction direction) {
-        walls.add(direction);
+    public void clearSuspect() {
+        eliminate();
     }
 
-    public void removeWall(Direction direction) {
-        walls.remove(direction);
+    public Orientation getOrientation() {
+        return orientation;
+    }
+
+    public void setOrientation(Orientation orientation) {
+        this.orientation = orientation;
+    }
+
+    public boolean hasRoad(Direction direction) {
+        if (isSuspectSide) {
+            return suspectSideRoads.contains(direction);
+        }
+
+        return emptySideRoads.contains(direction);
     }
 
     public boolean hasWall(Direction direction) {
-        return walls.contains(direction);
+        return !hasRoad(direction);
+    }
+
+    public Set<Direction> getCurrentRoads() {
+        if (isSuspectSide) {
+            return new HashSet<>(suspectSideRoads);
+        }
+
+        return new HashSet<>(emptySideRoads);
+    }
+
+    public Set<Direction> getSuspectSideRoads() {
+        return new HashSet<>(suspectSideRoads);
+    }
+
+    public Set<Direction> getEmptySideRoads() {
+        return new HashSet<>(emptySideRoads);
+    }
+
+    public void rotateClockwise() {
+        this.orientation = this.orientation.rotateClockwise();
+
+        this.suspectSideRoads = rotateRoadSetClockwise(this.suspectSideRoads);
+        this.emptySideRoads = rotateRoadSetClockwise(this.emptySideRoads);
+    }
+
+    public void rotate() {
+        rotateClockwise();
+    }
+
+    private Set<Direction> rotateRoadSetClockwise(Set<Direction> roads) {
+        Set<Direction> rotatedRoads = new HashSet<>();
+
+        for (Direction road : roads) {
+            rotatedRoads.add(road.rotateClockwise());
+        }
+
+        return rotatedRoads;
     }
 
     public Position getPosition() {
@@ -146,7 +193,7 @@ public class Tile {
     }
 
     public boolean blocksLineOfSight(Direction direction) {
-        return hasBarricade || hasWall(direction);
+        return hasBarricade || !hasRoad(direction);
     }
 
     public boolean canBeSeen() {

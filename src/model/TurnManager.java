@@ -3,12 +3,12 @@ package model;
 public class TurnManager {
     private int roundNumber;
     private int currentActionIndex;
-    private String currentPlayer;
+    //private String currentPlayer;
 
     public TurnManager() {
         this.roundNumber = 1;
         this.currentActionIndex = 0;
-        this.currentPlayer = "Investigator";
+        //this.currentPlayer = "Investigator";
     }
 
     public int getRoundNumber() {
@@ -20,25 +20,25 @@ public class TurnManager {
     }
 
     public String getCurrentPlayer() {
-        return currentPlayer;
+        if (roundNumber % 2 == 1){
+            String[] order = {"Investigator", "Jack", "Jack", "Investigator"};
+            return order[currentActionIndex];
+        }else{
+            String order[] = {"Jack", "Investigator", "Investigator", "Jack"};
+            return order[currentActionIndex];
+        }
     }
 
     public boolean isInvestigatorTurn() {
-        return currentPlayer.equals("Investigator");
+        return getCurrentPlayer().equals("Investigator");
     }
 
     public boolean isJackTurn() {
-        return currentPlayer.equals("Jack");
+        return getCurrentPlayer().equals("Jack");
     }
 
     public void nextActionTurn() {
-        currentActionIndex++;
-
-        if (currentActionIndex >= 4) {
-            return;
-        }
-
-        switchPlayer();
+        currentActionIndex ++;
     }
 
     public boolean isRoundOver() {
@@ -48,9 +48,10 @@ public class TurnManager {
     public void startNextRound() {
         roundNumber++;
         currentActionIndex = 0;
-        currentPlayer = getStartingPlayerForRound(roundNumber);
+        //currentPlayer = getStartingPlayerForRound(roundNumber);
     }
 
+    /*
     private void switchPlayer() {
         if (currentPlayer.equals("Investigator")) {
             currentPlayer = "Jack";
@@ -66,4 +67,5 @@ public class TurnManager {
 
         return "Jack";
     }
+    */
 }

@@ -18,8 +18,8 @@ public class GameState {
 
     private GameCharacter jackCharacter;
 
-    private String currentPlayer;
-    private int currentTurn;
+    //private String currentPlayer;
+    //private int currentTurn;
     private boolean gameStarted;
     private TurnManager turnManager;
     private WinConditionChecker winConditionChecker;
@@ -29,8 +29,8 @@ public class GameState {
 
     public GameState() {
         this.gameStarted = false;
-        this.currentTurn = 1;
-        this.currentPlayer = "Investigator";
+        //this.currentTurn = 1;
+        //this.currentPlayer = "Investigator";
         this.gameOver = false;
         this.winner = null;
     }
@@ -61,6 +61,22 @@ public class GameState {
         this.gameStarted = true;
     }
 
+    public Token playActionToken(int tokenIndex){
+        if (!gameStarted){
+            throw new IllegalStateException("Game has not started.");
+        }
+        if (gameOver){
+            throw new IllegalStateException("Game is already over");
+        }
+        if (turnManager.isRoundOver()){
+            throw new IllegalStateException("Round is already over");
+        }                                                               // verifier que lq partie est valide
+        Token selectedToken = actionTokens.selectToken(tokenIndex);     // selectionne une jeton d'action et marquer jeton comme utilise
+        turnManager.nextActionTurn();                                   // passer au prochain tour
+
+        return selectedToken;                                           // retoruner jeton selectionne
+    }
+
     private GameCharacter chooseJackIdentityFromAlibiDeck() {
         AlibiCards jackIdentityCard = alibiDeckManager.mrJackDraws(true);
 
@@ -74,6 +90,7 @@ public class GameState {
         return jack;
     }
 
+    /*
     public void nextTurn() {
         currentTurn++;
 
@@ -83,6 +100,7 @@ public class GameState {
             currentPlayer = "Investigator";
         }
     }
+    */
 
     public boolean isGameStarted() {
         return gameStarted;
@@ -121,11 +139,11 @@ public class GameState {
     }
 
     public String getCurrentPlayer() {
-        return currentPlayer;
+        return turnManager.getCurrentPlayer();
     }
 
     public int getCurrentTurn() {
-        return currentTurn;
+        return turnManager.getRoundNumber();
     }
     public TurnManager getTurnManager() {
         return turnManager;

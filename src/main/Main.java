@@ -15,6 +15,19 @@ public class Main {
         printBoard(gameState);
         printActionTokens(gameState);
         printDetectiveTokens(gameState);
+
+        System.out.println("=== PLAY ACTION TOKENS ===");
+        Token played1 = gameState.playActionToken(0);
+
+        System.out.println("Played token: " + played1.getCurrentSide());
+
+        System.out.println("Next player: " + gameState.getTurnManager().getCurrentPlayer());
+
+        Token played2 = gameState.playActionToken(1);
+
+        System.out.println("Played token: " + played2.getCurrentSide());
+
+        System.out.println("Next player: " + gameState.getTurnManager().getCurrentPlayer());
     }
 
     private static void printGameInfo(GameState gameState) {

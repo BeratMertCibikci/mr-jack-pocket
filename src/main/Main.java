@@ -16,18 +16,32 @@ public class Main {
         printActionTokens(gameState);
         printDetectiveTokens(gameState);
 
-        System.out.println("=== PLAY ACTION TOKENS ===");
-        Token played1 = gameState.playActionToken(0);
+        //test de fonctions
 
-        System.out.println("Played token: " + played1.getCurrentSide());
+        System.out.println("=== PLAY ALIBI TOKEN ===");
 
-        System.out.println("Next player: " + gameState.getTurnManager().getCurrentPlayer());
+        for (int i = 0; i < 4; i++) {
+            Token token = gameState.getActionTokens().getActionTokens()[i];
 
-        Token played2 = gameState.playActionToken(1);
+            if (token.getCurrentSide().equals("Alibi")) {
 
-        System.out.println("Played token: " + played2.getCurrentSide());
+                System.out.println(
+                        "Current player before: "
+                                + gameState.getTurnManager().getCurrentPlayer()
+                );
 
-        System.out.println("Next player: " + gameState.getTurnManager().getCurrentPlayer());
+                gameState.playAlibiToken(i);
+
+                System.out.println("Alibi token played.");
+
+                System.out.println(
+                        "Jack hourglasses: "
+                                + gameState.getAlibiDeckManager().getJackHourglassTotal()
+                );
+
+                break;
+            }
+        }
     }
 
     private static void printGameInfo(GameState gameState) {

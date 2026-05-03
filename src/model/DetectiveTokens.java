@@ -40,4 +40,18 @@ public class DetectiveTokens {
     public List<Token> getAllDetectives() {
         return allDetectives;
     }
+
+    public Token getDetectiveByName(String name){
+        for (Token detective: allDetectives){
+            if (detective.getName().equals(name)){
+                return detective;
+            }
+        }
+        throw new IllegalArgumentException("Unknown detective: " + name);
+    }
+
+    public void moveDetective(String name, int steps){
+        Token detective = getDetectiveByName(name);
+        detective.move(steps);
+    }
 }

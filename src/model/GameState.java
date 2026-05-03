@@ -221,4 +221,56 @@ public class GameState {
             winner = "Jack";
         }
     }
+
+    public void moveDetective(String detectiveName, int steps){
+        if (!gameStarted){
+            throw new IllegalStateException("Game has not started.");
+        }
+        if (gameOver){
+            throw new IllegalStateException("Game is already over.");
+        }
+        detectiveTokens.moveDetective(detectiveName, steps);
+        updateVisibility();
+    }
+
+    public Token playDetectiveActionToken(int tokenIndex, int steps){
+        Token token = playActionToken(tokenIndex);
+        String action = token.getCurrentSide();
+
+        if (!action.equals("Holmes") && !action.equals("Watson") && !action.equals("Toby")){
+            throw new IllegalArgumentException("This token is not a detective movement token.");
+        }
+        moveDetective(action, steps);
+        return token;
+    }
+
+    public AlibiCards playAlibiAction(String player){
+        if (player.equals("Investigator")){
+            GameCharacter eliminated = alibiDeckManager.investigatorDraws();
+
+            if (eliminated != null){
+                Tile tile = eliminated.getTile();
+
+                if (tile != null){
+                    tile.flipToEmptySide();
+                }
+            }
+            return null;
+        }else{
+            return alibiDeckManager.mrJackDraws(false);
+        }
+    }
+
+    public Token playAlibiToken(int tokenIndex){
+        String playerBeforeAction = turnManager.getCurrentPlayer();
+
+        Token token = playActionToken(tokenIndex);
+
+        if (!token.getCurrentSide().equals("Alibi")){
+            throw new IllegalArgumentException("Token is not an Alibi token.");
+        }
+
+        playAlibiAction(playerBeforeAction);
+        return token;
+    }
 }

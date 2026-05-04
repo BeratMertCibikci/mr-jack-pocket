@@ -24,25 +24,21 @@ public class GameState {
     private boolean gameStarted;
     private boolean gameOver;
     private String winner;
-   
 
     private String player1Role;
     private String player2Role;
+
+    private PlayerState detectivePlayerState;
+    private PlayerState jackPlayerState;
+    private Token currentTurnToken;
 
     public GameState(String player1Role) {
         this.gameStarted = false;
         this.gameOver = false;
         this.winner = null;
+
         this.player1Role = player1Role;
         this.player2Role = player1Role.equals("Investigator") ? "Jack" : "Investigator";
-    }
-
-    public String getPlayer1Role() {
-        return player1Role;
-    }
-
-    public String getPlayer2Role() {
-        return player2Role;
     }
 
     public void setupGame() {
@@ -60,6 +56,10 @@ public class GameState {
         this.detectiveTokens = new DetectiveTokens();
         this.actionTokens = new ActionTokens();
         this.timeTokens = new TimeTokens();
+
+        this.detectivePlayerState = new PlayerState(Player.DETECTIVE);
+        this.jackPlayerState = new PlayerState(Player.MR_JACK);
+        this.currentTurnToken = timeTokens.extraite();
 
         this.lineOfSightService = new LineOfSightService();
         this.witnessManager = new WitnessManager();
@@ -93,10 +93,17 @@ public class GameState {
     public List<GameCharacter> applyWitnessPhase() {
         updateVisibility();
 
-        return witnessManager.eliminateCharactersByWitness(
+        return witnessManager.resolveAppealForWitnesses(
                 characters,
-                jackCharacter
+                jackCharacter,
+                currentTurnToken,
+                detectivePlayerState,
+                jackPlayerState
         );
+    }
+
+    public void drawNextTurnToken() {
+        this.currentTurnToken = timeTokens.extraite();
     }
 
     public void finishGame(String winner) {
@@ -114,6 +121,14 @@ public class GameState {
 
     public String getWinner() {
         return winner;
+    }
+
+    public String getPlayer1Role() {
+        return player1Role;
+    }
+
+    public String getPlayer2Role() {
+        return player2Role;
     }
 
     public List<GameCharacter> getCharacters() {
@@ -162,5 +177,17 @@ public class GameState {
 
     public GameCharacter getJackCharacter() {
         return jackCharacter;
+    }
+
+    public PlayerState getDetectivePlayerState() {
+        return detectivePlayerState;
+    }
+
+    public PlayerState getJackPlayerState() {
+        return jackPlayerState;
+    }
+
+    public Token getCurrentTurnToken() {
+        return currentTurnToken;
     }
 }

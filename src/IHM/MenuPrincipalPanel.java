@@ -40,6 +40,14 @@ public class MenuPrincipalPanel extends JPanel {
         JButton jouerButton = new JButton("Jouer");
         JButton reglesButton = new JButton("Règles");
         JButton quitterButton = new JButton("Quitter");
+        JButton muteButton = new JButton("Unmute");
+
+        // Volume Slider
+        JSlider volumeSlider = new JSlider(0, 100, 40);
+        volumeSlider.setOpaque(false);
+        volumeSlider.setMaximumSize(new Dimension(180, 40));
+        volumeSlider.setAlignmentX(Component.LEFT_ALIGNMENT);
+        volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         /* 
         jouerButton.setFont(new Font("Arial", Font.BOLD, 20));
@@ -53,14 +61,20 @@ public class MenuPrincipalPanel extends JPanel {
         BoutonTexte(jouerButton);
         BoutonTexte(reglesButton);
         BoutonTexte(quitterButton);
+        BoutonTexte(muteButton);
 
         jouerButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         reglesButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         quitterButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        muteButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         boutonsPanel.add(jouerButton);
         boutonsPanel.add(Box.createVerticalStrut(10));
         boutonsPanel.add(reglesButton);
+        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(muteButton);
+        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(volumeSlider);
         boutonsPanel.add(Box.createVerticalStrut(10));
         boutonsPanel.add(quitterButton);
 
@@ -81,6 +95,18 @@ public class MenuPrincipalPanel extends JPanel {
             fenetre.afficherRegles();
         });
 
+        muteButton.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
+            System.out.println("Bouton Mute cliqué");
+            fenetre.toggleMusique();
+
+            if (fenetre.estMusiqueActivee()) {
+                muteButton.setText("Mute");
+            } else {
+                muteButton.setText("Unmute");
+            }
+        });
+
         quitterButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
             //System.exit(0);
@@ -88,6 +114,11 @@ public class MenuPrincipalPanel extends JPanel {
             Timer timer = new Timer(200, event -> System.exit(0));
             timer.setRepeats(false);
             timer.start();
+        });
+
+        volumeSlider.addChangeListener(e -> {
+            int volume = volumeSlider.getValue();
+            fenetre.changerVolumeMusique(volume);
         });
     }
 

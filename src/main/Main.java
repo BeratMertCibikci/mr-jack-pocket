@@ -34,54 +34,71 @@ public class Main {
         printBoard(gameState);
         printActionTokens(gameState);
         printDetectiveTokens(gameState);
-
+        printTurnTokens(gameState);
         printStatus(engine);
 
         while (!engine.getGameState().isGameOver()) {
-            
-            while (!engine.isRoundOver()) {
+
+            while (!engine.isRoundOver() && !engine.getGameState().isGameOver()) {
                 playOneActionWithInput(engine, scanner);
+
+                printBoard(engine.getGameState());
+                printCharacters(engine.getGameState());
+                printDetectiveTokens(engine.getGameState());
                 printStatus(engine);
             }
 
-            System.out.println("--- Ending Round " + engine.getRoundNumber() + " ---");
-            engine.endRound();
-            
-            if(!engine.getGameState().isGameOver()){
-                printActionTokens(engine.getGameState()); 
-                printStatus(engine);
+            if (!engine.getGameState().isGameOver()) {
+                System.out.println("--- Ending Round " + engine.getRoundNumber() + " ---");
+
+                engine.endRound();
+
+                System.out.println("--- Appeal for Witnesses resolved ---");
+                printTurnTokens(engine.getGameState());
+                printCharacters(engine.getGameState());
+
+                if (!engine.getGameState().isGameOver()) {
+                    printActionTokens(engine.getGameState());
+                    printStatus(engine);
+                }
             }
         }
-        
+
         System.out.println("Game Over! Winner: " + engine.getGameState().getWinner());
 
-        scanner.close();}
+        scanner.close();
+    }
 
     private static void playOneActionWithInput(GameEngine engine, Scanner scanner) {
         String currentPlayerRole = engine.getCurrentPlayer();
+
         System.out.println("\n>>> It is " + currentPlayerRole + "'s turn.");
         System.out.println("Available tokens:");
-        
+
         Token[] tokens = engine.getGameState().getActionTokens().getActionTokens();
+
         for (int i = 0; i < tokens.length; i++) {
             if (!tokens[i].isUsed()) {
                 System.out.println("  " + i + ": " + tokens[i].getCurrentSide());
             }
         }
 
-        int tokenIndex = -1;
+        int tokenIndex;
+
         while (true) {
             System.out.print(currentPlayerRole + ", select a token index (0-3): ");
+
             if (scanner.hasNextInt()) {
                 tokenIndex = scanner.nextInt();
-                if (tokenIndex >= 0 && tokenIndex < 4 && !tokens[tokenIndex].isUsed()) {
-                    break; 
-                } else {
-                    System.out.println("Invalid or already used token index.");
+
+                if (tokenIndex >= 0 && tokenIndex < tokens.length && !tokens[tokenIndex].isUsed()) {
+                    break;
                 }
+
+                System.out.println("Invalid or already used token index.");
             } else {
                 System.out.println("Please enter a valid number.");
-                scanner.next(); 
+                scanner.next();
             }
         }
 
@@ -97,33 +114,64 @@ public class Main {
                 engine.moveHolmes(holmesSteps);
                 System.out.println("Holmes moved " + holmesSteps + " step(s).");
                 break;
+
             case WATSON:
                 int watsonSteps = getDetectiveSteps(scanner, "Watson");
                 engine.moveWatson(watsonSteps);
                 System.out.println("Watson moved " + watsonSteps + " step(s).");
                 break;
+
             case TOBY:
                 int tobySteps = getDetectiveSteps(scanner, "Toby");
                 engine.moveToby(tobySteps);
                 System.out.println("Toby moved " + tobySteps + " step(s).");
                 break;
+
             case ROTATE:
                 Tile tileToRotate = getTileInput(scanner, engine, "tile to rotate");
                 int rotations = getRotationInput(scanner);
-                
+
                 engine.rotateTile(tileToRotate, rotations);
-                
-                System.out.println("Rotated tile at (" + tileToRotate.getRow() + "," + tileToRotate.getCol() + ") " + rotations + " time(s).");
+
+                System.out.println(
+                        "Rotated tile at ("
+                                + tileToRotate.getRow()
+                                + ","
+                                + tileToRotate.getCol()
+                                + ") "
+                                + rotations
+                                + " time(s)."
+                );
                 break;
+
             case EXCHANGE:
                 Tile tileA = getTileInput(scanner, engine, "first tile");
                 Tile tileB = getTileInput(scanner, engine, "second tile");
+
+                int oldRowA = tileA.getRow();
+                int oldColA = tileA.getCol();
+                int oldRowB = tileB.getRow();
+                int oldColB = tileB.getCol();
+
                 engine.exchangeTiles(tileA, tileB);
-                System.out.println("Exchanged tiles (" + tileA.getRow() + "," + tileA.getCol() + ") and (" + tileB.getRow() + "," + tileB.getCol() + ").");
+
+                System.out.println(
+                        "Exchanged tiles ("
+                                + oldRowA
+                                + ","
+                                + oldColA
+                                + ") and ("
+                                + oldRowB
+                                + ","
+                                + oldColB
+                                + ")."
+                );
                 break;
+
             case ALIBI:
                 if (engine.getGameState().getTurnManager().isInvestigatorTurn()) {
                     GameCharacter eliminated = engine.investigatorDrawsAlibi();
+
                     if (eliminated != null) {
                         System.out.println("Investigator drew alibi: " + eliminated.getName());
                     } else {
@@ -134,42 +182,100 @@ public class Main {
                     System.out.println("Jack drew alibi.");
                 }
                 break;
+
             case JOKER:
                 System.out.print("Which detective do you want to move with Joker? (Holmes / Watson / Toby): ");
                 String targetDetective = scanner.next();
-                
-                while(!targetDetective.equalsIgnoreCase("Holmes") && 
-                      !targetDetective.equalsIgnoreCase("Watson") && 
-                      !targetDetective.equalsIgnoreCase("Toby")) {
+
+                while (!targetDetective.equalsIgnoreCase("Holmes")
+                        && !targetDetective.equalsIgnoreCase("Watson")
+                        && !targetDetective.equalsIgnoreCase("Toby")) {
                     System.out.print("Invalid choice. Please enter Holmes, Watson or Toby: ");
                     targetDetective = scanner.next();
                 }
 
                 int jokerSteps = getDetectiveSteps(scanner, targetDetective);
                 engine.moveDetectiveWithJoker(targetDetective, jokerSteps);
-                System.out.println("Used Joker to move " + targetDetective + " " + jokerSteps + " step(s).");
+
+                System.out.println(
+                        "Used Joker to move "
+                                + targetDetective
+                                + " "
+                                + jokerSteps
+                                + " step(s)."
+                );
                 break;
         }
     }
 
     private static int getDetectiveSteps(Scanner scanner, String detectiveName) {
-        int steps = 0;
+        int steps;
+
         while (true) {
             System.out.print("How many steps should " + detectiveName + " move? (1 or 2): ");
+
             if (scanner.hasNextInt()) {
                 steps = scanner.nextInt();
+
                 if (steps == 1 || steps == 2) {
-                    break;
-                } else {
-                    System.out.println("Invalid number. Must be 1 or 2.");
+                    return steps;
                 }
+
+                System.out.println("Invalid number. Must be 1 or 2.");
             } else {
                 System.out.println("Please enter a valid number.");
                 scanner.next();
             }
         }
-        return steps;
     }
+
+    private static Tile getTileInput(Scanner scanner, GameEngine engine, String tileName) {
+        while (true) {
+            System.out.print("Enter row and column for " + tileName + " (e.g. 0 2): ");
+
+            if (scanner.hasNextInt()) {
+                int row = scanner.nextInt();
+
+                if (scanner.hasNextInt()) {
+                    int col = scanner.nextInt();
+
+                    if (row >= 0 && row < 3 && col >= 0 && col < 3) {
+                        return engine.getGameState().getBoard().getTile(row, col);
+                    }
+
+                    System.out.println("Invalid coordinates. Row and column must be 0, 1, or 2.");
+                } else {
+                    System.out.println("Invalid column input.");
+                    scanner.next();
+                }
+            } else {
+                System.out.println("Invalid row input.");
+                scanner.next();
+            }
+        }
+    }
+
+    private static int getRotationInput(Scanner scanner) {
+        int rotations;
+
+        while (true) {
+            System.out.print("How many times do you want to rotate it clockwise? (1 to 3): ");
+
+            if (scanner.hasNextInt()) {
+                rotations = scanner.nextInt();
+
+                if (rotations >= 1 && rotations <= 3) {
+                    return rotations;
+                }
+
+                System.out.println("Invalid number. Please enter 1, 2, or 3.");
+            } else {
+                System.out.println("Please enter a valid number.");
+                scanner.next();
+            }
+        }
+    }
+
     private static void printStatus(GameEngine engine) {
         System.out.println("----- STATUS -----");
         System.out.println("Round: " + engine.getRoundNumber());
@@ -218,51 +324,13 @@ public class Main {
         }
 
         return "Area " + tile.getId()
-                + " (" + tile.getRow()
-                + "," + tile.getCol()
-                + ")";
-    }
-
-    private static Tile getTileInput(Scanner scanner, GameEngine engine, String tileName) {
-        while (true) {
-            System.out.print("Enter row and column for " + tileName + " (e.g. 0 2): ");
-            if (scanner.hasNextInt()) {
-                int row = scanner.nextInt();
-                if (scanner.hasNextInt()) {
-                    int col = scanner.nextInt();
-                    if (row >= 0 && row < 3 && col >= 0 && col < 3) {
-                        return engine.getGameState().getBoard().getTile(row, col);
-                    } else {
-                        System.out.println("Invalid coordinates. Row and column must be 0, 1, or 2.");
-                    }
-                } else {
-                    System.out.println("Invalid column input.");
-                    scanner.next();
-                }
-            } else {
-                System.out.println("Invalid row input.");
-                scanner.next();
-            }
-        }
-    }
-
-    private static int getRotationInput(Scanner scanner) {
-        int rotations = 0;
-        while (true) {
-            System.out.print("How many times do you want to rotate it clockwise? (1 to 3): ");
-            if (scanner.hasNextInt()) {
-                rotations = scanner.nextInt();
-                if (rotations >= 1 && rotations <= 3) {
-                    break;
-                } else {
-                    System.out.println("Invalid number. Please enter 1, 2, or 3.");
-                }
-            } else {
-                System.out.println("Please enter a valid number.");
-                scanner.next();
-            }
-        }
-        return rotations;
+                + " ("
+                + tile.getRow()
+                + ","
+                + tile.getCol()
+                + ")"
+                + " | side="
+                + (tile.isSuspectSide() ? "Suspect" : "Empty");
     }
 
     private static void printBoard(GameState gameState) {
@@ -281,7 +349,9 @@ public class Main {
                             ? tile.getCharacter().getName()
                             : "No Character";
 
-                    System.out.print("[A" + tile.getId() + ": " + characterName + "] ");
+                    String side = tile.isSuspectSide() ? "S" : "E";
+
+                    System.out.print("[A" + tile.getId() + ":" + characterName + ":" + side + "] ");
                 }
             }
 
@@ -301,10 +371,14 @@ public class Main {
 
             System.out.println(
                     i
-                            + " - front=" + token.getFrontSide()
-                            + " | back=" + token.getBackSide()
-                            + " | current=" + token.getCurrentSide()
-                            + " | used=" + token.isUsed()
+                            + " - front="
+                            + token.getFrontSide()
+                            + " | back="
+                            + token.getBackSide()
+                            + " | current="
+                            + token.getCurrentSide()
+                            + " | used="
+                            + token.isUsed()
             );
         }
 
@@ -317,7 +391,49 @@ public class Main {
         for (Token detective : gameState.getDetectiveTokens().getAllDetectives()) {
             System.out.println(
                     detective.getName()
-                            + " | position=" + detective.getPosition()
+                            + " | position="
+                            + detective.getPosition()
+            );
+        }
+
+        System.out.println();
+    }
+
+    private static void printTurnTokens(GameState gameState) {
+        System.out.println("=== TURN / TIME TOKENS ===");
+
+        Token currentTurnToken = gameState.getCurrentTurnToken();
+
+        if (currentTurnToken == null) {
+            System.out.println("Current turn token: none");
+        } else {
+            System.out.println(
+                    "Current turn token: "
+                            + currentTurnToken.getFrontSide()
+                            + " | current side="
+                            + currentTurnToken.getCurrentSide()
+            );
+        }
+
+        System.out.println("Detective owned turn tokens:");
+
+        for (Token token : gameState.getDetectivePlayerState().getOwnedTurnTokens()) {
+            System.out.println(
+                    "- "
+                            + token.getFrontSide()
+                            + " | current side="
+                            + token.getCurrentSide()
+            );
+        }
+
+        System.out.println("Mr. Jack owned turn tokens:");
+
+        for (Token token : gameState.getJackPlayerState().getOwnedTurnTokens()) {
+            System.out.println(
+                    "- "
+                            + token.getFrontSide()
+                            + " | current side="
+                            + token.getCurrentSide()
             );
         }
 

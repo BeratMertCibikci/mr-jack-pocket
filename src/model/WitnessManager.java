@@ -13,10 +13,29 @@ public class WitnessManager {
         return jackCharacter.isVisible();
     }
 
-    public List<GameCharacter> eliminateCharactersByWitness(
+    public List<GameCharacter> resolveAppealForWitnesses(
             List<GameCharacter> characters,
-            GameCharacter jackCharacter
+            GameCharacter jackCharacter,
+            Token currentTurnToken,
+            PlayerState detectivePlayerState,
+            PlayerState jackPlayerState
     ) {
+        if (characters == null) {
+            throw new IllegalArgumentException("Characters cannot be null.");
+        }
+
+        if (jackCharacter == null) {
+            throw new IllegalArgumentException("Jack character cannot be null.");
+        }
+
+        if (currentTurnToken == null) {
+            throw new IllegalArgumentException("Current turn token cannot be null.");
+        }
+
+        if (detectivePlayerState == null || jackPlayerState == null) {
+            throw new IllegalArgumentException("Player states cannot be null.");
+        }
+
         boolean jackVisible = isJackVisible(jackCharacter);
 
         List<GameCharacter> eliminatedCharacters = new ArrayList<>();
@@ -33,9 +52,9 @@ public class WitnessManager {
             boolean shouldEliminate;
 
             if (jackVisible) {
-                shouldEliminate = !character.isVisible();
+                shouldEliminate = character.isSuspect() && !character.isVisible();
             } else {
-                shouldEliminate = character.isVisible();
+                shouldEliminate = character.isSuspect() && character.isVisible();
             }
 
             if (shouldEliminate) {
@@ -48,6 +67,25 @@ public class WitnessManager {
 
                 eliminatedCharacters.add(character);
             }
+        }
+
+        if (jackVisible) {
+            // Mr. Jack can be seen:
+            // Investigator takes the current turn token.
+            // It should NOT be hourglass side up.
+            if (currentTurnToken.getCurrentSide().equals("Hourglass")) {
+                currentTurnToken.turn();
+            }
+
+            detectivePlayerState.addTurnToken(currentTurnToken);
+        } else {
+            // Mr. Jack cannot be seen:
+            // Mr. Jack takes the current turn token hourglass side up.
+            if (!currentTurnToken.getCurrentSide().equals("Hourglass")) {
+                currentTurnToken.turn();
+            }
+
+            jackPlayerState.addTurnToken(currentTurnToken);
         }
 
         return eliminatedCharacters;

@@ -11,7 +11,7 @@ public class GameEngine {
     private RoundEngine roundEngine;
 
     public GameEngine(String player1Role) {
-        this.gameState = new GameState(player1Role);
+        this.gameState = new GameState(player1Role); 
     }
 
     public void startGame() {

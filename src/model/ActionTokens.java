@@ -8,7 +8,7 @@ public class ActionTokens {
     private Token t3 = new Token("Exchange", "Rotate");
     private Token t4 = new Token("Joker", "Rotate");
 
-    private Random rand = new Random();
+    private Random rand = new Random(); 
     private Token[] actionTokens;
 
     public ActionTokens() {

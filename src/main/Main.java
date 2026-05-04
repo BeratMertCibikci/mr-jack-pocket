@@ -194,15 +194,12 @@ public class Main {
                     targetDetective = scanner.next();
                 }
 
-                int jokerSteps = getDetectiveSteps(scanner, targetDetective);
-                engine.moveDetectiveWithJoker(targetDetective, jokerSteps);
+                engine.moveDetectiveWithJoker(targetDetective);
 
                 System.out.println(
                         "Used Joker to move "
                                 + targetDetective
-                                + " "
-                                + jokerSteps
-                                + " step(s)."
+                                + " 1 step."
                 );
                 break;
         }

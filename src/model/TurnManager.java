@@ -35,9 +35,11 @@ public class TurnManager {
 
     public boolean isInvestigatorTurn() {
         return getCurrentPlayer().equals("Investigator");
+        return getCurrentPlayer().equals("Investigator");
     }
 
     public boolean isJackTurn() {
+        return getCurrentPlayer().equals("Jack");
         return getCurrentPlayer().equals("Jack");
     }
 
@@ -53,4 +55,5 @@ public class TurnManager {
         roundNumber++;
         currentActionIndex = 0;
     }
+    */
 }

@@ -152,9 +152,9 @@ public class ActionEngine {
             throw new IllegalArgumentException("Unknown detective: " + detectiveName);
         }
 
-        moveValidator.validateDetectiveMove(detective, steps);
+        moveValidator.validateDetectiveMove(detective, 1);
 
-        detective.move(steps);
+        detective.move(1);
         gameState.updateVisibility();
 
         finishAction();

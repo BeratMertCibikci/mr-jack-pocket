@@ -19,6 +19,57 @@ public class LineOfSightService {
         }
     }
 
+    public List<GameCharacter> getVisibleCharacters(
+            Board board,
+            DetectiveTokens detectiveTokens,
+            List<GameCharacter> characters
+    ) {
+        updateVisibility(board, detectiveTokens, characters);
+
+        List<GameCharacter> visibleCharacters = new ArrayList<>();
+
+        for (GameCharacter character : characters) {
+            if (character.isSuspect() && character.isVisible()) {
+                visibleCharacters.add(character);
+            }
+        }
+
+        return visibleCharacters;
+    }
+
+    public List<GameCharacter> getHiddenCharacters(
+            Board board,
+            DetectiveTokens detectiveTokens,
+            List<GameCharacter> characters
+    ) {
+        updateVisibility(board, detectiveTokens, characters);
+
+        List<GameCharacter> hiddenCharacters = new ArrayList<>();
+
+        for (GameCharacter character : characters) {
+            if (character.isSuspect() && !character.isVisible()) {
+                hiddenCharacters.add(character);
+            }
+        }
+
+        return hiddenCharacters;
+    }
+
+    public boolean canJackBeSeen(
+            Board board,
+            DetectiveTokens detectiveTokens,
+            List<GameCharacter> characters,
+            GameCharacter jackCharacter
+    ) {
+        if (jackCharacter == null) {
+            throw new IllegalArgumentException("Jack character cannot be null.");
+        }
+
+        updateVisibility(board, detectiveTokens, characters);
+
+        return jackCharacter.isVisible();
+    }
+
     public List<Tile> getVisibleTilesForDetective(Board board, Token detective) {
         if (detective == null || !detective.isDetectiveToken()) {
             throw new IllegalArgumentException("Token must be a detective token.");

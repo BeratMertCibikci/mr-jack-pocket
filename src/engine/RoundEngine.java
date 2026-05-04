@@ -19,6 +19,18 @@ public class RoundEngine {
         // Current turn token is given to Detective or Mr. Jack here.
         gameState.applyWitnessPhase();
 
+        String winner = gameState.getWinConditionChecker().determineWinnerAfterWitnessPhase(
+                gameState.getCharacters(),
+                gameState.getJackCharacter(),
+                gameState.getAlibiDeckManager(),
+                gameState.getJackPlayerState()
+        );
+
+        if (winner != null) {
+            gameState.finishGame(winner);
+            return;
+        }
+
         gameState.getTurnManager().startNextRound();
 
         int nextRound = gameState.getTurnManager().getRoundNumber();

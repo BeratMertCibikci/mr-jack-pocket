@@ -1,5 +1,7 @@
 package engine;
 
+import java.util.HashSet;
+import java.util.Set;
 import model.GameCharacter;
 import model.GameState;
 import model.Tile;
@@ -10,11 +12,13 @@ public class ActionEngine {
     private MoveValidator moveValidator;
 
     private Token selectedActionToken;
+    private Set<Integer> rotatedTileIdsThisRound;
 
     public ActionEngine(GameState gameState) {
         this.gameState = gameState;
         this.moveValidator = new MoveValidator();
         this.selectedActionToken = null;
+        this.rotatedTileIdsThisRound = new HashSet<>();
     }
 
     public Token selectActionToken(int index) {
@@ -108,14 +112,20 @@ public class ActionEngine {
         ensureSelectedActionIs(ActionType.ROTATE);
 
         moveValidator.validateRotateTile(gameState.getBoard(), tile);
+        validateRotationCount(rotations);
+        validateTileNotAlreadyRotatedThisRound(tile);
 
         for (int i = 0; i < rotations; i++) {
             tile.rotate();
         }
-        
+
+        rotatedTileIdsThisRound.add(tile.getId());
+
         gameState.updateVisibility();
+
         finishAction();
     }
+
     public void exchangeTiles(Tile tileA, Tile tileB) {
         ensureSelectedActionIs(ActionType.EXCHANGE);
 
@@ -131,6 +141,7 @@ public class ActionEngine {
         ensureSelectedActionIs(ActionType.JOKER);
 
         Token detective;
+
         if (detectiveName.equalsIgnoreCase("Holmes")) {
             detective = gameState.getDetectiveTokens().getHolmes();
         } else if (detectiveName.equalsIgnoreCase("Watson")) {
@@ -149,9 +160,26 @@ public class ActionEngine {
         finishAction();
     }
 
-    
+    public boolean hasSelectedAction() {
+        return selectedActionToken != null;
+    }
 
-    
+    public void resetRotatedTilesThisRound() {
+        rotatedTileIdsThisRound.clear();
+    }
+
+    private void validateRotationCount(int rotations) {
+        if (rotations < 1 || rotations > 3) {
+            throw new IllegalArgumentException("Rotation must be 1, 2, or 3.");
+        }
+    }
+
+    private void validateTileNotAlreadyRotatedThisRound(Tile tile) {
+        if (rotatedTileIdsThisRound.contains(tile.getId())) {
+            throw new IllegalStateException("This tile has already been rotated this round.");
+        }
+    }
+
     private void finishAction() {
         selectedActionToken = null;
         gameState.getTurnManager().completeActionTurn();
@@ -194,8 +222,5 @@ public class ActionEngine {
             default:
                 throw new IllegalArgumentException("Unknown action type: " + actionName);
         }
-    }
-    public boolean hasSelectedAction() {
-        return selectedActionToken != null;
     }
 }

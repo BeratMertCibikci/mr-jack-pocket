@@ -79,6 +79,10 @@ public class GameEngine {
         }
 
         roundEngine.endRound();
+
+        if (!gameState.isGameOver()) {
+            actionEngine.resetRotatedTilesThisRound();
+        }
     }
 
     public void accuse(GameCharacter accusedCharacter) {
@@ -107,15 +111,6 @@ public class GameEngine {
         return roundEngine;
     }
 
-    private void ensureGameRunning() {
-        if (!gameState.isGameStarted()) {
-            throw new IllegalStateException("Game has not started.");
-        }
-
-        if (gameState.isGameOver()) {
-            throw new IllegalStateException("Game is already over.");
-        }
-    }
     public String getCurrentPlayer() {
         return gameState.getTurnManager().getCurrentPlayer();
     }
@@ -130,5 +125,15 @@ public class GameEngine {
 
     public boolean isRoundOver() {
         return gameState.getTurnManager().isRoundOver();
+    }
+
+    private void ensureGameRunning() {
+        if (!gameState.isGameStarted()) {
+            throw new IllegalStateException("Game has not started.");
+        }
+
+        if (gameState.isGameOver()) {
+            throw new IllegalStateException("Game is already over.");
+        }
     }
 }

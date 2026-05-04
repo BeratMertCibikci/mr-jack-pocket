@@ -11,7 +11,7 @@ public class GameEngine {
     private RoundEngine roundEngine;
 
     public GameEngine(String player1Role) {
-        this.gameState = new GameState(player1Role);
+        this.gameState = new GameState(player1Role); 
     }
 
     public void startGame() {
@@ -56,9 +56,9 @@ public class GameEngine {
         actionEngine.jackDrawsAlibi();
     }
 
-    public void rotateTile(Tile tile) {
+    public void rotateTile(Tile tile, int rotations) {
         ensureGameRunning();
-        actionEngine.rotateTile(tile);
+        actionEngine.rotateTile(tile, rotations);
     }
 
     public void exchangeTiles(Tile tileA, Tile tileB) {
@@ -66,19 +66,9 @@ public class GameEngine {
         actionEngine.exchangeTiles(tileA, tileB);
     }
 
-    public void useJokerAsRotate(Tile tile) {
+    public void moveDetectiveWithJoker(String detectiveName, int steps) {
         ensureGameRunning();
-        actionEngine.useJokerAsRotate(tile);
-    }
-
-    public GameCharacter useJokerAsAlibiForInvestigator() {
-        ensureGameRunning();
-        return actionEngine.useJokerAsAlibiForInvestigator();
-    }
-
-    public void useJokerAsAlibiForJack() {
-        ensureGameRunning();
-        actionEngine.useJokerAsAlibiForJack();
+        actionEngine.moveDetectiveWithJoker(detectiveName, steps);
     }
 
     public void endRound() {

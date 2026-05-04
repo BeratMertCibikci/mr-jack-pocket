@@ -160,6 +160,16 @@ public class ActionEngine {
         finishAction();
     }
 
+    public void skipJokerMove() {
+        ensureSelectedActionIs(ActionType.JOKER);
+
+        if (!gameState.getTurnManager().isJackTurn()) {
+            throw new IllegalStateException("Only Jack can skip Joker move.");
+        }
+
+        finishAction();
+    }
+
     public boolean hasSelectedAction() {
         return selectedActionToken != null;
     }

@@ -184,6 +184,22 @@ public class Main {
                 break;
 
             case JOKER:
+                if (engine.getGameState().getTurnManager().isJackTurn()) {
+                    System.out.print("Jack: do you want to move a detective with Joker? (yes/no): ");
+                    String answer = scanner.next();
+
+                    while (!answer.equalsIgnoreCase("yes") && !answer.equalsIgnoreCase("no")) {
+                        System.out.print("Invalid choice. Please enter yes or no: ");
+                        answer = scanner.next();
+                    }
+
+                    if (answer.equalsIgnoreCase("no")) {
+                        engine.skipJokerMove();
+                        System.out.println("Jack used Joker and did not move any detective.");
+                        break;
+                    }
+                }
+
                 System.out.print("Which detective do you want to move with Joker? (Holmes / Watson / Toby): ");
                 String targetDetective = scanner.next();
 

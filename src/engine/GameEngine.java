@@ -71,6 +71,11 @@ public class GameEngine {
         actionEngine.moveDetectiveWithJoker(detectiveName, 1); // Joker can only move 1 step
     }
 
+    public void skipJokerMove() {
+        ensureGameRunning();
+        actionEngine.skipJokerMove();
+    }
+
     public void endRound() {
         ensureGameRunning();
 

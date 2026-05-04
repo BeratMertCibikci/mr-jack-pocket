@@ -1,7 +1,10 @@
 package IHM;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+
 import java.awt.*;
+import java.util.concurrent.Flow;
 
 public class ChoixModePanel extends JPanel {
 
@@ -79,22 +82,7 @@ public class ChoixModePanel extends JPanel {
         // 8. Buton aksiyonları
         humainVsHumainButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
-
-            String[] roles = {"Investigator", "Jack"};
-
-            String roleChoisi = (String) JOptionPane.showInputDialog(
-                    this,
-                    "Choisissez le rôle du Joueur 1 :",
-                    "Choix du rôle",
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    roles,
-                    roles[0]
-            );
-
-            if (roleChoisi != null) {
-                fenetre.lancerJeu(GameMode.HUMAN_VS_HUMAN, roleChoisi);
-            }
+            afficherChoixRoleIcones(fenetre, GameMode.HUMAN_VS_HUMAN);
         });
 
         humainVsIAButton.addActionListener(e -> {
@@ -124,6 +112,57 @@ public class ChoixModePanel extends JPanel {
 
         bouton.setMargin(new Insets(4, 8, 4, 8));
         bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    }
+
+    private void afficherChoixRoleIcones(FenetrePrincipale fenetre, GameMode mode) {
+        JDialog dialog = new JDialog(fenetre, "Choix du rôle", true);
+        dialog.setSize(420, 260);
+        dialog.setLocationRelativeTo(fenetre);
+        dialog.setLayout(new BorderLayout());
+
+        JLabel titre = new JLabel("Choisissez le rôle du Joueur 1", SwingConstants.CENTER);
+        titre.setFont(new Font("Arial", Font.BOLD, 20));
+
+        JPanel panelRoles = new JPanel(new FlowLayout(FlowLayout.CENTER, 60, 20));
+
+        JLabel investigator = creerRoleIcone("Investigator", "assets/images/characters/investigator.png");
+        JLabel jack = creerRoleIcone("Jack", "assets/images/characters/jeremy_bert.png");
+
+        investigator.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                boutonClickMusique.jouerClick();
+                dialog.dispose();
+                fenetre.lancerJeu(mode, "Investigator");
+            }
+        });
+
+        jack.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                boutonClickMusique.jouerClick();
+                dialog.dispose();
+                fenetre.lancerJeu(mode, "Jack");
+            }
+        });
+
+        panelRoles.add(investigator); panelRoles.add(jack);
+        dialog.add(titre, BorderLayout.NORTH);
+        dialog.add(panelRoles, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
+
+    private JLabel creerRoleIcone(String texte, String cheminImage) {
+        ImageIcon icon = new ImageIcon(cheminImage);
+        Image image = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+
+        JLabel label = new JLabel(texte, new ImageIcon(image), SwingConstants.CENTER);
+        label.setHorizontalTextPosition(SwingConstants.CENTER);
+        label.setVerticalTextPosition(SwingConstants.BOTTOM);
+        label.setFont(new Font("Arial", Font.BOLD, 18));
+        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        return label;
     }
 
     @Override

@@ -3,8 +3,8 @@
     java -cp out main.Main
 
     IHM ÇALIŞTIRMA:
-    javac src/*/*.java
-    java -cp src IHM.FenetrePrincipale
+    javac -d out src/*/*.java
+    java -cp out IHM.FenetrePrincipale
 
 mr-jack-pocket/
 │

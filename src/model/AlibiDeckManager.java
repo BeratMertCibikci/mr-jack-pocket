@@ -103,4 +103,33 @@ public class AlibiDeckManager {
     public List<AlibiCards> getCards() {
         return cards;
     }
+
+    public AlibiDeckManager deepCopy(List<GameCharacter> characterCopies){
+        AlibiDeckManager copy = new AlibiDeckManager(characterCopies);
+
+        copy.cards = new ArrayList<>();
+
+        for (AlibiCards card : this.cards){
+            GameCharacter characterCopy = null;
+
+            if (card.getCharacter() != null){
+                characterCopy = findCharacterCopy(characterCopies, card.getCharacter().getId());
+            }
+            AlibiCards cardCopy = card.deepCopy(characterCopy);
+
+            copy.cards.add(cardCopy);
+        }
+        copy.jackHourglassTotal = this.jackHourglassTotal;
+
+        return copy;
+    }
+
+    private GameCharacter findCharacterCopy(List<GameCharacter> copies, int id){
+        for (GameCharacter c : copies){
+            if (c.getId() == id){
+                return c;
+            }
+        }
+        return null;
+    }
 }

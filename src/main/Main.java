@@ -40,6 +40,37 @@ public class Main {
         while (!engine.getGameState().isGameOver()) {
 
             while (!engine.isRoundOver() && !engine.getGameState().isGameOver()) {
+
+                System.out.println("\nCommand (play / undo / redo): ");
+                String cmd = scanner.next();
+
+                if (cmd.equalsIgnoreCase("undo")){
+                    engine.undo();
+
+                    printBoard(engine.getGameState());
+                    printCharacters(engine.getGameState());
+                    printDetectiveTokens(engine.getGameState());
+                    printStatus(engine);
+
+                    continue;
+                }
+
+                if (cmd.equalsIgnoreCase("redo")){
+                    engine.redo();
+
+                    printBoard(engine.getGameState());
+                    printCharacters(engine.getGameState());
+                    printDetectiveTokens(engine.getGameState());
+                    printStatus(engine);
+
+                    continue;
+                }
+
+                if (!cmd.equalsIgnoreCase("play")){
+                    System.out.println("Unknown command. Type play / undo / redo.");
+                    continue;
+                }
+
                 playOneActionWithInput(engine, scanner);
 
                 printBoard(engine.getGameState());

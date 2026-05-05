@@ -61,4 +61,19 @@ public class ActionTokens {
             token.turn();
         }
     }
+
+    public ActionTokens deepCopy(){
+        ActionTokens copy = new ActionTokens();
+
+        Token[] original = this.actionTokens;
+        Token[] copied = new Token[original.length];
+
+        for (int i = 0;  i < original.length; i++){
+            copied[i] = original[i].deepCopy();
+        }
+
+        copy.actionTokens = copied;
+
+        return copy;
+    }
 }

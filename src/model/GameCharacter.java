@@ -74,4 +74,14 @@ public class GameCharacter {
     public boolean isEliminated() {
         return !isSuspect;
     }
+
+    public GameCharacter deepCopy(){
+        GameCharacter copy = new GameCharacter(this.id, this.name, this.color);
+        copy.isSuspect = this.isSuspect;
+        copy.isJack = this.isJack;
+        copy.isVisible = this.isVisible;
+        copy.tile = null;
+
+        return copy;
+    }
 }

@@ -199,4 +199,16 @@ public class Tile {
     public boolean canBeSeen() {
         return hasCharacter() && !isEliminated;
     }
+
+    public Tile deepCopy(GameCharacter characterCopy){
+        Tile copy = new Tile(this.id, characterCopy, 
+            new Position(this.getRow(), this.getCol()), 
+            new HashSet<>(this.suspectSideRoads), new HashSet<>(this.emptySideRoads));
+        copy.orientation = this.orientation;
+        copy.isSuspectSide = this.isSuspectSide;
+        copy.isEliminated = this.isEliminated;
+        copy.hasBarricade = this.hasBarricade;
+
+        return copy;
+    }
 }

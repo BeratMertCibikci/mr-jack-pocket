@@ -55,4 +55,22 @@ public class TimeTokens {
     public Token[] getTimeTokens() {
         return timeTokens;
     }
+
+    public TimeTokens deepCopy(){
+        TimeTokens copy = new TimeTokens();
+
+        Token[] original = this.timeTokens;
+        Token[] copied = new Token[original.length];
+
+        for (int i = 0; i < original.length; i++){
+            if (original[i] != null){
+                copied[i] = original[i].deepCopy();
+            }else{
+                copied[i] = null;
+            }
+        }
+        copy.timeTokens = copied;
+
+        return copy;
+    }
 }

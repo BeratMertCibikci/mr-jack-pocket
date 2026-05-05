@@ -31,4 +31,13 @@ public class PlayerState {
     public int getOwnedTurnTokenCount() {
         return ownedTurnTokens.size();
     }
+
+    public PlayerState deepCopy(){
+        PlayerState copy = new PlayerState(this.player);
+
+        for (Token token : this.ownedTurnTokens){
+            copy.ownedTurnTokens.add(token.deepCopy());
+        }
+        return copy;
+    }
 }

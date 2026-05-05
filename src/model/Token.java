@@ -137,4 +137,22 @@ public class Token {
     public void resetUsed() {
         this.used = false;
     }
+
+    public Token deepCopy(){
+        Token copy;
+
+        if (this.isDetectiveToken()){
+            copy = new Token(this.id, this.name, this.position);
+        }else if (this.isTimeToken()){
+            copy = new Token(this.id, this.name, this.backSide);
+            copy.position = this.position;
+        }else{
+            copy = new Token(this.id, this.frontSide, this.backSide);
+            copy.position = this.position;
+        }
+        copy.isFrontSideUp = this.isFrontSideUp;
+        copy.used = this.used;
+
+        return copy;
+    }
 }

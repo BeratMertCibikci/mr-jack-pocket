@@ -42,4 +42,12 @@ public class AlibiCards {
     public void setOwner(String owner) {
         this.owner = owner;
     }
+
+    public AlibiCards deepCopy(GameCharacter characterCopy){
+        AlibiCards copy = new AlibiCards(this.id, characterCopy, this.hourglassValue);
+        copy.isDrawn = this.isDrawn;
+        copy.owner = this.owner;
+
+        return copy;
+    }
 }

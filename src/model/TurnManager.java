@@ -53,4 +53,13 @@ public class TurnManager {
         roundNumber++;
         currentActionIndex = 0;
     }
+
+    public TurnManager deepCopy(){
+        TurnManager copy = new TurnManager();
+
+        copy.roundNumber = this.roundNumber;
+        copy.currentActionIndex = this.currentActionIndex;
+
+        return copy;
+    }
 }

@@ -11,7 +11,7 @@ import model.Token;
 import model.GameCharacter;
 import model.Tile;
 
-public class ActionPanel extends JPanel {
+public class ActionPanel extends JPanel {// action token panel  
 
     private GameEngine gameEngine;
     private InfoJeuPanel infoJeuPanel;
@@ -19,12 +19,13 @@ public class ActionPanel extends JPanel {
     private BoutonClickMusique boutonClickMusique;
 
     public ActionPanel(GameEngine gameEngine, InfoJeuPanel infoJeuPanel, PlateauPanel plateauPanel) {
+        //engine, info panel ve plateau alıyor 
         this.gameEngine = gameEngine;
         this.infoJeuPanel = infoJeuPanel;
         this.plateauPanel = plateauPanel;
         this.boutonClickMusique = new BoutonClickMusique();
 
-        setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));
+        setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));// ortalı şekilde boşluklu ayarlıyor
         setBackground(new Color(20, 20, 20));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -34,31 +35,30 @@ public class ActionPanel extends JPanel {
     private void afficherActions() {
         Token[] actionTokens = gameEngine.getGameState()
                 .getActionTokens()
-                .getActionTokens();
+                .getActionTokens();// on prend les actions tokens du modele 
 
-        for (int i = 0; i < actionTokens.length; i++) {
+        for (int i = 0; i < actionTokens.length; i++) {// pour chaque token, on créé un JPanel et on l ajoute dans le panel
             Token token = actionTokens[i];
             JPanel tokenPanel = creerActionTokenPanel(token, i);
             add(tokenPanel);
         }
     }
 
-    private JPanel creerActionTokenPanel(Token token, int index) {
+    private JPanel creerActionTokenPanel(Token token, int index) {// on crée le visualisation du token
         JPanel tokenPanel = new JPanel(new BorderLayout());
-        tokenPanel.setPreferredSize(new Dimension(160, 70));
+        tokenPanel.setPreferredSize(new Dimension(160, 70)); //pour cahque token on a un dim de 160x70
 
-        // Couleurs style table / noir
         tokenPanel.setBackground(new Color(35, 30, 25));
         tokenPanel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
         tokenPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        JLabel tokenLabel = new JLabel(token.getCurrentSide(), SwingConstants.CENTER);
+        JLabel tokenLabel = new JLabel(token.getCurrentSide(), SwingConstants.CENTER);// on ecrit la face courrent du token 
         tokenLabel.setFont(new Font("Arial", Font.BOLD, 16));
         tokenLabel.setForeground(new Color(245, 235, 210));
 
-        tokenPanel.add(tokenLabel, BorderLayout.CENTER);
+        tokenPanel.add(tokenLabel, BorderLayout.CENTER); // on l ajoute dans le panel 
 
-        tokenPanel.addMouseListener(new MouseAdapter() {
+        tokenPanel.addMouseListener(new MouseAdapter() {// fonction qui nous permet de cliqué le token 
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
@@ -66,6 +66,7 @@ public class ActionPanel extends JPanel {
 
                     Token selectedToken = gameEngine.selectActionToken(index);
 
+                    // lorsqu on clique le token on envoie dans l engine et on controle si ce dernier peut etre choisit
                     System.out.println("Action token choisi : " + selectedToken.getCurrentSide());
                     System.out.println("Type action : " + gameEngine.getSelectedActionType());
 
@@ -73,8 +74,8 @@ public class ActionPanel extends JPanel {
                     tokenPanel.setBorder(BorderFactory.createLineBorder(new Color(120, 100, 70), 2));
                     tokenPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
+                    //si choisit on change le couleur 
                     infoJeuPanel.rafraichir();
-
                     traiterActionSelectionnee();
 
                 } catch (Exception ex) {
@@ -93,6 +94,7 @@ public class ActionPanel extends JPanel {
 
     private void traiterActionSelectionnee() {
         try {
+            //cette partie decide quelle mode il faut appeler (main)
             ActionType actionType = gameEngine.getSelectedActionType();
 
             switch (actionType) {
@@ -123,7 +125,7 @@ public class ActionPanel extends JPanel {
                 case JOKER:
                     JOptionPane.showMessageDialog(
                             this,
-                            "Cette action nécessite une sélection supplémentaire. On la fera à l'étape suivante : " + actionType,
+                            "On la fera à l'étape suivante : " + actionType,
                             "Action à compléter",
                             JOptionPane.INFORMATION_MESSAGE
                     );
@@ -144,17 +146,17 @@ public class ActionPanel extends JPanel {
     }
 
     private void traiterAlibi() {
-        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
+        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {// on demande ici si le joueur courrent est un invetigateur ou Jack
             GameCharacter eliminated = gameEngine.investigatorDrawsAlibi();
 
-            if (eliminated != null) {
+            if (eliminated != null) {//si Investigateur
                 JOptionPane.showMessageDialog(
                         this,
                         "Alibi pioché : " + eliminated.getName(),
                         "Alibi",
                         JOptionPane.INFORMATION_MESSAGE
                 );
-            } else {
+            } else {//sinon
                 JOptionPane.showMessageDialog(
                         this,
                         "Le paquet Alibi est vide.",
@@ -189,11 +191,7 @@ public class ActionPanel extends JPanel {
                         this,
                         "Combien de fois voulez-vous tourner cette carte ?",
                         "Rotate",
-                        JOptionPane.QUESTION_MESSAGE,
-                        null,
-                        choix,
-                        choix[0]
-                );
+                        JOptionPane.QUESTION_MESSAGE,null,choix,choix[0]);
 
                 if (reponse == null) {
                     plateauPanel.setTileSelectionListener(null);

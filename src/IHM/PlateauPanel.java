@@ -132,7 +132,7 @@ public class PlateauPanel extends JPanel {
         File fichierImage = trouverFichierImage(cheminBase);
 
         if (fichierImage == null) {
-            System.out.println("Image non trouvée : " + cheminBase + ".png/.jpg/.jpeg");
+            System.out.println("Image non trouvée : " + cheminBase);
             return null;
         }
 
@@ -187,7 +187,7 @@ public class PlateauPanel extends JPanel {
     }
 
     private File trouverFichierImage(String cheminBase) {
-        String[] extensions = {".png", ".jpg", ".jpeg"};
+        String[] extensions = {".png"};
 
         for (String extension : extensions) {
             File fichier = new File(cheminBase + extension);

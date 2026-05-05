@@ -23,20 +23,21 @@ public class InfoJeuPanel extends JPanel {
     private JLabel watsonLabel;
     private JLabel tobyLabel;
 
+    //bu constructor 3 tane bilgi kaynağı alıyor biz de bunları yazıyoruz
     public InfoJeuPanel(GameEngine gameEngine, GameMode mode, String joueur1Role) {
         this.gameEngine = gameEngine;
         this.mode = mode;
         this.joueur1Role = joueur1Role;
 
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setPreferredSize(new Dimension(260, 0));
-        setBackground(new Color(25, 25, 25));
-        setBorder(BorderFactory.createEmptyBorder(30, 20, 30, 20));
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));// alt alta yazma 
+        setPreferredSize(new Dimension(260, 0)); //boyut
+        setBackground(new Color(25, 25, 25));//arka plan koyu
+        setBorder(BorderFactory.createEmptyBorder(30, 20, 30, 20));//iç boşluk veriyor
 
         JLabel titre = new JLabel("Info jeu");
         titre.setFont(new Font("Arial", Font.BOLD, 22));
         titre.setForeground(new Color(245, 235, 210));
-        titre.setAlignmentX(Component.LEFT_ALIGNMENT);
+        titre.setAlignmentX(Component.LEFT_ALIGNMENT);//sola hizalı
 
         modeLabel = creerLabel();
         joueur1RoleLabel = creerLabel();
@@ -50,6 +51,7 @@ public class InfoJeuPanel extends JPanel {
         watsonLabel = creerLabel();
         tobyLabel = creerLabel();
 
+        //panele ekleme 
         add(titre);
         add(Box.createVerticalStrut(25));
         add(joueur1RoleLabel);
@@ -67,7 +69,7 @@ public class InfoJeuPanel extends JPanel {
         add(selectedActionLabel);
         add(Box.createVerticalStrut(15));
         add(roundOverLabel);
-        add(Box.createVerticalStrut(25));
+        add(Box.createVerticalStrut(15));
         add(holmesLabel);
         add(Box.createVerticalStrut(15));
         add(watsonLabel);
@@ -77,7 +79,7 @@ public class InfoJeuPanel extends JPanel {
         rafraichir();
     }
 
-    private JLabel creerLabel() {
+    private JLabel creerLabel() {// her bilgi için ayarlamalar 
         JLabel label = new JLabel();
         label.setFont(new Font("Arial", Font.BOLD, 15));
         label.setForeground(new Color(245, 235, 210));
@@ -85,12 +87,11 @@ public class InfoJeuPanel extends JPanel {
         return label;
     }
 
-    public void rafraichir() {
-        modeLabel.setText("Mode : " + mode);
-
+    public void rafraichir() {// yazıları güncelleme (coeur)
+        modeLabel.setText("Mode : " + mode);//ecriture du mode 
         joueur1RoleLabel.setText("Joueur 1 : " + joueur1Role);
 
-        String joueur2Role;
+        String joueur2Role;// condition automatique pour le choix de role
         if (joueur1Role.equals("Investigator")) {
             joueur2Role = "Jack";
         } else {
@@ -99,7 +100,7 @@ public class InfoJeuPanel extends JPanel {
 
         joueur2RoleLabel.setText("Joueur 2 : " + joueur2Role);
 
-        joueurActuelLabel.setText("Joueur actuel : " + gameEngine.getCurrentPlayer());
+        joueurActuelLabel.setText("Joueur actuel : " + gameEngine.getCurrentPlayer());//info qu on prend d'engine pour ecrire
         roundLabel.setText("Round : " + gameEngine.getRoundNumber());
         actionLabel.setText("Action : " + gameEngine.getCurrentActionIndex());
 
@@ -109,7 +110,7 @@ public class InfoJeuPanel extends JPanel {
             selectedActionLabel.setText("Action choisie : aucune");
         }
 
-        roundOverLabel.setText("Round terminé : " + gameEngine.isRoundOver());
+        roundOverLabel.setText("Round terminé : " + gameEngine.isRoundOver());//de meme
         holmesLabel.setText("Holmes position : " + gameEngine.getGameState().getDetectiveTokens().getHolmes().getPosition());
         watsonLabel.setText("Watson position : " + gameEngine.getGameState().getDetectiveTokens().getWatson().getPosition());
         tobyLabel.setText("Toby position : " + gameEngine.getGameState().getDetectiveTokens().getToby().getPosition());

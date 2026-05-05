@@ -18,7 +18,7 @@ public class ChoixModePanel extends JPanel {
         boutonClickMusique = new BoutonClickMusique();
 
         // 2. Arka plan fotoğrafını yükleme
-        String cheminImage = System.getProperty("user.dir") + "/assets/images/deneme2.jpg";
+        String cheminImage = System.getProperty("user.dir") + "/assets/images/deneme2.png";
         ImageIcon icon = new ImageIcon(cheminImage);
         backgroundImage = icon.getImage();
 
@@ -129,7 +129,7 @@ public class ChoixModePanel extends JPanel {
         JPanel panelRoles = new JPanel(new FlowLayout(FlowLayout.CENTER, 60, 20));
 
         JLabel investigator = creerRoleIcone("Investigator", "assets/images/characters/investigator.png");
-        JLabel jack = creerRoleIcone("Jack", "assets/images/characters/jeremy_bert.png");
+        JLabel jack = creerRoleIcone("Jack", "assets/images/characters/jack.png");
 
         investigator.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override

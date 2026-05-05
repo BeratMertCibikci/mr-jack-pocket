@@ -11,7 +11,7 @@ public class MenuPrincipalPanel extends JPanel {
     public MenuPrincipalPanel(FenetrePrincipale fenetre) {
 
         // 1. Arka plan fotoğrafını yükleme
-        String cheminImage = System.getProperty("user.dir") + "/assets/images/deneme2.jpg"; // chemin absolu de l'image
+        String cheminImage = System.getProperty("user.dir") + "/assets/images/deneme2.png"; // chemin absolu de l'image
         ImageIcon icon = new ImageIcon(cheminImage);
         backgroundImage = icon.getImage();
 

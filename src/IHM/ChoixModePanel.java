@@ -9,6 +9,7 @@ public class ChoixModePanel extends JPanel {
     private BoutonClickMusique boutonClickMusique;
 
     public ChoixModePanel(FenetrePrincipale fenetre) {
+        //Bu panel oluşturulurken FenetrePrincipale alıyor. Çünkü bu panel kendi başına ekran değiştiremez fenetre.lancerJeu(...); fenetre.afficherMenu();
 
         // 1. Bouton click sesi
         boutonClickMusique = new BoutonClickMusique();
@@ -19,8 +20,8 @@ public class ChoixModePanel extends JPanel {
         backgroundImage = icon.getImage();
 
         // 3. Ana panel düzeni
-        setLayout(new BorderLayout());
-        setOpaque(false);
+        setLayout(new BorderLayout());//permet de diviser le panel de maniere center north south
+        setOpaque(false);//panelin kendi arka planı arka plan fotoğrafını kapatmasın diye.
 
         // 4. Başlık
         JLabel titre = new JLabel("Choix du mode de jeu", SwingConstants.LEFT);
@@ -54,6 +55,8 @@ public class ChoixModePanel extends JPanel {
         iaVsIAButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         retourButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+
+        //ajout des buttons dans le panel
         panel.add(humainVsHumainButton);
         panel.add(Box.createVerticalStrut(18));
         panel.add(humainVsIAButton);
@@ -113,7 +116,7 @@ public class ChoixModePanel extends JPanel {
         });
     }
 
-    private void BoutonTexte(JButton bouton) {
+    private void BoutonTexte(JButton bouton) { 
         bouton.setFont(new Font("Arial", Font.BOLD, 20));
         bouton.setForeground(new Color(245, 235, 210));
 
@@ -123,7 +126,7 @@ public class ChoixModePanel extends JPanel {
         bouton.setFocusPainted(false);
 
         bouton.setMargin(new Insets(4, 8, 4, 8));
-        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));// quand on va sur un button on a un main sur le curseur 
     }
 
     @Override

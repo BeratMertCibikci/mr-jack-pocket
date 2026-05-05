@@ -77,7 +77,12 @@ public class GameEngine {
         actionEngine.exchangeTiles(tileA, tileB);
     }
 
-    public void moveDetectiveWithJoker(String detectiveName, int steps) {
+    public void moveDetectiveWithJoker(String detectiveName) {
+        ensureGameRunning();
+        actionEngine.moveDetectiveWithJoker(detectiveName, 1); // Joker can only move 1 step
+    }
+
+    public void skipJokerMove() {
         ensureGameRunning();
         history.save(gameState);
         actionEngine.moveDetectiveWithJoker(detectiveName, steps);

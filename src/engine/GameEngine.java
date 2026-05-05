@@ -85,7 +85,7 @@ public class GameEngine {
     public void skipJokerMove() {
         ensureGameRunning();
         history.save(gameState);
-        actionEngine.moveDetectiveWithJoker(detectiveName, steps);
+        actionEngine.skipJokerMove();
     }
 
     public void endRound() {

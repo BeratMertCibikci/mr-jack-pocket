@@ -1,6 +1,6 @@
 package model;
-
-public class AlibiCards {
+import java.io.Serializable;
+public class AlibiCards implements Serializable {
     private int id;
     private GameCharacter character;
     private int hourglassValue;

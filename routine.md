@@ -29,6 +29,7 @@ git merge origin/develop
 | `feature/ia`            | Intelligence artificielle   |
 | `feature/tests`         | Tests                       |
 | `feature/documentation` | Documentation               |
+| `feature/reseau`        | Mode multijoueur et réseau  |
 
 ---
 ### 2. Sauvegarder son travail

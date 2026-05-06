@@ -2,7 +2,9 @@ package model;
 
 import java.util.List;
 
-public class GameState {
+import java.io.Serializable; 
+
+public class GameState implements Serializable { 
     private List<GameCharacter> characters;
 
     private AreaSet areaSet;

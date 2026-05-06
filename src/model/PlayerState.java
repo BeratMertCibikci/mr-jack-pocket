@@ -2,8 +2,8 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
-
-public class PlayerState {
+import java.io.Serializable;
+public class PlayerState implements Serializable {
     private Player player;
     private List<Token> ownedTurnTokens;
 

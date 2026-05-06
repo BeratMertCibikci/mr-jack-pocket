@@ -3,8 +3,8 @@ package model;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-
-public class AreaSet {
+import java.io.Serializable;
+public class AreaSet implements Serializable {
     private Tile[] areas;
 
     public AreaSet(List<GameCharacter> characters) {

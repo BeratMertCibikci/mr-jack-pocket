@@ -2,8 +2,8 @@ package model;
 
 import java.util.HashSet;
 import java.util.Set;
-
-public class Tile {
+import java.io.Serializable;
+public class Tile implements Serializable {
     private int id;
     private GameCharacter character;
 

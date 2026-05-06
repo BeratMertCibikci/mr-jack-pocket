@@ -1,6 +1,6 @@
 package model;
-
-public class TurnManager {
+import java.io.Serializable;
+public class TurnManager implements Serializable {
     private int roundNumber;
     private int currentActionIndex;
 

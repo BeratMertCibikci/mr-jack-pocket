@@ -3,8 +3,8 @@ package model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-public class AlibiDeckManager {
+import java.io.Serializable;
+public class AlibiDeckManager implements Serializable {
     private List<AlibiCards> cards;
     private int jackHourglassTotal;
 

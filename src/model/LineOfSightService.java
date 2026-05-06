@@ -2,8 +2,8 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
-
-public class LineOfSightService {
+import java.io.Serializable;
+public class LineOfSightService implements Serializable {
 
     public void updateVisibility(Board board, DetectiveTokens detectiveTokens, List<GameCharacter> characters) {
         resetVisibility(characters);

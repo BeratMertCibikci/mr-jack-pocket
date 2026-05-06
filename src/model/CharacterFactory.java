@@ -2,8 +2,9 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
-public class CharacterFactory {
+public class CharacterFactory implements Serializable {
 
     public static List<GameCharacter> createCharacters() {
         List<GameCharacter> characters = new ArrayList<>();

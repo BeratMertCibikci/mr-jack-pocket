@@ -1,6 +1,6 @@
 package model;
-
-public class GameCharacter {
+import java.io.Serializable;
+public class GameCharacter implements Serializable {
     private int id;
     private String name;
     private String color;

@@ -2,8 +2,9 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
-public class DetectiveTokens {
+public class DetectiveTokens implements Serializable {
     private final Token holmes;
     private final Token watson;
     private final Token toby;

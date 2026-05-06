@@ -2,8 +2,9 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
-public class WitnessManager {
+public class WitnessManager implements Serializable {
 
     public boolean isJackVisible(GameCharacter jackCharacter) {
         if (jackCharacter == null) {

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-
-public class Board {
+import java.io.Serializable;
+public class Board implements Serializable {
 
     private static final int SIZE = 3;
 

@@ -246,6 +246,7 @@ public class GameState {
         copy.witnessManager = new WitnessManager();
         copy.winConditionChecker = new WinConditionChecker();
 
+        copy.relinkCharactersToBoardTiles();
         return copy;
     }
     private GameCharacter findCharacterCopy(List<GameCharacter> copies, int id){
@@ -255,5 +256,19 @@ public class GameState {
             }
         }
         return null;
+    }
+
+    private void relinkCharactersToBoardTiles() {
+        for (GameCharacter character : characters) {
+            for (Tile tile : board.getAllTiles()) {
+                if (tile.getCharacter() != null
+                        && tile.getCharacter().getId() == character.getId()) {
+
+                    tile.setCharacter(character);
+                    character.setTile(tile);
+                    break;
+                }
+            }
+        }
     }
 }

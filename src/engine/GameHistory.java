@@ -13,15 +13,8 @@ public class GameHistory{
     }
 
     public void save(GameState state){
-        if (!undoStack.isEmpty()){
-            GameState last = undoStack.peek();
-
-            if (last == state){
-                return;
-            }
-        }
-        undoStack.push(state.deepCopy());
         redoStack.clear();
+        undoStack.push(state.deepCopy());
     }
 
     public GameState undo(GameState currentState){
@@ -29,10 +22,11 @@ public class GameHistory{
             throw new IllegalStateException("No undo available");
         }
         
-        undoStack.pop();
         redoStack.push(currentState.deepCopy());
 
-        return undoStack.peek();
+        undoStack.pop();
+
+        return undoStack.peek().deepCopy();
     }
 
     public GameState redo(GameState currentState){
@@ -43,7 +37,7 @@ public class GameHistory{
         GameState nextState = redoStack.pop();
         undoStack.push(nextState.deepCopy());
         
-        return nextState;
+        return nextState.deepCopy();
     }
 
     public boolean canUndo(){

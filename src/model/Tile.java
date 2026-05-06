@@ -209,6 +209,10 @@ public class Tile {
         copy.isEliminated = this.isEliminated;
         copy.hasBarricade = this.hasBarricade;
 
+        if (characterCopy != null){
+            characterCopy.setTile(copy);
+        }
+
         return copy;
     }
 }

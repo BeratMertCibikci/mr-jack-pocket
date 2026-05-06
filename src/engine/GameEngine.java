@@ -27,7 +27,6 @@ public class GameEngine {
 
     public Token selectActionToken(int index) {
         ensureGameRunning();
-        history.save(gameState);
         return actionEngine.selectActionToken(index);
     }
 
@@ -38,43 +37,36 @@ public class GameEngine {
 
     public void moveHolmes(int steps) {
         ensureGameRunning();
-        //history.save(gameState);
         actionEngine.moveHolmes(steps);
     }
 
     public void moveWatson(int steps) {
         ensureGameRunning();
-        //history.save(gameState);
         actionEngine.moveWatson(steps);
     }
 
     public void moveToby(int steps) {
         ensureGameRunning();
-        //history.save(gameState);
         actionEngine.moveToby(steps);
     }
 
     public GameCharacter investigatorDrawsAlibi() {
         ensureGameRunning();
-        //history.save(gameState);
         return actionEngine.investigatorDrawsAlibi();
     }
 
     public void jackDrawsAlibi() {
         ensureGameRunning();
-        //history.save(gameState);
         actionEngine.jackDrawsAlibi();
     }
 
     public void rotateTile(Tile tile, int rotations) {
         ensureGameRunning();
-        //history.save(gameState);
         actionEngine.rotateTile(tile, rotations);
     }
 
     public void exchangeTiles(Tile tileA, Tile tileB) {
         ensureGameRunning();
-        //history.save(gameState);
         actionEngine.exchangeTiles(tileA, tileB);
     }
 
@@ -85,8 +77,7 @@ public class GameEngine {
 
     public void skipJokerMove() {
         ensureGameRunning();
-        history.save(gameState);
-        actionEngine.moveDetectiveWithJoker(detectiveName, steps);
+        actionEngine.skipJokerMove();
     }
 
     public void endRound() {
@@ -95,7 +86,7 @@ public class GameEngine {
         if (actionEngine.hasSelectedAction()) {
             throw new IllegalStateException("Resolve selected action before ending round.");
         }
-        history.save(gameState);
+        //history.save(gameState);
 
         roundEngine.endRound();
 

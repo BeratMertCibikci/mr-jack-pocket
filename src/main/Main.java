@@ -41,29 +41,35 @@ public class Main {
 
             while (!engine.isRoundOver() && !engine.getGameState().isGameOver()) {
 
+                boolean stateChange = false;
+
                 System.out.println("\nCommand (play / undo / redo): ");
                 String cmd = scanner.next();
 
                 if (cmd.equalsIgnoreCase("undo")){
                     engine.undo();
+                    stateChange = true;
 
                     printBoard(engine.getGameState());
                     printCharacters(engine.getGameState());
                     printDetectiveTokens(engine.getGameState());
                     printStatus(engine);
 
-                    continue;
+                    //continue;
+                    break;
                 }
 
                 if (cmd.equalsIgnoreCase("redo")){
                     engine.redo();
+                    stateChange = true;
 
                     printBoard(engine.getGameState());
                     printCharacters(engine.getGameState());
                     printDetectiveTokens(engine.getGameState());
                     printStatus(engine);
 
-                    continue;
+                    //continue;
+                    break;
                 }
 
                 if (!cmd.equalsIgnoreCase("play")){
@@ -73,7 +79,7 @@ public class Main {
 
                 playOneActionWithInput(engine, scanner);
 
-                engine.saveState();
+                //engine.saveState();
 
                 printBoard(engine.getGameState());
                 printCharacters(engine.getGameState());
@@ -81,7 +87,11 @@ public class Main {
                 printStatus(engine);
             }
 
-            if (!engine.getGameState().isGameOver()) {
+
+            if (!engine.getGameState().isGameOver() && engine.isRoundOver()) {
+
+                engine.saveState();
+
                 System.out.println("--- Ending Round " + engine.getRoundNumber() + " ---");
 
                 engine.endRound();
@@ -134,6 +144,8 @@ public class Main {
                 scanner.next();
             }
         }
+
+        engine.saveState();
 
         Token selectedToken = engine.selectActionToken(tokenIndex);
         ActionType actionType = engine.getSelectedActionType();
@@ -252,6 +264,7 @@ public class Main {
                 );
                 break;
         }
+        engine.saveState();
     }
 
     private static int getDetectiveSteps(Scanner scanner, String detectiveName) {

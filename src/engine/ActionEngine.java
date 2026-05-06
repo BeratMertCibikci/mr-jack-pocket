@@ -152,10 +152,20 @@ public class ActionEngine {
             throw new IllegalArgumentException("Unknown detective: " + detectiveName);
         }
 
-        moveValidator.validateDetectiveMove(detective, steps);
+        moveValidator.validateDetectiveMove(detective, 1);
 
-        detective.move(steps);
+        detective.move(1);
         gameState.updateVisibility();
+
+        finishAction();
+    }
+
+    public void skipJokerMove() {
+        ensureSelectedActionIs(ActionType.JOKER);
+
+        if (!gameState.getTurnManager().isJackTurn()) {
+            throw new IllegalStateException("Only Jack can skip Joker move.");
+        }
 
         finishAction();
     }

@@ -13,6 +13,13 @@ public class GameHistory{
     }
 
     public void save(GameState state){
+        if (!undoStack.isEmpty()){
+            GameState last = undoStack.peek();
+
+            if (last == state){
+                return;
+            }
+        }
         undoStack.push(state.deepCopy());
         redoStack.clear();
     }

@@ -73,6 +73,8 @@ public class Main {
 
                 playOneActionWithInput(engine, scanner);
 
+                engine.saveState();
+
                 printBoard(engine.getGameState());
                 printCharacters(engine.getGameState());
                 printDetectiveTokens(engine.getGameState());

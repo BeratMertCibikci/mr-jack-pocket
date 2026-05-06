@@ -65,6 +65,8 @@ public class ActionTokens {
     public ActionTokens deepCopy(){
         ActionTokens copy = new ActionTokens();
 
+        copy.rand = this.rand;
+
         Token[] original = this.actionTokens;
         Token[] copied = new Token[original.length];
 

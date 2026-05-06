@@ -116,7 +116,11 @@ public class GameServer {
                     }
                     break;
                 case JOKER:
-                    gameEngine.moveDetectiveWithJoker(msg.getDetectiveName(), msg.getSteps());
+                    if (msg.getDetectiveName() != null && !msg.getDetectiveName().isEmpty()) {
+                        gameEngine.moveDetectiveWithJoker(msg.getDetectiveName());
+                    } else {
+                        gameEngine.skipJokerMove();
+                    }
                     break;
             }
         }

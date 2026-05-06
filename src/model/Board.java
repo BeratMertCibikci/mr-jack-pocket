@@ -42,6 +42,8 @@ public class Board {
                 index++;
             }
         }
+
+        adjustInitialDetectiveWalls();
     }
 
     private void randomizeOrientation(Tile tile) {
@@ -50,6 +52,26 @@ public class Board {
         for (int i = 0; i < rotations; i++) {
             tile.rotate();
         }
+    }
+
+    private void adjustInitialDetectiveWalls() {
+        rotateUntilWallFaces(0, 0, Direction.WEST);   // Holmes
+        rotateUntilWallFaces(0, 2, Direction.EAST);   // Watson
+        rotateUntilWallFaces(2, 1, Direction.SOUTH);  // Toby
+    }
+
+    private void rotateUntilWallFaces(int row, int col, Direction direction) {
+        Tile tile = getTile(row, col);
+
+        for (int i = 0; i < 4; i++) {
+            if (tile.hasWall(direction)) {
+                return;
+            }
+
+            tile.rotate();
+        }
+
+        throw new IllegalStateException("Cannot rotate tile to have wall on " + direction);
     }
 
     public Tile getTile(int row, int column) {

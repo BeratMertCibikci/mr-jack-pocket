@@ -22,11 +22,11 @@ public class GameEngine {
         this.roundEngine = new RoundEngine(gameState);
 
         this.history = new GameHistory();
-        history.save(gameState);
     }
 
     public Token selectActionToken(int index) {
         ensureGameRunning();
+        history.save(gameState);
         return actionEngine.selectActionToken(index);
     }
 

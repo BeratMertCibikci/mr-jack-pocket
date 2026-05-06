@@ -3,48 +3,45 @@ package engine;
 import java.util.Stack;
 import model.GameState;
 
-public class GameHistory{
+public class GameHistory {
     private Stack<GameState> undoStack;
     private Stack<GameState> redoStack;
 
-    public GameHistory(){
+    public GameHistory() {
         undoStack = new Stack<>();
         redoStack = new Stack<>();
     }
 
-    public void save(GameState state){
-        redoStack.clear();
+    public void save(GameState state) {
         undoStack.push(state.deepCopy());
+        redoStack.clear();
     }
 
-    public GameState undo(GameState currentState){
-        if (undoStack.size() <= 1){
+    public GameState undo(GameState currentState) {
+        if (!canUndo()) {
             throw new IllegalStateException("No undo available");
         }
-        
+
         redoStack.push(currentState.deepCopy());
 
-        undoStack.pop();
-
-        return undoStack.peek().deepCopy();
+        return undoStack.pop().deepCopy();
     }
 
-    public GameState redo(GameState currentState){
-        if (redoStack.isEmpty()){
+    public GameState redo(GameState currentState) {
+        if (!canRedo()) {
             throw new IllegalStateException("No redo available");
         }
 
-        GameState nextState = redoStack.pop();
-        undoStack.push(nextState.deepCopy());
-        
-        return nextState.deepCopy();
+        undoStack.push(currentState.deepCopy());
+
+        return redoStack.pop().deepCopy();
     }
 
-    public boolean canUndo(){
-        return undoStack.size() > 1;
+    public boolean canUndo() {
+        return !undoStack.isEmpty();
     }
 
-    public boolean canRedo(){
+    public boolean canRedo() {
         return !redoStack.isEmpty();
     }
 }

@@ -90,8 +90,6 @@ public class Main {
 
             if (!engine.getGameState().isGameOver() && engine.isRoundOver()) {
 
-                engine.saveState();
-
                 System.out.println("--- Ending Round " + engine.getRoundNumber() + " ---");
 
                 engine.endRound();
@@ -144,8 +142,6 @@ public class Main {
                 scanner.next();
             }
         }
-
-        engine.saveState();
 
         Token selectedToken = engine.selectActionToken(tokenIndex);
         ActionType actionType = engine.getSelectedActionType();
@@ -264,7 +260,6 @@ public class Main {
                 );
                 break;
         }
-        engine.saveState();
     }
 
     private static int getDetectiveSteps(Scanner scanner, String detectiveName) {

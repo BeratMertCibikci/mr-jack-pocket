@@ -22,6 +22,7 @@ public class InfoJeuPanel extends JPanel {
     private JLabel holmesLabel;
     private JLabel watsonLabel;
     private JLabel tobyLabel;
+    private JPanel personnagesPanel;
 
     //bu constructor 3 tane bilgi kaynağı alıyor biz de bunları yazıyoruz
     public InfoJeuPanel(GameEngine gameEngine, GameMode mode, String joueur1Role) {
@@ -50,31 +51,46 @@ public class InfoJeuPanel extends JPanel {
         holmesLabel = creerLabel();
         watsonLabel = creerLabel();
         tobyLabel = creerLabel();
+        
+        personnagesPanel = new JPanel();
+        personnagesPanel.setOpaque(false);
+        personnagesPanel.setLayout(new BoxLayout(personnagesPanel, BoxLayout.Y_AXIS));
+        personnagesPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         //panele ekleme 
         add(titre);
         add(Box.createVerticalStrut(25));
         add(joueur1RoleLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(joueur2RoleLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(modeLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(joueurActuelLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(roundLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(actionLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(selectedActionLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(roundOverLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(holmesLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10)); 
         add(watsonLabel);
-        add(Box.createVerticalStrut(15));
+        add(Box.createVerticalStrut(10));
         add(tobyLabel);
+        add(Box.createVerticalStrut(25));
+        
+        JLabel personnagesTitre = new JLabel("Personnages");
+        personnagesTitre.setFont(new Font("Arial", Font.BOLD, 15));
+        personnagesTitre.setForeground(new Color(245, 235, 210));
+        personnagesTitre.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        add(personnagesTitre);
+        add(Box.createVerticalStrut(12));
+        add(personnagesPanel);
 
         rafraichir();
     }
@@ -91,14 +107,7 @@ public class InfoJeuPanel extends JPanel {
         modeLabel.setText("Mode : " + mode);//ecriture du mode 
         joueur1RoleLabel.setText("Joueur 1 : " + joueur1Role);
 
-        String joueur2Role;// condition automatique pour le choix de role
-        if (joueur1Role.equals("Investigator")) {
-            joueur2Role = "Jack";
-        } else {
-            joueur2Role = "Investigator";
-        }
-
-        joueur2RoleLabel.setText("Joueur 2 : " + joueur2Role);
+        joueur2RoleLabel.setText("Joueur 2 : " + gameEngine.getGameState().getPlayer2Role());
 
         joueurActuelLabel.setText("Joueur actuel : " + gameEngine.getCurrentPlayer());//info qu on prend d'engine pour ecrire
         roundLabel.setText("Round : " + gameEngine.getRoundNumber());
@@ -114,5 +123,85 @@ public class InfoJeuPanel extends JPanel {
         holmesLabel.setText("Holmes position : " + gameEngine.getGameState().getDetectiveTokens().getHolmes().getPosition());
         watsonLabel.setText("Watson position : " + gameEngine.getGameState().getDetectiveTokens().getWatson().getPosition());
         tobyLabel.setText("Toby position : " + gameEngine.getGameState().getDetectiveTokens().getToby().getPosition());
+        rafraichirPersonnages();
+    }
+    private void rafraichirPersonnages() {
+        personnagesPanel.removeAll();
+
+        for (model.GameCharacter character : gameEngine.getGameState().getCharacters()) {
+            JPanel ligne = creerLignePersonnage(character);
+            personnagesPanel.add(ligne);
+            personnagesPanel.add(Box.createVerticalStrut(6));
+        }
+
+        personnagesPanel.revalidate();
+        personnagesPanel.repaint();
+    }
+
+    private JPanel creerLignePersonnage(model.GameCharacter character) {
+        JPanel ligne = new JPanel(new BorderLayout(8, 0));
+        ligne.setOpaque(false);
+        ligne.setMaximumSize(new Dimension(220, 24));
+        ligne.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel nomLabel = new JLabel(character.getName());
+        nomLabel.setFont(new Font("Arial", Font.BOLD, 13));
+
+        if (character.isEliminated()) {
+            nomLabel.setForeground(new Color(120, 120, 120));
+            nomLabel.setText(character.getName() + " éliminé");
+        } else {
+            nomLabel.setForeground(couleurDepuisModel(character.getColor()));
+        }
+
+        ligne.add(nomLabel, BorderLayout.CENTER);
+
+        return ligne;
+    }
+
+    private Color couleurDepuisModel(Object couleur) {
+        if (couleur == null) {
+            return new Color(180, 180, 180);
+        }
+
+        String c = couleur.toString().toLowerCase();
+
+        if (c.contains("red") || c.contains("rouge")) {
+            return new Color(180, 45, 45);
+        }
+
+        if (c.contains("blue")) {
+            return new Color(40, 110, 220);
+        }
+
+        if (c.contains("green")) {
+            return new Color(90, 100, 65);
+        }
+
+        if (c.contains("yellow")) {
+            return new Color(220, 185, 45);
+        }
+
+        if (c.contains("purple")) {
+            return new Color(140, 80, 180);
+        }
+
+        if (c.contains("grey")) {
+            return new Color(170, 170, 170);
+        }
+
+        if (c.contains("black")) {
+            return new Color(210, 210, 210);
+        }
+
+        if (c.contains("orange")) {
+            return new Color(220, 120, 35);
+        }
+
+        if (c.contains("brown") || c.contains("marron")) {
+            return new Color(120, 75, 40);
+        }
+
+        return new Color(160, 160, 160);
     }
 }

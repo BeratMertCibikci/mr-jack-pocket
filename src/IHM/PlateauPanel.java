@@ -22,15 +22,16 @@ public class PlateauPanel extends JPanel {
 
     public void setTileSelectionListener(TileSelectionListener tileSelectionListener) {
         this.tileSelectionListener = tileSelectionListener;
-}
+    }
 
     public PlateauPanel(GameState gameState) {
         this.gameState = gameState;
 
-        setPreferredSize(new Dimension(700, 500));
-        setLayout(new GridLayout(3, 3, 10, 10));
-        setBackground(new Color(40, 40, 40));
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setPreferredSize(new Dimension(920, 760));
+        setMaximumSize(new Dimension(920, 760));
+        setLayout(new GridLayout(3, 3, 6, 6));
+        setBackground(new Color(35, 35, 35));
+        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         afficherPlateau();
     }
@@ -38,7 +39,7 @@ public class PlateauPanel extends JPanel {
     public void rafraichir() {
         removeAll();
         afficherPlateau();
-        revalidate();
+        revalidate(); 
         repaint();
     }
 
@@ -52,33 +53,31 @@ public class PlateauPanel extends JPanel {
                 String nom = character != null ? character.getName() : "Carte vide";
 
                 JPanel cartePanel = new JPanel(new BorderLayout());
-                cartePanel.setBackground(new Color(245, 235, 210));
-                cartePanel.setBorder(BorderFactory.createLineBorder(new Color(80, 55, 35), 3));
+                cartePanel.setOpaque(false);
+                cartePanel.setBorder(null);
+                cartePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 cartePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
                 JLabel imageLabel = new JLabel();
                 imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-                JLabel nomLabel = new JLabel(nom, SwingConstants.CENTER);
-                nomLabel.setFont(new Font("Arial", Font.BOLD, 14));
-                nomLabel.setForeground(new Color(40, 30, 20));
-                nomLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+                imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
                 if (tile.isEliminated() || tile.isEmptySide()) {
-                    ImageIcon dosIcon = chargerImageDos("derriere.png",tile.getOrientation());
+                    ImageIcon dosIcon = chargerImageDos("derriere.png", tile.getOrientation());
 
                     if (dosIcon != null) {
                         imageLabel.setIcon(dosIcon);
                     } else {
-                        //imageLabel.setText("Carte retournée");
+                        imageLabel.setText("Carte retournée");
                         imageLabel.setFont(new Font("Arial", Font.BOLD, 12));
                         imageLabel.setForeground(new Color(245, 235, 210));
                     }
 
-                    cartePanel.setBackground(new Color(45, 40, 35));
-                    cartePanel.setBorder(BorderFactory.createLineBorder(new Color(120, 100, 70), 3));
-                    //nomLabel.setText(tile.isEliminated() ? "Éliminé" : "Carte retournée");
-                    nomLabel.setForeground(new Color(245, 235, 210));
+                    cartePanel.setBackground(new Color(25, 22, 20));
+                    cartePanel.setBorder(BorderFactory.createCompoundBorder(
+                            BorderFactory.createLineBorder(new Color(120, 100, 70), 2),
+                            BorderFactory.createEmptyBorder(6, 6, 6, 6)
+                    ));
 
                 } else {
                     ImageIcon icon = chargerImagePersonnage(nom, tile.getOrientation());
@@ -88,12 +87,11 @@ public class PlateauPanel extends JPanel {
                     } else {
                         imageLabel.setText("Image");
                         imageLabel.setFont(new Font("Arial", Font.BOLD, 12));
-                        imageLabel.setForeground(new Color(80, 55, 35));
+                        imageLabel.setForeground(new Color(245, 235, 210));
                     }
                 }
 
                 cartePanel.add(imageLabel, BorderLayout.CENTER);
-                cartePanel.add(nomLabel, BorderLayout.SOUTH);
 
                 final int l = li;
                 final int c = ci;
@@ -132,7 +130,7 @@ public class PlateauPanel extends JPanel {
         File fichierImage = trouverFichierImage(cheminBase);
 
         if (fichierImage == null) {
-            System.out.println("Image non trouvée : " + cheminBase);
+            System.out.println("Image non trouvée : " + cheminBase + ".png");
             return null;
         }
 
@@ -144,7 +142,7 @@ public class PlateauPanel extends JPanel {
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImage(imageOriginale, 130, 100);
+            BufferedImage imageRedimensionnee = redimensionnerImage(imageOriginale, 190, 170);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -175,7 +173,7 @@ public class PlateauPanel extends JPanel {
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImage(imageOriginale, 130, 100);
+            BufferedImage imageRedimensionnee = redimensionnerImage(imageOriginale, 285, 220);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -187,29 +185,41 @@ public class PlateauPanel extends JPanel {
     }
 
     private File trouverFichierImage(String cheminBase) {
-        String[] extensions = {".png"};
+        File fichier = new File(cheminBase + ".png");
 
-        for (String extension : extensions) {
-            File fichier = new File(cheminBase + extension);
-
-            if (fichier.exists()) {
-                return fichier;
-            }
+        if (fichier.exists()) {
+            return fichier;
         }
 
         return null;
     }
 
-    private BufferedImage redimensionnerImage(BufferedImage imageOriginale, int largeur, int hauteur) {
+    private BufferedImage redimensionnerImage(BufferedImage imageOriginale, int largeurMax, int hauteurMax) {
+        int largeurOriginale = imageOriginale.getWidth();
+        int hauteurOriginale = imageOriginale.getHeight();
+
+        double ratioLargeur = (double) largeurMax / largeurOriginale;
+        double ratioHauteur = (double) hauteurMax / hauteurOriginale;
+        double ratio = Math.min(ratioLargeur, ratioHauteur);
+
+        int nouvelleLargeur = (int) (largeurOriginale * ratio);
+        int nouvelleHauteur = (int) (hauteurOriginale * ratio);
+
         BufferedImage imageRedimensionnee = new BufferedImage(
-                largeur,
-                hauteur,
+                largeurMax,
+                hauteurMax,
                 BufferedImage.TYPE_INT_ARGB
         );
 
         Graphics2D g = imageRedimensionnee.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.drawImage(imageOriginale, 0, 0, largeur, hauteur, null);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int x = (largeurMax - nouvelleLargeur) / 2;
+        int y = (hauteurMax - nouvelleHauteur) / 2;
+
+        g.drawImage(imageOriginale, x, y, nouvelleLargeur, nouvelleHauteur, null);
         g.dispose();
 
         return imageRedimensionnee;
@@ -226,6 +236,9 @@ public class PlateauPanel extends JPanel {
         );
 
         Graphics2D g = imageTournee.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         int angle = getAngleOrientation(orientation);
 

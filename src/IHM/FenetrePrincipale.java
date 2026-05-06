@@ -20,7 +20,7 @@ public class FenetrePrincipale extends JFrame {
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
-        mainPanel.add(new MenuPrincipalPanel(this), "menu");
+        mainPanel.add(new MenuPrincipalPanel(this), "menu principale");
         mainPanel.add(new ChoixModePanel(this), "choixMode");
         mainPanel.add(new ReglesPanel(this), "regles");
 
@@ -29,7 +29,7 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public void afficherMenu() {
-        cardLayout.show(mainPanel, "menu");
+        cardLayout.show(mainPanel, "menu principale");
     }
 
     public void afficherChoixMode() {
@@ -74,4 +74,4 @@ public class FenetrePrincipale extends JFrame {
             fenetre.setVisible(true);
         });
     }
-}
+} 

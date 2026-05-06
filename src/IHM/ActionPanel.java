@@ -310,4 +310,4 @@ public class ActionPanel extends JPanel {// action token panel
 
         return Integer.parseInt(reponse);
     }
-}
+} 

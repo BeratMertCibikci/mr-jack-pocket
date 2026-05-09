@@ -91,7 +91,8 @@ public class PlateauPanel extends JPanel {
                         imageLabel.setForeground(new Color(80, 55, 35));
                     }
                 }
-
+                ajouterDetectivesSurCarte(imageLabel, li, ci);
+                
                 cartePanel.add(imageLabel, BorderLayout.CENTER);
                 cartePanel.add(nomLabel, BorderLayout.SOUTH);
 
@@ -254,5 +255,72 @@ public class PlateauPanel extends JPanel {
         }
 
         return 0;
+    }
+
+    private void ajouterDetectivesSurCarte(JLabel imageLabel, int ligne, int colonne) {
+        imageLabel.setLayout(null);
+
+        JPanel badgesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+        badgesPanel.setOpaque(false);
+        badgesPanel.setBounds(4, 4, 90, 24);
+
+        int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
+        int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
+        int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
+
+        if (detectiveEstSurCetteCarte(holmesPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("H"));
+        if (detectiveEstSurCetteCarte(watsonPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("W"));
+        if (detectiveEstSurCetteCarte(tobyPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("T"));
+        if (badgesPanel.getComponentCount() > 0) imageLabel.add(badgesPanel);    
+    }
+
+    private JLabel creerBadgeDetective(String texte) {
+        JLabel badge = new JLabel(texte, SwingConstants.CENTER);
+        badge.setPreferredSize(new Dimension(22, 22));
+        badge.setOpaque(true);
+        badge.setBackground(new Color(35, 30, 25));
+        badge.setForeground(new Color(245, 235, 210));
+        badge.setFont(new Font("Arial", Font.BOLD, 12));
+        badge.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+
+        return badge;
+    }
+
+    private boolean detectiveEstSurCetteCarte(int position, int ligne, int colonne) {
+        Point p = carteAssocieeAUnePositionDetective(position);
+        if (p == null) return false;
+
+        return p.x == ligne && p.y == colonne;
+    }
+
+    private Point carteAssocieeAUnePositionDetective(int position) {
+        switch (position) {
+            case 0:
+                return new Point(0, 0); // Gauche haut
+    
+            case 1:
+                return new Point(0, 1); // Haut milieu
+    
+            case 2:
+                return new Point(0, 2); // Droit haut
+    
+            case 3:
+                return new Point(1, 2); // Droit milieu
+    
+            case 4:
+                return new Point(2, 2); // Droit bas
+    
+            case 5:
+                return new Point(2, 1); // Bas milieu
+    
+            case 6:
+                return new Point(2, 0); // Gauche bas
+    
+            case 7:
+                return new Point(1, 0); // Gauche milieu
+    
+            default:
+                return null;
+        }
     }
 }

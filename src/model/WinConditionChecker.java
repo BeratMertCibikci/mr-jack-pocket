@@ -1,8 +1,12 @@
 package model;
 
-import java.util.List;
 import java.io.Serializable;
-public class WinConditionChecker implements Serializable{
+import java.util.List;
+
+public class WinConditionChecker implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private static final int JACK_HOURGLASS_TARGET = 6;
 
     public boolean hasJackWonByTime(int currentRound, int maxRounds) {

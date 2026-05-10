@@ -1,10 +1,14 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.Serializable;
 
 public class DetectiveTokens implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private final Token holmes;
     private final Token watson;
     private final Token toby;
@@ -40,5 +44,24 @@ public class DetectiveTokens implements Serializable {
 
     public List<Token> getAllDetectives() {
         return allDetectives;
+    }
+
+    public DetectiveTokens deepCopy(){
+        DetectiveTokens copy = new DetectiveTokens();
+
+        copyToken(this.holmes, copy.getHolmes());
+        copyToken(this.watson, copy.getWatson());
+        copyToken(this.toby, copy.getToby());
+
+        return copy;
+    }
+
+    private void copyToken(Token original, Token target){
+        target.setPosition(original.getPosition());
+
+        if (original.isFrontSideUp() != target.isFrontSideUp()){
+            target.turn();
+        }
+        target.setUsed(original.isUsed());
     }
 }

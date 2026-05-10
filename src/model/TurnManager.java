@@ -1,6 +1,11 @@
 package model;
+
 import java.io.Serializable;
+
 public class TurnManager implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private int roundNumber;
     private int currentActionIndex;
 
@@ -52,5 +57,14 @@ public class TurnManager implements Serializable {
     public void startNextRound() {
         roundNumber++;
         currentActionIndex = 0;
+    }
+
+    public TurnManager deepCopy(){
+        TurnManager copy = new TurnManager();
+
+        copy.roundNumber = this.roundNumber;
+        copy.currentActionIndex = this.currentActionIndex;
+
+        return copy;
     }
 }

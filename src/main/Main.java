@@ -40,7 +40,75 @@ public class Main {
         while (!engine.getGameState().isGameOver()) {
 
             while (!engine.isRoundOver() && !engine.getGameState().isGameOver()) {
+
+                boolean stateChange = false;
+
+                System.out.println("\nCommand (play / undo / redo / save / load): ");
+                String cmd = scanner.next();
+
+                if (cmd.equalsIgnoreCase("undo")){
+                    engine.undo();
+                    stateChange = true;
+
+                    printBoard(engine.getGameState());
+                    printCharacters(engine.getGameState());
+                    printDetectiveTokens(engine.getGameState());
+                    printStatus(engine);
+
+                    //continue;
+                    break;
+                }
+
+                if (cmd.equalsIgnoreCase("redo")){
+                    engine.redo();
+                    stateChange = true;
+
+                    printBoard(engine.getGameState());
+                    printCharacters(engine.getGameState());
+                    printDetectiveTokens(engine.getGameState());
+                    printStatus(engine);
+
+                    //continue;
+                    break;
+                }
+
+                if (cmd.equalsIgnoreCase("save")){
+                    System.out.print("Filename: ");
+                    String filename = scanner.next();
+
+                    engine.saveGame(filename);
+
+                    continue;
+                }
+
+                if (cmd.equalsIgnoreCase("load")){
+                    System.out.print("Filename: ");
+                    String filename = scanner.next();
+
+                    GameEngine loadedEngine = GameEngine.loadGame(filename);
+
+                    if (loadedEngine != null){
+                        engine = loadedEngine;
+                    }
+
+                    printBoard(engine.getGameState());
+                    printCharacters(engine.getGameState());
+                    printActionTokens(engine.getGameState());
+                    printDetectiveTokens(engine.getGameState());
+                    printTurnTokens(engine.getGameState());
+                    printStatus(engine);
+
+                    continue;
+                }
+
+                if (!cmd.equalsIgnoreCase("play")){
+                    System.out.println("Unknown command. Type play / undo / redo.");
+                    continue;
+                }
+
                 playOneActionWithInput(engine, scanner);
+
+                //engine.saveState();
 
                 printBoard(engine.getGameState());
                 printCharacters(engine.getGameState());
@@ -48,7 +116,9 @@ public class Main {
                 printStatus(engine);
             }
 
-            if (!engine.getGameState().isGameOver()) {
+
+            if (!engine.getGameState().isGameOver() && engine.isRoundOver()) {
+
                 System.out.println("--- Ending Round " + engine.getRoundNumber() + " ---");
 
                 engine.endRound();

@@ -1,8 +1,12 @@
 package model;
 
-import java.util.Random;
 import java.io.Serializable;
+import java.util.Random;
+
 public class ActionTokens implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private Token t1 = new Token("Holmes", "Alibi");
     private Token t2 = new Token("Watson", "Toby");
     private Token t3 = new Token("Exchange", "Rotate");
@@ -60,5 +64,22 @@ public class ActionTokens implements Serializable {
             token.resetUsed();
             token.turn();
         }
+    }
+
+    public ActionTokens deepCopy(){
+        ActionTokens copy = new ActionTokens();
+
+        copy.rand = this.rand;
+
+        Token[] original = this.actionTokens;
+        Token[] copied = new Token[original.length];
+
+        for (int i = 0;  i < original.length; i++){
+            copied[i] = original[i].deepCopy();
+        }
+
+        copy.actionTokens = copied;
+
+        return copy;
     }
 }

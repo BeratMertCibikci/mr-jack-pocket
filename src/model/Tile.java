@@ -1,9 +1,13 @@
 package model;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import java.io.Serializable;
+
 public class Tile implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private int id;
     private GameCharacter character;
 
@@ -198,5 +202,21 @@ public class Tile implements Serializable {
 
     public boolean canBeSeen() {
         return hasCharacter() && !isEliminated;
+    }
+
+    public Tile deepCopy(GameCharacter characterCopy){
+        Tile copy = new Tile(this.id, characterCopy, 
+            new Position(this.getRow(), this.getCol()), 
+            new HashSet<>(this.suspectSideRoads), new HashSet<>(this.emptySideRoads));
+        copy.orientation = this.orientation;
+        copy.isSuspectSide = this.isSuspectSide;
+        copy.isEliminated = this.isEliminated;
+        copy.hasBarricade = this.hasBarricade;
+
+        if (characterCopy != null){
+            characterCopy.setTile(copy);
+        }
+
+        return copy;
     }
 }

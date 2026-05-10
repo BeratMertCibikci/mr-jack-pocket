@@ -1,10 +1,14 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.io.Serializable;
+
 public class AlibiDeckManager implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private List<AlibiCards> cards;
     private int jackHourglassTotal;
 
@@ -102,5 +106,34 @@ public class AlibiDeckManager implements Serializable {
 
     public List<AlibiCards> getCards() {
         return cards;
+    }
+
+    public AlibiDeckManager deepCopy(List<GameCharacter> characterCopies){
+        AlibiDeckManager copy = new AlibiDeckManager(characterCopies);
+
+        copy.cards = new ArrayList<>();
+
+        for (AlibiCards card : this.cards){
+            GameCharacter characterCopy = null;
+
+            if (card.getCharacter() != null){
+                characterCopy = findCharacterCopy(characterCopies, card.getCharacter().getId());
+            }
+            AlibiCards cardCopy = card.deepCopy(characterCopy);
+
+            copy.cards.add(cardCopy);
+        }
+        copy.jackHourglassTotal = this.jackHourglassTotal;
+
+        return copy;
+    }
+
+    private GameCharacter findCharacterCopy(List<GameCharacter> copies, int id){
+        for (GameCharacter c : copies){
+            if (c.getId() == id){
+                return c;
+            }
+        }
+        return null;
     }
 }

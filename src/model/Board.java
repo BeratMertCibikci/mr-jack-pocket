@@ -1,11 +1,14 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.io.Serializable;
+
 public class Board implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final int SIZE = 3;
 
@@ -154,5 +157,35 @@ public class Board implements Serializable {
                     "Invalid board position: row=" + row + ", column=" + column
             );
         }
+    }
+
+    public Board deepCopy(List<GameCharacter> characterCopies){
+        Board copy = new Board();
+        for (int l = 0; l < SIZE; l++){
+            for (int c = 0; c < SIZE; c++){
+                Tile originalTile = this.tiles[l][c];
+
+                if (originalTile != null){
+                    GameCharacter originalCharacter = originalTile.getCharacter();
+                    GameCharacter characterCopy = null;
+
+                    if (originalCharacter != null){
+                        characterCopy = findCharacterCopy(characterCopies, originalCharacter.getId());
+                    }
+                    Tile tileCopy = originalTile.deepCopy(characterCopy);
+                    copy.setTile(l, c, tileCopy);
+                }
+            }
+        }
+        return copy;
+    }
+
+    private GameCharacter findCharacterCopy(List<GameCharacter> copies, int id){
+        for (GameCharacter c : copies){
+            if (c.getId() == id){
+                return c;
+            }
+        }
+        return null;
     }
 }

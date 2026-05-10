@@ -1,10 +1,13 @@
 package model;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-import java.io.Serializable; 
+public class GameState implements Serializable {
 
-public class GameState implements Serializable { 
+    private static final long serialVersionUID = 1L;
+    
     private List<GameCharacter> characters;
 
     private AreaSet areaSet;
@@ -191,5 +194,85 @@ public class GameState implements Serializable {
 
     public Token getCurrentTurnToken() {
         return currentTurnToken;
+    }
+
+    public GameState deepCopy(){
+        GameState copy = new GameState(this.player1Role);
+
+        copy.player2Role = this.player2Role;
+
+        copy.gameStarted = this.gameStarted;
+        copy.gameOver = this.gameOver;
+        copy.winner = this.winner;
+
+        // Character
+        copy.characters = new ArrayList<>();
+        for (GameCharacter c : this.characters){
+            copy.characters.add(c.deepCopy());
+        }
+
+        // Board
+        copy.board = this.board.deepCopy(copy.characters);
+
+        for (Tile tile : copy.board.getAllTiles()){
+            if (tile.getCharacter() != null){
+                tile.getCharacter().setTile(tile);
+            }
+        }
+
+        // AreaSet
+        copy.areaSet = new AreaSet(copy.characters);
+
+        // Tokens
+        copy.actionTokens = this.actionTokens.deepCopy();
+        copy.detectiveTokens = this.detectiveTokens.deepCopy();
+        copy.timeTokens = this.timeTokens.deepCopy();
+
+        // Turn
+        copy.turnManager = this.turnManager.deepCopy();
+
+        // Alibi
+        copy.alibiDeckManager = this.alibiDeckManager.deepCopy(copy.characters);
+
+        // Players
+        copy.detectivePlayerState = this.detectivePlayerState.deepCopy();
+        copy.jackPlayerState = this.jackPlayerState.deepCopy();
+
+        // Jack
+        copy.jackCharacter = findCharacterCopy(copy.characters, this.jackCharacter.getId());
+
+        // Current Turn Token
+        if (this.currentTurnToken != null){
+            copy.currentTurnToken = this.currentTurnToken.deepCopy();
+        }
+        
+        copy.lineOfSightService = new LineOfSightService();
+        copy.witnessManager = new WitnessManager();
+        copy.winConditionChecker = new WinConditionChecker();
+
+        copy.relinkCharactersToBoardTiles();
+        return copy;
+    }
+    private GameCharacter findCharacterCopy(List<GameCharacter> copies, int id){
+        for (GameCharacter c : copies){
+            if (c.getId() == id){
+                return c;
+            }
+        }
+        return null;
+    }
+
+    private void relinkCharactersToBoardTiles() {
+        for (GameCharacter character : characters) {
+            for (Tile tile : board.getAllTiles()) {
+                if (tile.getCharacter() != null
+                        && tile.getCharacter().getId() == character.getId()) {
+
+                    tile.setCharacter(character);
+                    character.setTile(tile);
+                    break;
+                }
+            }
+        }
     }
 }

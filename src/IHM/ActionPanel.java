@@ -16,13 +16,15 @@ public class ActionPanel extends JPanel {// action token panel
     private GameEngine gameEngine;
     private InfoJeuPanel infoJeuPanel;
     private PlateauPanel plateauPanel;
+    private TimeTokensPanel timeTokensPanel;
     private BoutonClickMusique boutonClickMusique;
 
-    public ActionPanel(GameEngine gameEngine, InfoJeuPanel infoJeuPanel, PlateauPanel plateauPanel) {
+    public ActionPanel(GameEngine gameEngine, InfoJeuPanel infoJeuPanel, PlateauPanel plateauPanel, TimeTokensPanel timeTokensPanel) {
         //engine, info panel ve plateau alıyor 
         this.gameEngine = gameEngine;
         this.infoJeuPanel = infoJeuPanel;
         this.plateauPanel = plateauPanel;
+        this.timeTokensPanel = timeTokensPanel;
         this.boutonClickMusique = new BoutonClickMusique();
 
         setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));// ortalı şekilde boşluklu ayarlıyor
@@ -129,6 +131,7 @@ public class ActionPanel extends JPanel {// action token panel
 
             plateauPanel.rafraichir();
             infoJeuPanel.rafraichir();
+            timeTokensPanel.rafraichir();
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(

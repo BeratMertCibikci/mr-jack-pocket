@@ -257,7 +257,7 @@ public class PlateauPanel extends JPanel {
         return 0;
     }
 
-    private void ajouterDetectivesSurCarte(JLabel imageLabel, int ligne, int colonne) {
+    private void ajouterDetectivesSurCarte(JLabel imageLabel, int ligne, int colonne) { // ajoute des detective tokens sur les cartes
         imageLabel.setLayout(null);
 
         JPanel badgesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
@@ -274,7 +274,7 @@ public class PlateauPanel extends JPanel {
         if (badgesPanel.getComponentCount() > 0) imageLabel.add(badgesPanel);    
     }
 
-    private JLabel creerBadgeDetective(String texte) {
+    private JLabel creerBadgeDetective(String texte) { // création des badges des detective tokens
         JLabel badge = new JLabel(texte, SwingConstants.CENTER);
         badge.setPreferredSize(new Dimension(22, 22));
         badge.setOpaque(true);
@@ -286,14 +286,14 @@ public class PlateauPanel extends JPanel {
         return badge;
     }
 
-    private boolean detectiveEstSurCetteCarte(int position, int ligne, int colonne) {
+    private boolean detectiveEstSurCetteCarte(int position, int ligne, int colonne) { // fonction booléen pour savoir où sont les detectives
         Point p = carteAssocieeAUnePositionDetective(position);
         if (p == null) return false;
 
         return p.x == ligne && p.y == colonne;
     }
 
-    private Point carteAssocieeAUnePositionDetective(int position) {
+    private Point carteAssocieeAUnePositionDetective(int position) { // positionnement des detective tokens
         switch (position) {
             case 0:
                 return new Point(0, 0); // Gauche haut

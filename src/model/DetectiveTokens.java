@@ -12,9 +12,9 @@ public class DetectiveTokens implements Serializable {
     private List<Token> allDetectives;
 
     public DetectiveTokens() {
-        this.holmes = new Token(1, "Holmes", 11);
-        this.watson = new Token(2, "Watson", 3);
-        this.toby = new Token(3, "Toby", 7);
+        this.holmes = new Token(1, "Holmes", 0);
+        this.watson = new Token(2, "Watson", 2);
+        this.toby = new Token(3, "Toby", 5);
 
         this.allDetectives = new ArrayList<>();
         this.allDetectives.add(holmes);

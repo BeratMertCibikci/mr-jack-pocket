@@ -16,13 +16,15 @@ public class ActionPanel extends JPanel {// action token panel
     private GameEngine gameEngine;
     private InfoJeuPanel infoJeuPanel;
     private PlateauPanel plateauPanel;
+    private TimeTokensPanel timeTokensPanel;
     private BoutonClickMusique boutonClickMusique;
 
-    public ActionPanel(GameEngine gameEngine, InfoJeuPanel infoJeuPanel, PlateauPanel plateauPanel) {
+    public ActionPanel(GameEngine gameEngine, InfoJeuPanel infoJeuPanel, PlateauPanel plateauPanel, TimeTokensPanel timeTokensPanel) {
         //engine, info panel ve plateau alıyor 
         this.gameEngine = gameEngine;
         this.infoJeuPanel = infoJeuPanel;
         this.plateauPanel = plateauPanel;
+        this.timeTokensPanel = timeTokensPanel;
         this.boutonClickMusique = new BoutonClickMusique();
 
         setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));// ortalı şekilde boşluklu ayarlıyor
@@ -123,17 +125,13 @@ public class ActionPanel extends JPanel {// action token panel
                     break;
 
                 case JOKER:
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "On la fera à l'étape suivante : " + actionType,
-                            "Action à compléter",
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
+                    traiterJoker();
                     break;
             }
 
             plateauPanel.rafraichir();
             infoJeuPanel.rafraichir();
+            timeTokensPanel.rafraichir();
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
@@ -175,7 +173,49 @@ public class ActionPanel extends JPanel {// action token panel
             );
         }
     }
-        private void preparerRotate() {
+
+    private void traiterJoker() {
+        boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
+        String[] choix;
+
+        if (jackTurn) {
+            choix = new String[] {"Holmes", "Watson", "Toby", "Ne pas bouger"};
+        } else {
+            choix = new String[] {"Holmes", "Watson", "Toby"};
+        }
+
+        String reponse = (String) JOptionPane.showInputDialog(
+            this,
+            "Choisissez un détective pour l'action Joker:",
+            "Joker",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            choix,
+            choix[0]
+        );
+        if (reponse == null) throw new IllegalStateException("Action Joker annulée.");
+
+        if (reponse.equals("Ne pas bouger")) {
+            gameEngine.skipJokerMove();
+            JOptionPane.showMessageDialog(
+                this,
+                "Jack ne déplace aucun détective",
+                "Joker",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        } else {
+            gameEngine.moveDetectiveWithJoker(reponse);
+            JOptionPane.showMessageDialog(
+                this,
+                reponse + " avance d'une case",
+                "Joker",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+    }
+
+
+    private void preparerRotate() {
         JOptionPane.showMessageDialog(
                 this,
                 "Sélectionnez une carte à tourner sur le plateau.",
@@ -183,7 +223,7 @@ public class ActionPanel extends JPanel {// action token panel
                 JOptionPane.INFORMATION_MESSAGE
         );
 
-    plateauPanel.setTileSelectionListener(tile -> {
+        plateauPanel.setTileSelectionListener(tile -> {
             try {
                 String[] choix = {"1", "2", "3"};
 
@@ -226,6 +266,7 @@ public class ActionPanel extends JPanel {// action token panel
             }
         });
     }
+
     private void preparerExchange() {
         JOptionPane.showMessageDialog(
                 this,

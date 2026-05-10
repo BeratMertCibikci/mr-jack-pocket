@@ -7,6 +7,11 @@ public class SaveManager{
     
     public static void saveGame(GameEngine engine, String filename){
         try {
+
+            if (!filename.endsWith(".sav")){
+                filename += ".sav";
+            }
+
             ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename));
 
             System.out.println("Saving...");
@@ -27,6 +32,11 @@ public class SaveManager{
 
     public static GameEngine loadGame(String filename){
         try {
+
+            if (!filename.endsWith(".sav")){
+                filename += ".sav";
+            }
+            
             ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename));
 
             GameEngine loaded = (GameEngine) in.readObject();

@@ -1,11 +1,14 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class Board {
+public class Board implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final int SIZE = 3;
 

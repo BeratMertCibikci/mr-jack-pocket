@@ -1,6 +1,11 @@
 package model;
 
-public class TurnManager {
+import java.io.Serializable;
+
+public class TurnManager implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private int roundNumber;
     private int currentActionIndex;
 

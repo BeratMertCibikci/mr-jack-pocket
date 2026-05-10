@@ -43,7 +43,7 @@ public class Main {
 
                 boolean stateChange = false;
 
-                System.out.println("\nCommand (play / undo / redo): ");
+                System.out.println("\nCommand (play / undo / redo / save / load): ");
                 String cmd = scanner.next();
 
                 if (cmd.equalsIgnoreCase("undo")){
@@ -70,6 +70,35 @@ public class Main {
 
                     //continue;
                     break;
+                }
+
+                if (cmd.equalsIgnoreCase("save")){
+                    System.out.print("Filename: ");
+                    String filename = scanner.next();
+
+                    engine.saveGame(filename);
+
+                    continue;
+                }
+
+                if (cmd.equalsIgnoreCase("load")){
+                    System.out.print("Filename: ");
+                    String filename = scanner.next();
+
+                    GameEngine loadedEngine = GameEngine.loadGame(filename);
+
+                    if (loadedEngine != null){
+                        engine = loadedEngine;
+                    }
+
+                    printBoard(engine.getGameState());
+                    printCharacters(engine.getGameState());
+                    printActionTokens(engine.getGameState());
+                    printDetectiveTokens(engine.getGameState());
+                    printTurnTokens(engine.getGameState());
+                    printStatus(engine);
+
+                    continue;
                 }
 
                 if (!cmd.equalsIgnoreCase("play")){

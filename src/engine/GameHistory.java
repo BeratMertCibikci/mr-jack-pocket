@@ -1,9 +1,13 @@
 package engine;
 
+import java.io.Serializable;
 import java.util.Stack;
 import model.GameState;
 
-public class GameHistory {
+public class GameHistory implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private Stack<GameState> undoStack;
     private Stack<GameState> redoStack;
 

@@ -1,11 +1,15 @@
 package engine;
 
+import java.io.Serializable;
 import model.GameCharacter;
 import model.GameState;
 import model.Tile;
 import model.Token;
 
-public class GameEngine {
+public class GameEngine implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private GameState gameState;
     private ActionEngine actionEngine;
     private RoundEngine roundEngine;
@@ -174,4 +178,25 @@ public class GameEngine {
     public void saveState(){
         history.save(gameState);
     }
+
+    public void saveGame(String filename){
+        SaveManager.saveGame(this, filename);
+    }
+
+    public static GameEngine loadGame(String filename){
+        return SaveManager.loadGame(filename);
+    }
+
+    /*
+    public void loadGame(String filename){
+        GameState loaded = SaveManager.loadGame(filename);
+
+        if (loaded != null){
+            this.gameState = loaded;
+
+            this.actionEngine = new ActionEngine(gameState);
+            this.roundEngine = new RoundEngine(gameState);
+        }
+    }
+    */
 }

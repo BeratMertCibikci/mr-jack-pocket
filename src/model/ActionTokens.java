@@ -1,8 +1,12 @@
 package model;
 
+import java.io.Serializable;
 import java.util.Random;
 
-public class ActionTokens {
+public class ActionTokens implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private Token t1 = new Token("Holmes", "Alibi");
     private Token t2 = new Token("Watson", "Toby");
     private Token t3 = new Token("Exchange", "Rotate");

@@ -1,9 +1,13 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DetectiveTokens {
+public class DetectiveTokens implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private final Token holmes;
     private final Token watson;
     private final Token toby;

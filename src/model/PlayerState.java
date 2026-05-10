@@ -1,9 +1,13 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayerState {
+public class PlayerState implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private Player player;
     private List<Token> ownedTurnTokens;
 

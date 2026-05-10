@@ -1,6 +1,11 @@
 package model;
 
-public class TimeTokens {
+import java.io.Serializable;
+
+public class TimeTokens implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private Token one = new Token("one", "Hourglass");
     private Token two = new Token("two", "Hourglass");
     private Token three = new Token("three", "Hourglass");

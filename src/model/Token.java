@@ -112,10 +112,10 @@ public class Token {
     }
 
     public void move(int steps) {
-        this.position = (this.position + steps) % 8;
+        this.position = (this.position + steps) % 12;
 
         if (this.position < 0) {
-            this.position += 8;
+            this.position += 12;
         }
     }
 

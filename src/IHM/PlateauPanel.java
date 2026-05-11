@@ -27,8 +27,8 @@ public class PlateauPanel extends JPanel {
     public PlateauPanel(GameState gameState) {
         this.gameState = gameState;
 
-        setPreferredSize(new Dimension(700, 500));
-        setLayout(new GridLayout(3, 3, 10, 10));
+        setLayout(null);
+        setPreferredSize(new Dimension(700, 620));
         setBackground(new Color(40, 40, 40));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
@@ -44,6 +44,9 @@ public class PlateauPanel extends JPanel {
 
     private void afficherPlateau() {
         Tile[][] board = gameState.getBoard().getBoardForUI();
+        JPanel boardPanel = new JPanel(new GridLayout(3, 3, 10, 10));
+        boardPanel.setOpaque(false);
+        boardPanel.setBounds(95, 35, 405, 315);
 
         for (int li = 0; li < 3; li++) {
             for (int ci = 0; ci < 3; ci++) {
@@ -53,6 +56,7 @@ public class PlateauPanel extends JPanel {
 
                 JPanel cartePanel = new JPanel(new BorderLayout());
                 cartePanel.setBackground(new Color(245, 235, 210));
+                cartePanel.setPreferredSize(new Dimension(130, 105));
                 cartePanel.setBorder(BorderFactory.createLineBorder(new Color(80, 55, 35), 3));
                 cartePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -91,7 +95,6 @@ public class PlateauPanel extends JPanel {
                         imageLabel.setForeground(new Color(80, 55, 35));
                     }
                 }
-                ajouterDetectivesSurCarte(imageLabel, li, ci);
                 
                 cartePanel.add(imageLabel, BorderLayout.CENTER);
                 cartePanel.add(nomLabel, BorderLayout.SOUTH);
@@ -116,9 +119,12 @@ public class PlateauPanel extends JPanel {
                     }
                 });
 
-                add(cartePanel);
+                boardPanel.add(cartePanel);
             }
         }
+
+        add(boardPanel);
+        ajouterDetectiveTokensAutourPlateau();
     }
 
     private ImageIcon chargerImagePersonnage(String nom, Orientation orientation) {
@@ -257,70 +263,109 @@ public class PlateauPanel extends JPanel {
         return 0;
     }
 
-    private void ajouterDetectivesSurCarte(JLabel imageLabel, int ligne, int colonne) { // ajoute des detective tokens sur les cartes
-        imageLabel.setLayout(null);
-
-        JPanel badgesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
-        badgesPanel.setOpaque(false);
-        badgesPanel.setBounds(4, 4, 90, 24);
-
+    private void ajouterDetectiveTokensAutourPlateau() {
         int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
         int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
         int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
 
-        if (detectiveEstSurCetteCarte(holmesPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("H"));
-        if (detectiveEstSurCetteCarte(watsonPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("W"));
-        if (detectiveEstSurCetteCarte(tobyPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("T"));
-        if (badgesPanel.getComponentCount() > 0) imageLabel.add(badgesPanel);    
+        for (int position = 0; position < 12; position++) {
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 0));
+            panel.setOpaque(false);
+            panel.setBounds(getXDetective(position), getYDetective(position), 38, 24);
+
+            boolean contientDetective = false;
+
+            if (holmesPos == position) {
+                panel.add(creerBadgeDetective("H"));
+                contientDetective = true;
+            }
+    
+            if (watsonPos == position) {
+                panel.add(creerBadgeDetective("W"));
+                contientDetective = true;
+            }
+    
+            if (tobyPos == position) {
+                panel.add(creerBadgeDetective("T"));
+                contientDetective = true;
+            }
+    
+            if (!contientDetective) {
+                panel.add(creerPointVide());
+            }
+    
+            add(panel);
+        }
     }
 
-    private JLabel creerBadgeDetective(String texte) { // création des badges des detective tokens
+    private int getXDetective(int position) {
+        switch (position) {
+            case 0: return 115;
+            case 1: return 260;
+            case 2: return 405;
+    
+            case 3:
+            case 4:
+            case 5:
+                return 505;
+    
+            case 6: return 405;
+            case 7: return 260;
+            case 8: return 115;
+    
+            case 9:
+            case 10:
+            case 11:
+                return 45;
+    
+            default:
+                return 0;
+        }
+    }
+
+    private int getYDetective(int position) {
+        switch (position) {
+            case 0:
+            case 1:
+            case 2:
+                return 5;
+    
+            case 3: return 70;
+            case 4: return 170;
+            case 5: return 270;
+    
+            case 6:
+            case 7:
+            case 8:
+                return 352;
+    
+            case 9: return 270;
+            case 10: return 170;
+            case 11: return 70;
+    
+            default:
+                return 0;
+        }
+    }
+
+    private JLabel creerBadgeDetective(String texte) {
         JLabel badge = new JLabel(texte, SwingConstants.CENTER);
-        badge.setPreferredSize(new Dimension(22, 22));
+        badge.setPreferredSize(new Dimension(24, 24));
         badge.setOpaque(true);
-        badge.setBackground(new Color(35, 30, 25));
-        badge.setForeground(new Color(245, 235, 210));
-        badge.setFont(new Font("Arial", Font.BOLD, 12));
-        badge.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        badge.setBackground(Color.WHITE);
+        badge.setForeground(Color.BLACK);
+        badge.setFont(new Font("Arial", Font.BOLD, 14));
+        badge.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
 
         return badge;
     }
 
-    private boolean detectiveEstSurCetteCarte(int position, int ligne, int colonne) { // fonction booléen pour savoir où sont les detectives
-        Point p = carteAssocieeAUnePositionDetective(position);
-        if (p == null) return false;
+    private JLabel creerPointVide() {
+        JLabel point = new JLabel("•", SwingConstants.CENTER);
+        point.setPreferredSize(new Dimension(16, 16));
+        point.setForeground(new Color(180, 180, 180));
+        point.setFont(new Font("Arial", Font.BOLD, 16));
 
-        return p.x == ligne && p.y == colonne;
-    }
-
-    private Point carteAssocieeAUnePositionDetective(int position) { // positionnement des detective tokens
-        switch (position) {
-            case 0:
-                return new Point(0, 0); // Gauche haut
-    
-            case 1:
-                return new Point(0, 1); // Haut milieu
-    
-            case 2:
-                return new Point(0, 2); // Droit haut
-    
-            case 3:
-                return new Point(1, 2); // Droit milieu
-    
-            case 4:
-                return new Point(2, 2); // Droit bas
-    
-            case 5:
-                return new Point(2, 1); // Bas milieu
-    
-            case 6:
-                return new Point(2, 0); // Gauche bas
-    
-            case 7:
-                return new Point(1, 0); // Gauche milieu
-    
-            default:
-                return null;
-        }
+        return point;
     }
 }

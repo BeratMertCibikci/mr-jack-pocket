@@ -44,6 +44,37 @@ public class ActionPanel extends JPanel {// action token panel
             JPanel tokenPanel = creerActionTokenPanel(token, i);
             add(tokenPanel);
         }
+
+        JButton tourSuivantButton = new JButton("Tour suivant");
+        tourSuivantButton.setFont(new Font("Arial", Font.BOLD, 14));
+        tourSuivantButton.setBackground(new Color(80, 65, 35));
+        tourSuivantButton.setForeground(new Color(245, 235, 210));
+        tourSuivantButton.setFocusPainted(false);
+        tourSuivantButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        tourSuivantButton.addActionListener(e -> {
+            try {
+                boutonClickMusique.jouerClick();
+                gameEngine.endRound();
+
+                plateauPanel.rafraichir();
+                infoJeuPanel.rafraichir();
+                if (timeTokensPanel != null) timeTokensPanel.rafraichir();
+                removeAll();
+                afficherActions();
+                revalidate();
+                repaint();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    ex.getMessage(),
+                    "Erreur tour suivant",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        add(tourSuivantButton);
     }
 
     private JPanel creerActionTokenPanel(Token token, int index) {// on crée le visualisation du token
@@ -131,7 +162,7 @@ public class ActionPanel extends JPanel {// action token panel
 
             plateauPanel.rafraichir();
             infoJeuPanel.rafraichir();
-            timeTokensPanel.rafraichir();
+            if (timeTokensPanel != null) timeTokensPanel.rafraichir();
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(

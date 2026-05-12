@@ -40,6 +40,46 @@ public class AlibiDeckManager implements Serializable {
 
         throw new IllegalArgumentException("Character not found: " + name);
     }
+    private AlibiCards drawCardById(int cardId) {
+        for (AlibiCards card : cards) {
+            if (card.getId() == cardId && !card.isDrawn()) {
+                card.setDrawn(true);
+                return card;
+            }
+        }
+
+        return null;
+    }
+    public GameCharacter investigatorDrawsCardById(int cardId) {
+        AlibiCards card = drawCardById(cardId);
+
+        if (card != null) {
+            card.setOwner("Investigator");
+
+            GameCharacter character = card.getCharacter();
+            character.eliminate();
+
+            return character;
+        }
+
+        return null;
+    }
+    public AlibiCards mrJackDrawsCardById(int cardId, boolean isInitialIdentity) {
+        AlibiCards card = drawCardById(cardId);
+
+        if (card != null) {
+            card.setOwner("Jack");
+
+            if (!isInitialIdentity) {
+                jackHourglassTotal += card.getHourglassValue();
+                jackHiddenAlibiDrawCount++;
+            }
+
+            return card;
+        }
+
+        return null;
+    }
 
     public void shuffleCards() {
         Collections.shuffle(this.cards);
@@ -113,6 +153,17 @@ public class AlibiDeckManager implements Serializable {
     public List<AlibiCards> getCards() {
         return cards;
     }
+    public List<AlibiCards> getAvailableCards() {
+        List<AlibiCards> availableCards = new ArrayList<>();
+
+        for (AlibiCards card : cards) {
+            if (!card.isDrawn()) {
+                availableCards.add(card);
+            }
+        }
+
+        return availableCards;
+    }
 
     public AlibiDeckManager deepCopy(List<GameCharacter> characterCopies){
         AlibiDeckManager copy = new AlibiDeckManager(characterCopies);
@@ -130,6 +181,7 @@ public class AlibiDeckManager implements Serializable {
             copy.cards.add(cardCopy);
         }
         copy.jackHourglassTotal = this.jackHourglassTotal;
+        copy.jackHiddenAlibiDrawCount = this.jackHiddenAlibiDrawCount;
 
         return copy;
     }

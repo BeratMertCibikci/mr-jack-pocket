@@ -177,6 +177,13 @@ public class ActionEngine {
     public void resetRotatedTilesThisRound() {
         rotatedTileIdsThisRound.clear();
     }
+    public boolean hasTileBeenRotatedThisRound(Tile tile) {
+    if (tile == null) {
+        throw new IllegalArgumentException("Tile cannot be null.");
+    }
+
+    return rotatedTileIdsThisRound.contains(tile.getId());
+}
 
     private void validateRotationCount(int rotations) {
         if (rotations < 1 || rotations > 3) {

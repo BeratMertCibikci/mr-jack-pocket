@@ -18,6 +18,16 @@ public class GameEngine implements Serializable {
     public GameEngine(String player1Role) {
         this.gameState = new GameState(player1Role); 
     }
+    public GameEngine(GameState gameState) {
+        if (gameState == null) {
+            throw new IllegalArgumentException("GameState cannot be null.");
+        }
+
+        this.gameState = gameState;
+        this.actionEngine = new ActionEngine(gameState);
+        this.roundEngine = new RoundEngine(gameState);
+        this.history = new GameHistory();
+    }
 
     public void startGame() {
         gameState.setupGame();
@@ -58,10 +68,18 @@ public class GameEngine implements Serializable {
         ensureGameRunning();
         return actionEngine.investigatorDrawsAlibi();
     }
+    public GameCharacter investigatorDrawsAlibiCardById(int cardId) {
+        ensureGameRunning();
+        return actionEngine.investigatorDrawsAlibiCardById(cardId);
+    }
 
     public void jackDrawsAlibi() {
         ensureGameRunning();
         actionEngine.jackDrawsAlibi();
+    }
+    public void jackDrawsAlibiCardById(int cardId) {
+        ensureGameRunning();
+        actionEngine.jackDrawsAlibiCardById(cardId);
     }
 
     public void rotateTile(Tile tile, int rotations) {
@@ -95,7 +113,7 @@ public class GameEngine implements Serializable {
         roundEngine.endRound();
 
         if (!gameState.isGameOver()) {
-            actionEngine.resetRotatedTilesThisRound();
+            gameState.resetRotatedTilesThisRound();
         }
     }
 

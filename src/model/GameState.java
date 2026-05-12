@@ -2,7 +2,9 @@ package model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GameState implements Serializable {
 
@@ -36,6 +38,7 @@ public class GameState implements Serializable {
     private PlayerState detectivePlayerState;
     private PlayerState jackPlayerState;
     private Token currentTurnToken;
+    private Set<Integer> rotatedTileIdsThisRound;
 
     public GameState(String player1Role) {
         this.gameStarted = false;
@@ -44,6 +47,7 @@ public class GameState implements Serializable {
 
         this.player1Role = player1Role;
         this.player2Role = player1Role.equals("Investigator") ? "Jack" : "Investigator";
+        this.rotatedTileIdsThisRound = new HashSet<>();
     }
 
     public void setupGame() {
@@ -105,6 +109,25 @@ public class GameState implements Serializable {
                 detectivePlayerState,
                 jackPlayerState
         );
+    }
+    public boolean hasTileBeenRotatedThisRound(Tile tile) {
+        if (tile == null) {
+            throw new IllegalArgumentException("Tile cannot be null.");
+        }
+
+        return rotatedTileIdsThisRound.contains(tile.getId());
+    }
+
+    public void markTileRotatedThisRound(Tile tile) {
+        if (tile == null) {
+            throw new IllegalArgumentException("Tile cannot be null.");
+        }
+
+        rotatedTileIdsThisRound.add(tile.getId());
+    }
+
+    public void resetRotatedTilesThisRound() {
+        rotatedTileIdsThisRound.clear();
     }
 
     public void drawNextTurnToken() {
@@ -204,6 +227,7 @@ public class GameState implements Serializable {
         copy.gameStarted = this.gameStarted;
         copy.gameOver = this.gameOver;
         copy.winner = this.winner;
+        copy.rotatedTileIdsThisRound = new HashSet<>(this.rotatedTileIdsThisRound);
 
         // Character
         copy.characters = new ArrayList<>();

@@ -108,4 +108,38 @@ public class MoveApplier {
             );
         }
     }
+    public static void applyAlibiWithSpecificCard(GameEngine engine, AIMove move, int cardId) {
+        if (engine == null) {
+            throw new IllegalArgumentException("GameEngine cannot be null.");
+        }
+
+        if (move == null) {
+            throw new IllegalArgumentException("AIMove cannot be null.");
+        }
+
+        if (move.getActionType() != ActionType.ALIBI) {
+            throw new IllegalArgumentException("Move must be ALIBI.");
+        }
+
+        engine.selectActionToken(move.getActionTokenIndex());
+
+        ActionType selectedActionType = engine.getSelectedActionType();
+
+        if (selectedActionType != ActionType.ALIBI) {
+            throw new IllegalStateException(
+                    "Selected token is not ALIBI. It is " + selectedActionType
+            );
+        }
+
+        if (engine.getGameState().getTurnManager().isInvestigatorTurn()) {
+            engine.investigatorDrawsAlibiCardById(cardId);
+        } else if (engine.getGameState().getTurnManager().isJackTurn()) {
+            engine.jackDrawsAlibiCardById(cardId);
+        } else {
+            throw new IllegalStateException(
+                    "Cannot apply alibi. Current player: "
+                            + engine.getGameState().getTurnManager().getCurrentPlayer()
+            );
+        }
+    }
 }

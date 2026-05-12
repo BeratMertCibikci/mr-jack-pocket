@@ -32,7 +32,8 @@ public class JeuPanel extends JPanel {
 
         PlateauPanel plateauPanel = new PlateauPanel(gameState);
         InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
-        ActionPanel actionPanel = new ActionPanel(gameEngine, infoJeuPanel, plateauPanel);
+        TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
+        ActionPanel actionPanel = new ActionPanel(gameEngine, infoJeuPanel, plateauPanel, timeTokensPanel);
 
         JButton retourButton = new JButton("Retour menu");
         retourButton.addActionListener(e -> fenetre.afficherMenu());
@@ -42,9 +43,10 @@ public class JeuPanel extends JPanel {
         topPanel.add(titre, BorderLayout.CENTER);
         topPanel.add(retourButton, BorderLayout.EAST);
 
-        JPanel plateauWrapper = new JPanel(new GridBagLayout());
+        JPanel plateauWrapper = new JPanel(new BorderLayout());
         plateauWrapper.setBackground(new Color(35, 35, 35));
-        plateauWrapper.add(plateauPanel);
+        plateauWrapper.add(timeTokensPanel, BorderLayout.WEST);
+        plateauWrapper.add(plateauPanel, BorderLayout.CENTER);
 
         add(topPanel, BorderLayout.NORTH);
         add(plateauWrapper, BorderLayout.CENTER);

@@ -27,7 +27,8 @@ public class RoundEngine implements Serializable {
                 gameState.getCharacters(),
                 gameState.getJackCharacter(),
                 gameState.getAlibiDeckManager(),
-                gameState.getJackPlayerState()
+                gameState.getJackPlayerState(),
+                gameState.getTurnManager().getRoundNumber()
         );
 
         if (winner != null) {

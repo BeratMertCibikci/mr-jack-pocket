@@ -34,6 +34,24 @@ public class ActionPanel extends JPanel {// action token panel
         afficherActions();
     }
 
+    public void rafraichir() {
+        removeAll();
+        afficherActions();
+        revalidate();
+        repaint();
+    }
+
+    private void rafraichirToutesLesVues() {
+        plateauPanel.rafraichir();
+        infoJeuPanel.rafraichir();
+
+        if (timeTokensPanel != null) {
+            timeTokensPanel.rafraichir();
+        }
+
+        rafraichir();
+    }
+
     private void afficherActions() {
         Token[] actionTokens = gameEngine.getGameState()
                 .getActionTokens()
@@ -46,6 +64,7 @@ public class ActionPanel extends JPanel {// action token panel
         }
 
         JButton tourSuivantButton = new JButton("Tour suivant");
+        tourSuivantButton.setEnabled(gameEngine.isRoundOver());
         tourSuivantButton.setFont(new Font("Arial", Font.BOLD, 14));
         tourSuivantButton.setBackground(new Color(80, 65, 35));
         tourSuivantButton.setForeground(new Color(245, 235, 210));
@@ -57,13 +76,7 @@ public class ActionPanel extends JPanel {// action token panel
                 boutonClickMusique.jouerClick();
                 gameEngine.endRound();
 
-                plateauPanel.rafraichir();
-                infoJeuPanel.rafraichir();
-                if (timeTokensPanel != null) timeTokensPanel.rafraichir();
-                removeAll();
-                afficherActions();
-                revalidate();
-                repaint();
+                rafraichirToutesLesVues();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
                     this,
@@ -81,13 +94,24 @@ public class ActionPanel extends JPanel {// action token panel
         JPanel tokenPanel = new JPanel(new BorderLayout());
         tokenPanel.setPreferredSize(new Dimension(160, 70)); //pour cahque token on a un dim de 160x70
 
-        tokenPanel.setBackground(new Color(35, 30, 25));
-        tokenPanel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
-        tokenPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        if (token.isUsed()) {
+            tokenPanel.setBackground(new Color(45, 45, 45));
+            tokenPanel.setBorder(BorderFactory.createLineBorder(new Color(90, 90, 90), 2));
+            tokenPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        } else {
+            tokenPanel.setBackground(new Color(35, 30, 25));
+            tokenPanel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+            tokenPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
 
         JLabel tokenLabel = new JLabel(token.getCurrentSide(), SwingConstants.CENTER);// on ecrit la face courrent du token 
         tokenLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        tokenLabel.setForeground(new Color(245, 235, 210));
+        if (token.isUsed()) {
+            tokenLabel.setForeground(new Color(130, 130, 130));
+            tokenLabel.setText(token.getCurrentSide() + " ✓");
+        } else {
+            tokenLabel.setForeground(new Color(245, 235, 210));
+        }
 
         tokenPanel.add(tokenLabel, BorderLayout.CENTER); // on l ajoute dans le panel 
 
@@ -95,6 +119,10 @@ public class ActionPanel extends JPanel {// action token panel
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
+                    if (token.isUsed()) {
+                        return;
+                    }
+
                     boutonClickMusique.jouerClick();
 
                     Token selectedToken = gameEngine.selectActionToken(index);
@@ -160,9 +188,9 @@ public class ActionPanel extends JPanel {// action token panel
                     break;
             }
 
-            plateauPanel.rafraichir();
-            infoJeuPanel.rafraichir();
-            if (timeTokensPanel != null) timeTokensPanel.rafraichir();
+            if (actionType != ActionType.ROTATE && actionType != ActionType.EXCHANGE) {
+                rafraichirToutesLesVues();
+            }
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
@@ -284,8 +312,7 @@ public class ActionPanel extends JPanel {// action token panel
                 );
 
                 plateauPanel.setTileSelectionListener(null);
-                plateauPanel.rafraichir();
-                infoJeuPanel.rafraichir();
+                rafraichirToutesLesVues();
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
@@ -348,8 +375,7 @@ public class ActionPanel extends JPanel {// action token panel
                     );
 
                     plateauPanel.setTileSelectionListener(null);
-                    plateauPanel.rafraichir();
-                    infoJeuPanel.rafraichir();
+                    rafraichirToutesLesVues();
                 }
 
             } catch (Exception ex) {

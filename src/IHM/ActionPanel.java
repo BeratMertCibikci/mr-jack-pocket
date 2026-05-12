@@ -40,6 +40,34 @@ public class ActionPanel extends JPanel {
         afficherActions();
     }
 
+    private void synchroniserGameStateDansVues() {
+        plateauPanel.setGameState(gameEngine.getGameState());
+
+        if (timeTokensPanel != null) {
+            timeTokensPanel.setGameState(gameEngine.getGameState());
+        }
+    }
+
+    public void rafraichir() {
+        removeAll();
+        afficherActions();
+        revalidate();
+        repaint();
+    }
+
+    private void rafraichirToutesLesVues() {
+        synchroniserGameStateDansVues();
+
+        plateauPanel.rafraichir();
+        infoJeuPanel.rafraichir();
+
+        if (timeTokensPanel != null) {
+            timeTokensPanel.rafraichir();
+        }
+
+        rafraichir();
+    }
+
     private void afficherActions() {
         Token[] actionTokens = gameEngine.getGameState()
                 .getActionTokens()
@@ -51,7 +79,56 @@ public class ActionPanel extends JPanel {
             add(tokenPanel);
         }
 
+        JButton undoButton = new JButton("Undo");
+        undoButton.setFont(new Font("Arial", Font.BOLD, 14));
+        undoButton.setBackground(new Color(55, 55, 70));
+        undoButton.setForeground(new Color(245, 235, 210));
+        undoButton.setFocusPainted(false);
+        undoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        undoButton.addActionListener(e -> {
+            try {
+                boutonClickMusique.jouerClick();
+                gameEngine.undo();
+                rafraichirToutesLesVues();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        ex.getMessage(),
+                        "Erreur undo",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        add(undoButton);
+
+        JButton redoButton = new JButton("Redo");
+        redoButton.setFont(new Font("Arial", Font.BOLD, 14));
+        redoButton.setBackground(new Color(55, 55, 70));
+        redoButton.setForeground(new Color(245, 235, 210));
+        redoButton.setFocusPainted(false);
+        redoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        redoButton.addActionListener(e -> {
+            try {
+                boutonClickMusique.jouerClick();
+                gameEngine.redo();
+                rafraichirToutesLesVues();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        ex.getMessage(),
+                        "Erreur redo",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        add(redoButton);
+
         JButton tourSuivantButton = new JButton("Tour suivant");
+        tourSuivantButton.setEnabled(gameEngine.isRoundOver());
         tourSuivantButton.setFont(new Font("Arial", Font.BOLD, 14));
         tourSuivantButton.setBackground(new Color(80, 65, 35));
         tourSuivantButton.setForeground(new Color(245, 235, 210));

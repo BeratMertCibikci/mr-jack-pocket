@@ -1,9 +1,12 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LineOfSightService {
+public class LineOfSightService implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public void updateVisibility(Board board, DetectiveTokens detectiveTokens, List<GameCharacter> characters) {
         resetVisibility(characters);
@@ -107,7 +110,7 @@ public class LineOfSightService {
             return visibleTiles;
         }
 
-        if (currentTile.blocksLineOfSight(direction)) {
+        if (currentTile.blocksLineOfSight(direction.opposite())) {
             return visibleTiles;
         }
 

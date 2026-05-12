@@ -1,9 +1,12 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CharacterFactory {
+public class CharacterFactory implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static List<GameCharacter> createCharacters() {
         List<GameCharacter> characters = new ArrayList<>();

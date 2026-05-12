@@ -1,6 +1,11 @@
 package model;
 
-public class AlibiCards {
+import java.io.Serializable;
+
+public class AlibiCards implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private int id;
     private GameCharacter character;
     private int hourglassValue;
@@ -41,5 +46,13 @@ public class AlibiCards {
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+    public AlibiCards deepCopy(GameCharacter characterCopy){
+        AlibiCards copy = new AlibiCards(this.id, characterCopy, this.hourglassValue);
+        copy.isDrawn = this.isDrawn;
+        copy.owner = this.owner;
+
+        return copy;
     }
 }

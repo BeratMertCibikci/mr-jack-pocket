@@ -1,8 +1,12 @@
 package model;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class WinConditionChecker {
+public class WinConditionChecker implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private static final int JACK_HOURGLASS_TARGET = 6;
 
     public boolean hasJackWonByTime(int currentRound, int maxRounds) {
@@ -49,19 +53,10 @@ public class WinConditionChecker {
             AlibiDeckManager alibiDeckManager,
             PlayerState jackPlayerState
     ) {
-        int total = 0;
-
-        if (alibiDeckManager != null) {
-            total += alibiDeckManager.getJackHourglassTotal();
-        }
-
-        if (jackPlayerState != null) {
-            for (Token token : jackPlayerState.getOwnedTurnTokens()) {
-                total += getTurnTokenValue(token);
-            }
-        }
-
-        return total;
+        return HourglassCalculator.calculateActualJackHourglasses(
+                alibiDeckManager,
+                jackPlayerState
+        );
     }
 
     public boolean hasJackWonByHourglasses(
@@ -75,17 +70,17 @@ public class WinConditionChecker {
             List<GameCharacter> characters,
             GameCharacter jackCharacter,
             AlibiDeckManager alibiDeckManager,
-            PlayerState jackPlayerState
+            PlayerState jackPlayerState,
+            int roundNumber
     ) {
         boolean investigatorReachedGoal = hasOnlyJackRemaining(characters, jackCharacter);
         boolean jackReachedGoal = hasJackWonByHourglasses(alibiDeckManager, jackPlayerState);
 
         if (investigatorReachedGoal && jackReachedGoal) {
-            if (jackCharacter.isVisible()) {
-                return "Investigator";
+            if (roundNumber < 8){
+                return null; // No winner yet, game continues
             }
-
-            return "Jack";
+            return jackCharacter.isVisible() ? "Investigator" : "Jack";
         }
 
         if (investigatorReachedGoal) {
@@ -97,32 +92,5 @@ public class WinConditionChecker {
         }
 
         return null;
-    }
-
-    private int getTurnTokenValue(Token token) {
-        if (token == null) {
-            return 0;
-        }
-
-        switch (token.getFrontSide()) {
-            case "one":
-                return 1;
-            case "two":
-                return 2;
-            case "three":
-                return 3;
-            case "four":
-                return 4;
-            case "five":
-                return 5;
-            case "six":
-                return 6;
-            case "seven":
-                return 7;
-            case "eight":
-                return 8;
-            default:
-                return 0;
-        }
     }
 }

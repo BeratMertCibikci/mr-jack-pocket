@@ -1,10 +1,13 @@
 package engine;
 
+import java.io.Serializable;
 import model.Board;
 import model.Tile;
 import model.Token;
 
-public class MoveValidator {
+public class MoveValidator implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public void validateDetectiveMove(Token detectiveToken, int steps) {
         if (detectiveToken == null) {

@@ -1,8 +1,12 @@
 package engine;
 
+import java.io.Serializable;
 import model.GameState;
 
-public class RoundEngine {
+public class RoundEngine implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private static final int MAX_ROUNDS = 8;
 
     private GameState gameState;
@@ -23,7 +27,8 @@ public class RoundEngine {
                 gameState.getCharacters(),
                 gameState.getJackCharacter(),
                 gameState.getAlibiDeckManager(),
-                gameState.getJackPlayerState()
+                gameState.getJackPlayerState(),
+                gameState.getTurnManager().getRoundNumber()
         );
 
         if (winner != null) {

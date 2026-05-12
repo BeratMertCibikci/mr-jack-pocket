@@ -1,6 +1,11 @@
 package model;
 
-public class GameCharacter {
+import java.io.Serializable;
+
+public class GameCharacter implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private int id;
     private String name;
     private String color;
@@ -73,5 +78,15 @@ public class GameCharacter {
 
     public boolean isEliminated() {
         return !isSuspect;
+    }
+
+    public GameCharacter deepCopy(){
+        GameCharacter copy = new GameCharacter(this.id, this.name, this.color);
+        copy.isSuspect = this.isSuspect;
+        copy.isJack = this.isJack;
+        copy.isVisible = this.isVisible;
+        copy.tile = null;
+
+        return copy;
     }
 }

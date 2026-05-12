@@ -1,6 +1,11 @@
 package model;
 
-public class Token {
+import java.io.Serializable;
+
+public class Token implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private int id;
     private String name;
     private String type;
@@ -136,5 +141,23 @@ public class Token {
 
     public void resetUsed() {
         this.used = false;
+    }
+
+    public Token deepCopy(){
+        Token copy;
+
+        if (this.isDetectiveToken()){
+            copy = new Token(this.id, this.name, this.position);
+        }else if (this.isTimeToken()){
+            copy = new Token(this.id, this.name, this.backSide);
+            copy.position = this.position;
+        }else{
+            copy = new Token(this.id, this.frontSide, this.backSide);
+            copy.position = this.position;
+        }
+        copy.isFrontSideUp = this.isFrontSideUp;
+        copy.used = this.used;
+
+        return copy;
     }
 }

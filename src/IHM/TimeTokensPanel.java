@@ -94,7 +94,7 @@ public class TimeTokensPanel extends JPanel {
         return "NONE";
     }
 
-    private int valeurToken(Token token) {
+    protected int valeurToken(Token token) {
         String face = token.getFrontSide();
 
         switch (face) {

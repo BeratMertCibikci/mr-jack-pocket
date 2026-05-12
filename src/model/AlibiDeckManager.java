@@ -11,10 +11,11 @@ public class AlibiDeckManager implements Serializable {
     
     private List<AlibiCards> cards;
     private int jackHourglassTotal;
-
+    private int jackHiddenAlibiDrawCount; // minmax da detective in bilmemesi gerekiyor gerçek sayıyı ort bi değer alıyo o yüzden kart başı 8/9
     public AlibiDeckManager(List<GameCharacter> characters) {
         this.cards = new ArrayList<>();
         this.jackHourglassTotal = 0;
+        this.jackHiddenAlibiDrawCount = 0;
         this.initializeDeck(characters);
     }
 
@@ -78,6 +79,7 @@ public class AlibiDeckManager implements Serializable {
 
             if (!isInitialIdentity) {
                 jackHourglassTotal += card.getHourglassValue();
+                jackHiddenAlibiDrawCount++;
             }
 
             return card;
@@ -88,6 +90,10 @@ public class AlibiDeckManager implements Serializable {
 
     public int getJackHourglassTotal() {
         return jackHourglassTotal;
+    }
+    
+    public int getJackHiddenAlibiDrawCount() {
+        return jackHiddenAlibiDrawCount;
     }
 
     public List<GameCharacter> getEliminatedCharacters() {

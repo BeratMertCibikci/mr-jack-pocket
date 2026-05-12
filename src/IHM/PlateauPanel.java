@@ -19,13 +19,14 @@ public class PlateauPanel extends JPanel {
     private static final int PANEL_W = 920;
     private static final int PANEL_H = 760;
 
-    private static final int BOARD_X = 70;
-    private static final int BOARD_Y = 55;
-    private static final int BOARD_W = 780;
-    private static final int BOARD_H = 620;
+    private static final int BOARD_X = 300;
+    private static final int BOARD_Y = 95;
+    private static final int BOARD_W = 574;
+    private static final int BOARD_H = 574;
+    private static final int CARD_SIZE = 190;
 
-    private static final int CARD_W = 250;
-    private static final int CARD_H = 195;
+    private static final int DETECTIVE_SIZE = 70;
+    private static final int DETECTIVE_MARGIN = 25;
 
     public interface TileSelectionListener {
         void onTileSelected(Tile tile);
@@ -57,7 +58,7 @@ public class PlateauPanel extends JPanel {
     private void afficherPlateau() {
         Tile[][] board = gameState.getBoard().getBoardForUI();
 
-        JPanel boardPanel = new JPanel(new GridLayout(3, 3, 6, 6));
+        JPanel boardPanel = new JPanel(new GridLayout(3, 3, 2, 2));
         boardPanel.setOpaque(false);
         boardPanel.setBounds(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
 
@@ -153,7 +154,7 @@ public class PlateauPanel extends JPanel {
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_W, CARD_H);
+            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_SIZE, CARD_SIZE);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -184,7 +185,7 @@ public class PlateauPanel extends JPanel {
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_W, CARD_H);
+            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_SIZE, CARD_SIZE);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -286,9 +287,14 @@ public class PlateauPanel extends JPanel {
         int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
 
         for (int position = 0; position < 12; position++) {
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 0));
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
             panel.setOpaque(false);
-            panel.setBounds(getXDetective(position), getYDetective(position), 48, 28);
+            panel.setBounds(
+                    getXDetective(position),
+                    getYDetective(position),
+                    DETECTIVE_SIZE,
+                    DETECTIVE_SIZE
+            );
 
             boolean contientDetective = false;
 
@@ -316,26 +322,36 @@ public class PlateauPanel extends JPanel {
     }
 
     private int getXDetective(int position) {
-        int left = BOARD_X - 42;
-        int right = BOARD_X + BOARD_W + 8;
+        int left = BOARD_X - DETECTIVE_SIZE - DETECTIVE_MARGIN;
+        int right = BOARD_X + BOARD_W + DETECTIVE_MARGIN;
 
-        int x0 = BOARD_X + BOARD_W / 6;
-        int x1 = BOARD_X + BOARD_W / 2;
-        int x2 = BOARD_X + (5 * BOARD_W) / 6;
+        int x0 = BOARD_X + BOARD_W / 6 - DETECTIVE_SIZE / 2;
+        int x1 = BOARD_X + BOARD_W / 2 - DETECTIVE_SIZE / 2;
+        int x2 = BOARD_X + (5 * BOARD_W) / 6 - DETECTIVE_SIZE / 2;
 
         switch (position) {
-            case 0: return x0;
-            case 1: return x1;
-            case 2: return x2;
+            case 0:
+                return x0;
+
+            case 1:
+                return x1;
+
+            case 2:
+                return x2;
 
             case 3:
             case 4:
             case 5:
                 return right;
 
-            case 6: return x2;
-            case 7: return x1;
-            case 8: return x0;
+            case 6:
+                return x2;
+
+            case 7:
+                return x1;
+
+            case 8:
+                return x0;
 
             case 9:
             case 10:
@@ -348,12 +364,12 @@ public class PlateauPanel extends JPanel {
     }
 
     private int getYDetective(int position) {
-        int top = BOARD_Y - 38;
-        int bottom = BOARD_Y + BOARD_H + 10;
+        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN;
+        int bottom = BOARD_Y + BOARD_H + DETECTIVE_MARGIN;
 
-        int y0 = BOARD_Y + BOARD_H / 6;
-        int y1 = BOARD_Y + BOARD_H / 2;
-        int y2 = BOARD_Y + (5 * BOARD_H) / 6;
+        int y0 = BOARD_Y + BOARD_H / 6 - DETECTIVE_SIZE / 2;
+        int y1 = BOARD_Y + BOARD_H / 2 - DETECTIVE_SIZE / 2;
+        int y2 = BOARD_Y + (5 * BOARD_H) / 6 - DETECTIVE_SIZE / 2;
 
         switch (position) {
             case 0:
@@ -361,27 +377,49 @@ public class PlateauPanel extends JPanel {
             case 2:
                 return top;
 
-            case 3: return y0;
-            case 4: return y1;
-            case 5: return y2;
+            case 3:
+                return y0;
+
+            case 4:
+                return y1;
+
+            case 5:
+                return y2;
 
             case 6:
             case 7:
             case 8:
                 return bottom;
 
-            case 9: return y2;
-            case 10: return y1;
-            case 11: return y0;
+            case 9:
+                return y2;
+
+            case 10:
+                return y1;
+
+            case 11:
+                return y0;
 
             default:
                 return 0;
         }
     }
 
-    private JLabel creerBadgeDetective(String texte) {
+    private JComponent creerBadgeDetective(String texte) {
+        if (texte.equals("H")) {
+            return new DetectiveTokenPanel("Holmes");
+        }
+
+        if (texte.equals("W")) {
+            return new DetectiveTokenPanel("Watson");
+        }
+
+        if (texte.equals("T")) {
+            return new DetectiveTokenPanel("Toby");
+        }
+
         JLabel badge = new JLabel(texte, SwingConstants.CENTER);
-        badge.setPreferredSize(new Dimension(24, 24));
+        badge.setPreferredSize(new Dimension(40, 40));
         badge.setOpaque(true);
         badge.setBackground(Color.WHITE);
         badge.setForeground(Color.BLACK);
@@ -398,5 +436,22 @@ public class PlateauPanel extends JPanel {
         point.setFont(new Font("Arial", Font.BOLD, 16));
 
         return point;
+    }
+
+    private BufferedImage sharpenImage(BufferedImage image) {
+        float[] sharpenKernel = {
+                0f, -0.4f, 0f,
+                -0.4f, 2.6f, -0.4f,
+                0f, -0.4f, 0f
+        };
+
+        java.awt.image.Kernel kernel = new java.awt.image.Kernel(3, 3, sharpenKernel);
+        java.awt.image.ConvolveOp op = new java.awt.image.ConvolveOp(
+                kernel,
+                java.awt.image.ConvolveOp.EDGE_NO_OP,
+                null
+        );
+
+        return op.filter(image, null);
     }
 }

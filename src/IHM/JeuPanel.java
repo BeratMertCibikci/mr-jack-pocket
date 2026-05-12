@@ -34,6 +34,7 @@ public class JeuPanel extends JPanel {
         InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
         TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
         ActionPanel actionPanel = new ActionPanel(gameEngine, infoJeuPanel, plateauPanel, timeTokensPanel);
+        AlibiPanel alibiPanel = new AlibiPanel();
 
         JButton retourButton = new JButton("Retour menu");
         retourButton.addActionListener(e -> fenetre.afficherMenu());
@@ -43,14 +44,39 @@ public class JeuPanel extends JPanel {
         topPanel.add(titre, BorderLayout.CENTER);
         topPanel.add(retourButton, BorderLayout.EAST);
 
+        JPanel plateauEtActionsPanel = new JPanel(new BorderLayout());
+        plateauEtActionsPanel.setOpaque(false);
+        plateauEtActionsPanel.add(plateauPanel, BorderLayout.CENTER);
+
+        JPanel rightGamePanel = new JPanel();
+        rightGamePanel.setOpaque(false);
+        rightGamePanel.setPreferredSize(new Dimension(240, 0));
+        rightGamePanel.setLayout(new BoxLayout(rightGamePanel, BoxLayout.Y_AXIS));
+
+        alibiPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        alibiPanel.setPreferredSize(new Dimension(220, 250));
+        alibiPanel.setMaximumSize(new Dimension(220, 250));
+
+        actionPanel.setPreferredSize(new Dimension(220, 360));
+        actionPanel.setMaximumSize(new Dimension(220, 360));
+
+        rightGamePanel.add(Box.createVerticalStrut(30));
+        rightGamePanel.add(alibiPanel);
+        rightGamePanel.add(Box.createVerticalStrut(20));
+        rightGamePanel.add(actionPanel);
+        rightGamePanel.add(Box.createVerticalGlue());
+
         JPanel plateauWrapper = new JPanel(new BorderLayout());
         plateauWrapper.setBackground(new Color(35, 35, 35));
         plateauWrapper.add(timeTokensPanel, BorderLayout.WEST);
         plateauWrapper.add(plateauPanel, BorderLayout.CENTER);
+        plateauWrapper.add(rightGamePanel, BorderLayout.EAST);
 
         add(topPanel, BorderLayout.NORTH);
         add(plateauWrapper, BorderLayout.CENTER);
-        add(infoJeuPanel, BorderLayout.EAST);
-        add(actionPanel, BorderLayout.SOUTH);
+        //info panel
+        //add(infoJeuPanel, BorderLayout.EAST);
     }
-}
+}   

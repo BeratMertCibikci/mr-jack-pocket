@@ -4,6 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
 
 import engine.GameEngine;
 import engine.ActionType;
@@ -11,24 +14,27 @@ import model.Token;
 import model.GameCharacter;
 import model.Tile;
 
-public class ActionPanel extends JPanel {// action token panel  
+public class ActionPanel extends JPanel {
 
     private GameEngine gameEngine;
     private InfoJeuPanel infoJeuPanel;
     private PlateauPanel plateauPanel;
     private TimeTokensPanel timeTokensPanel;
     private BoutonClickMusique boutonClickMusique;
+    private boolean actionEnCours = false;
+    private AlibiPanel alibiPanel;
 
     public ActionPanel(GameEngine gameEngine, InfoJeuPanel infoJeuPanel, PlateauPanel plateauPanel, TimeTokensPanel timeTokensPanel) {
-        //engine, info panel ve plateau alıyor 
         this.gameEngine = gameEngine;
         this.infoJeuPanel = infoJeuPanel;
         this.plateauPanel = plateauPanel;
         this.timeTokensPanel = timeTokensPanel;
         this.boutonClickMusique = new BoutonClickMusique();
 
-        setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));// ortalı şekilde boşluklu ayarlıyor
-        setBackground(new Color(20, 20, 20));
+        setLayout(new GridLayout(0, 2, 10, 10));
+        setOpaque(false);
+        setPreferredSize(new Dimension(220, 360));
+        setMaximumSize(new Dimension(220, 360));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         afficherActions();
@@ -37,9 +43,9 @@ public class ActionPanel extends JPanel {// action token panel
     private void afficherActions() {
         Token[] actionTokens = gameEngine.getGameState()
                 .getActionTokens()
-                .getActionTokens();// on prend les actions tokens du modele 
+                .getActionTokens();
 
-        for (int i = 0; i < actionTokens.length; i++) {// pour chaque token, on créé un JPanel et on l ajoute dans le panel
+        for (int i = 0; i < actionTokens.length; i++) {
             Token token = actionTokens[i];
             JPanel tokenPanel = creerActionTokenPanel(token, i);
             add(tokenPanel);
@@ -51,25 +57,44 @@ public class ActionPanel extends JPanel {// action token panel
         tourSuivantButton.setForeground(new Color(245, 235, 210));
         tourSuivantButton.setFocusPainted(false);
         tourSuivantButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        tourSuivantButton.setPreferredSize(new Dimension(90, 35));
 
         tourSuivantButton.addActionListener(e -> {
             try {
+                if (actionEnCours) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Une action est en cours. Terminez-la avant de passer au tour suivant.",
+                            "Action en cours",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
+                }
+
                 boutonClickMusique.jouerClick();
                 gameEngine.endRound();
 
+                plateauPanel.setTileSelectionListener(null);
+                actionEnCours = false;
+
                 plateauPanel.rafraichir();
                 infoJeuPanel.rafraichir();
-                if (timeTokensPanel != null) timeTokensPanel.rafraichir();
+
+                if (timeTokensPanel != null) {
+                    timeTokensPanel.rafraichir();
+                }
+
                 removeAll();
                 afficherActions();
                 revalidate();
                 repaint();
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
-                    this,
-                    ex.getMessage(),
-                    "Erreur tour suivant",
-                    JOptionPane.ERROR_MESSAGE
+                        this,
+                        ex.getMessage(),
+                        "Erreur tour suivant",
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
         });
@@ -77,37 +102,58 @@ public class ActionPanel extends JPanel {// action token panel
         add(tourSuivantButton);
     }
 
-    private JPanel creerActionTokenPanel(Token token, int index) {// on crée le visualisation du token
+    private JPanel creerActionTokenPanel(Token token, int index) {
         JPanel tokenPanel = new JPanel(new BorderLayout());
-        tokenPanel.setPreferredSize(new Dimension(160, 70)); //pour cahque token on a un dim de 160x70
+        tokenPanel.setPreferredSize(new Dimension(90, 90));
 
-        tokenPanel.setBackground(new Color(35, 30, 25));
-        tokenPanel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        tokenPanel.setOpaque(false);
+        tokenPanel.setBorder(null);
         tokenPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        JLabel tokenLabel = new JLabel(token.getCurrentSide(), SwingConstants.CENTER);// on ecrit la face courrent du token 
-        tokenLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        tokenLabel.setForeground(new Color(245, 235, 210));
+        String actionName = token.getCurrentSide();
 
-        tokenPanel.add(tokenLabel, BorderLayout.CENTER); // on l ajoute dans le panel 
+        JLabel imageLabel = new JLabel();
+        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-        tokenPanel.addMouseListener(new MouseAdapter() {// fonction qui nous permet de cliqué le token 
+        ImageIcon icon = chargerImageAction(actionName);
+
+        if (icon != null) {
+            imageLabel.setIcon(icon);
+        } else {
+            imageLabel.setText(actionName);
+            imageLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            imageLabel.setForeground(new Color(245, 235, 210));
+        }
+
+        tokenPanel.add(imageLabel, BorderLayout.CENTER);
+
+        tokenPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
+                    if (actionEnCours) {
+                        JOptionPane.showMessageDialog(
+                                tokenPanel,
+                                "Une action est déjà en cours. Terminez-la avant de choisir un autre token.",
+                                "Action en cours",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                    }
+
                     boutonClickMusique.jouerClick();
 
                     Token selectedToken = gameEngine.selectActionToken(index);
+                    actionEnCours = true;
 
-                    // lorsqu on clique le token on envoie dans l engine et on controle si ce dernier peut etre choisit
                     System.out.println("Action token choisi : " + selectedToken.getCurrentSide());
                     System.out.println("Type action : " + gameEngine.getSelectedActionType());
 
-                    tokenPanel.setBackground(new Color(70, 60, 50));
-                    tokenPanel.setBorder(BorderFactory.createLineBorder(new Color(120, 100, 70), 2));
+                    tokenPanel.setOpaque(false);
+                    tokenPanel.setBorder(null);
                     tokenPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
-                    //si choisit on change le couleur 
                     infoJeuPanel.rafraichir();
                     traiterActionSelectionnee();
 
@@ -127,7 +173,6 @@ public class ActionPanel extends JPanel {// action token panel
 
     private void traiterActionSelectionnee() {
         try {
-            //cette partie decide quelle mode il faut appeler (main)
             ActionType actionType = gameEngine.getSelectedActionType();
 
             switch (actionType) {
@@ -162,7 +207,14 @@ public class ActionPanel extends JPanel {// action token panel
 
             plateauPanel.rafraichir();
             infoJeuPanel.rafraichir();
-            if (timeTokensPanel != null) timeTokensPanel.rafraichir();
+
+            if (timeTokensPanel != null) {
+                timeTokensPanel.rafraichir();
+            }
+
+            if (actionType != ActionType.ROTATE && actionType != ActionType.EXCHANGE) {
+                actionEnCours = false;
+            }
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
@@ -175,17 +227,17 @@ public class ActionPanel extends JPanel {// action token panel
     }
 
     private void traiterAlibi() {
-        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {// on demande ici si le joueur courrent est un invetigateur ou Jack
+        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
             GameCharacter eliminated = gameEngine.investigatorDrawsAlibi();
 
-            if (eliminated != null) {//si Investigateur
+            if (eliminated != null) {
                 JOptionPane.showMessageDialog(
                         this,
                         "Alibi pioché : " + eliminated.getName(),
                         "Alibi",
                         JOptionPane.INFORMATION_MESSAGE
                 );
-            } else {//sinon
+            } else {
                 JOptionPane.showMessageDialog(
                         this,
                         "Le paquet Alibi est vide.",
@@ -215,36 +267,49 @@ public class ActionPanel extends JPanel {// action token panel
             choix = new String[] {"Holmes", "Watson", "Toby"};
         }
 
-        String reponse = (String) JOptionPane.showInputDialog(
-            this,
-            "Choisissez un détective pour l'action Joker:",
-            "Joker",
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            choix,
-            choix[0]
-        );
-        if (reponse == null) throw new IllegalStateException("Action Joker annulée.");
+        String reponse = null;
+
+        while (reponse == null) {
+            reponse = (String) JOptionPane.showInputDialog(
+                    this,
+                    "Choisissez un détective pour l'action Joker:",
+                    "Joker",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    choix,
+                    choix[0]
+            );
+
+            if (reponse == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "L'action Joker est déjà choisie. Vous devez la résoudre.",
+                        "Action obligatoire",
+                        JOptionPane.WARNING_MESSAGE
+                );
+            }
+        }
 
         if (reponse.equals("Ne pas bouger")) {
             gameEngine.skipJokerMove();
+
             JOptionPane.showMessageDialog(
-                this,
-                "Jack ne déplace aucun détective",
-                "Joker",
-                JOptionPane.INFORMATION_MESSAGE
+                    this,
+                    "Jack ne déplace aucun détective",
+                    "Joker",
+                    JOptionPane.INFORMATION_MESSAGE
             );
         } else {
             gameEngine.moveDetectiveWithJoker(reponse);
+
             JOptionPane.showMessageDialog(
-                this,
-                reponse + " avance d'une case",
-                "Joker",
-                JOptionPane.INFORMATION_MESSAGE
+                    this,
+                    reponse + " avance d'une case",
+                    "Joker",
+                    JOptionPane.INFORMATION_MESSAGE
             );
         }
     }
-
 
     private void preparerRotate() {
         JOptionPane.showMessageDialog(
@@ -262,11 +327,20 @@ public class ActionPanel extends JPanel {// action token panel
                         this,
                         "Combien de fois voulez-vous tourner cette carte ?",
                         "Rotate",
-                        JOptionPane.QUESTION_MESSAGE,null,choix,choix[0]);
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        choix,
+                        choix[0]
+                );
 
                 if (reponse == null) {
-                    plateauPanel.setTileSelectionListener(null);
-                    throw new IllegalStateException("Action annulée.");
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "L'action Rotate est déjà choisie. Sélectionnez une rotation pour terminer l'action.",
+                            "Action obligatoire",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
                 }
 
                 int rotations = Integer.parseInt(reponse);
@@ -284,8 +358,14 @@ public class ActionPanel extends JPanel {// action token panel
                 );
 
                 plateauPanel.setTileSelectionListener(null);
+                actionEnCours = false;
+
                 plateauPanel.rafraichir();
                 infoJeuPanel.rafraichir();
+
+                if (timeTokensPanel != null) {
+                    timeTokensPanel.rafraichir();
+                }
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
@@ -317,7 +397,7 @@ public class ActionPanel extends JPanel {// action token panel
                             this,
                             "Première carte sélectionnée : "
                                     + tile.getCharacter().getName()
-                                    + " (" + tile.getRow() + "," + tile.getCol() + ")",
+                                    + "\nSélectionnez maintenant la deuxième carte.",
                             "Exchange",
                             JOptionPane.INFORMATION_MESSAGE
                     );
@@ -348,8 +428,14 @@ public class ActionPanel extends JPanel {// action token panel
                     );
 
                     plateauPanel.setTileSelectionListener(null);
+                    actionEnCours = false;
+
                     plateauPanel.rafraichir();
                     infoJeuPanel.rafraichir();
+
+                    if (timeTokensPanel != null) {
+                        timeTokensPanel.rafraichir();
+                    }
                 }
 
             } catch (Exception ex) {
@@ -366,20 +452,133 @@ public class ActionPanel extends JPanel {// action token panel
     private int demanderNombrePas(String detectiveName) {
         String[] choix = {"1", "2"};
 
-        String reponse = (String) JOptionPane.showInputDialog(
-                this,
-                detectiveName + " doit avancer de combien de pas ?",
-                "Déplacement",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                choix,
-                choix[0]
+        while (true) {
+            String reponse = (String) JOptionPane.showInputDialog(
+                    this,
+                    detectiveName + " doit avancer de combien de pas ?",
+                    "Déplacement",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    choix,
+                    choix[0]
+            );
+
+            if (reponse != null) {
+                return Integer.parseInt(reponse);
+            }
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "L'action est déjà choisie. Vous devez sélectionner 1 ou 2.",
+                    "Action obligatoire",
+                    JOptionPane.WARNING_MESSAGE
+            );
+        }
+    }
+
+    public ActionPanel(
+        GameEngine gameEngine,
+        InfoJeuPanel infoJeuPanel,
+        PlateauPanel plateauPanel,
+        TimeTokensPanel timeTokensPanel,
+        AlibiPanel alibiPanel) {
+
+        this.gameEngine = gameEngine;
+        this.infoJeuPanel = infoJeuPanel;
+        this.plateauPanel = plateauPanel;
+        this.timeTokensPanel = timeTokensPanel;
+        this.alibiPanel = alibiPanel;
+        this.boutonClickMusique = new BoutonClickMusique();
+
+        setLayout(new GridLayout(0,2,8,8));
+        setOpaque(false);
+        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        afficherActions();
+    }
+
+    private ImageIcon chargerImageAction(String actionName) {
+        String nomFichier = getNomFichierAction(actionName);
+                
+        String chemin = System.getProperty("user.dir")
+                + "/assets/images/characters/"
+                + nomFichier
+                + ".png";
+        File fichierImage = new File(chemin);
+        if (!fichierImage.exists()) {
+        System.out.println("Image action non trouvée : " + chemin);
+        return null;
+    }
+    try {
+        BufferedImage imageOriginale = ImageIO.read(fichierImage);
+        if (imageOriginale == null) {
+            System.out.println("Image action illisible : " + fichierImage.getAbsolutePath());
+            return null;
+
+        }
+        BufferedImage imageRedimensionnee = redimensionnerImageAction(imageOriginale, 85, 85);
+        return new ImageIcon(imageRedimensionnee);
+
+    } catch (Exception e) {
+        System.out.println("Erreur chargement image action : " + e.getMessage());
+        return null;
+        }
+    }
+    private String getNomFichierAction(String actionName) {
+        String action = actionName.toLowerCase();
+
+        if (action.contains("holmes")) {
+            return "sherlock_action";
+        }
+        if (action.contains("watson")) {
+            return "watson_action";
+        }
+        if (action.contains("toby")) {
+            return "toby_action";
+        }
+        if (action.contains("rotate")) {
+            return "rotate_action";
+        }
+        if (action.contains("exchange")) {
+            return "exchange";
+        }
+        if (action.contains("alibi")) {
+            return "alibi_action";
+        }
+        if (action.contains("joker")) {
+            return "joker_action";
+        }
+        return action.replace(" ", "_");
+    }
+
+    private BufferedImage redimensionnerImageAction(BufferedImage imageOriginale, int largeurMax, int hauteurMax) {
+        int largeurOriginale = imageOriginale.getWidth();
+        int hauteurOriginale = imageOriginale.getHeight();
+
+        double ratioLargeur = (double) largeurMax / largeurOriginale;
+        double ratioHauteur = (double) hauteurMax / hauteurOriginale;
+        double ratio = Math.min(ratioLargeur, ratioHauteur);
+
+        int nouvelleLargeur = (int) (largeurOriginale * ratio);
+        int nouvelleHauteur = (int) (hauteurOriginale * ratio);
+
+        BufferedImage imageRedimensionnee = new BufferedImage(
+                largeurMax,
+                hauteurMax,
+                BufferedImage.TYPE_INT_ARGB
         );
 
-        if (reponse == null) {
-            throw new IllegalStateException("Action annulée.");
-        }
+        Graphics2D g = imageRedimensionnee.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        return Integer.parseInt(reponse);
+        int x = (largeurMax - nouvelleLargeur) / 2;
+        int y = (hauteurMax - nouvelleHauteur) / 2;
+
+        g.drawImage(imageOriginale, x, y, nouvelleLargeur, nouvelleHauteur, null);
+        g.dispose();
+
+        return imageRedimensionnee;
     }
-} 
+}

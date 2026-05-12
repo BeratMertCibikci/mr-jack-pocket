@@ -21,6 +21,10 @@ public class TimeTokensPanel extends JPanel {
         afficherTimeTokens();
     }
 
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
+    }
+
     public void rafraichir() {
         removeAll();
         afficherTimeTokens();

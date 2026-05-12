@@ -47,6 +47,10 @@ public class PlateauPanel extends JPanel {
         afficherPlateau();
     }
 
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
+    }
+
     public void rafraichir() {
         removeAll();
         afficherPlateau();

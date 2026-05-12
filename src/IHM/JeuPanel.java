@@ -16,7 +16,7 @@ public class JeuPanel extends JPanel {
         this.mode = mode;
 
         // Oyun motorunu başlatıyoruz
-        gameEngine = new GameEngine(player1Role);
+        gameEngine = new GameEngine(player1Role); 
         gameEngine.startGame();
 
         // Engine içindeki mevcut GameState'i alıyoruz

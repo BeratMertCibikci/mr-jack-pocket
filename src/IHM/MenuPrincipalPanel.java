@@ -22,13 +22,6 @@ public class MenuPrincipalPanel extends JPanel {
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        // 3. Başlık
-        /*JLabel titreLabel = new JLabel("MR. JACK POCKET", SwingConstants.CENTER);
-        titreLabel.setFont(new Font("Arial", Font.BOLD, 42));
-        titreLabel.setForeground(Color.WHITE);
-        titreLabel.setOpaque(false); // pour qu'on ne bloque pas l'arriere-plan
-        titreLabel.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0)); */
-
         // 4. Butonları tutan panel
         JPanel boutonsPanel = new JPanel();
         boutonsPanel.setOpaque(false); // pour qu'on ne bloque pas l'arriere-plan
@@ -49,19 +42,10 @@ public class MenuPrincipalPanel extends JPanel {
         volumeSlider.setAlignmentX(Component.LEFT_ALIGNMENT);
         volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        /* 
-        jouerButton.setFont(new Font("Arial", Font.BOLD, 20));
-        reglesButton.setFont(new Font("Arial", Font.BOLD, 20));
-        quitterButton.setFont(new Font("Arial", Font.BOLD, 20));
-
-        boutonsPanel.add(jouerButton);
-        boutonsPanel.add(reglesButton);
-        boutonsPanel.add(quitterButton);*/
-
         BoutonTexte(jouerButton);
         BoutonTexte(reglesButton);
         BoutonTexte(quitterButton);
-        BoutonTexte(muteButton);
+        BoutonTexte(muteButton); 
 
         jouerButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         reglesButton.setAlignmentX(Component.LEFT_ALIGNMENT);

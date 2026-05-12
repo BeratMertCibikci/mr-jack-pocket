@@ -1,10 +1,14 @@
 package model;
 
+import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-public class AreaSet {
+public class AreaSet implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private Tile[] areas;
 
     public AreaSet(List<GameCharacter> characters) {

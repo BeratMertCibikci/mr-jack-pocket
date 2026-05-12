@@ -1,14 +1,19 @@
 package engine;
 
+import java.io.Serializable;
 import model.GameCharacter;
 import model.GameState;
 import model.Tile;
 import model.Token;
 
-public class GameEngine {
+public class GameEngine implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private GameState gameState;
     private ActionEngine actionEngine;
     private RoundEngine roundEngine;
+    private GameHistory history;
 
     public GameEngine(String player1Role) {
         this.gameState = new GameState(player1Role); 
@@ -19,10 +24,13 @@ public class GameEngine {
 
         this.actionEngine = new ActionEngine(gameState);
         this.roundEngine = new RoundEngine(gameState);
+
+        this.history = new GameHistory();
     }
 
     public Token selectActionToken(int index) {
         ensureGameRunning();
+        history.save(gameState);
         return actionEngine.selectActionToken(index);
     }
 
@@ -68,7 +76,7 @@ public class GameEngine {
 
     public void moveDetectiveWithJoker(String detectiveName) {
         ensureGameRunning();
-        actionEngine.moveDetectiveWithJoker(detectiveName, 1); // Joker move is always 1 step
+        actionEngine.moveDetectiveWithJoker(detectiveName, 1); // Joker can only move 1 step
     }
 
     public void skipJokerMove() {
@@ -82,6 +90,7 @@ public class GameEngine {
         if (actionEngine.hasSelectedAction()) {
             throw new IllegalStateException("Resolve selected action before ending round.");
         }
+        //history.save(gameState);
 
         roundEngine.endRound();
 
@@ -96,6 +105,8 @@ public class GameEngine {
         if (accusedCharacter == null) {
             throw new IllegalArgumentException("Accused character cannot be null.");
         }
+
+        history.save(gameState);
 
         if (accusedCharacter.isJack()) {
             gameState.finishGame("Investigator");
@@ -141,4 +152,51 @@ public class GameEngine {
             throw new IllegalStateException("Game is already over.");
         }
     }
+
+    public void undo(){
+        if (!history.canUndo()){
+            System.out.println("No undo available");
+            return;
+        }
+        this.gameState = history.undo(this.gameState);
+
+        this.actionEngine = new ActionEngine(gameState);
+        this.roundEngine = new RoundEngine(gameState);
+    }
+
+    public void redo(){
+        if (!history.canRedo()){
+            System.out.println("No redo available");
+            return;
+        }
+        this.gameState = history.redo(this.gameState);
+
+        this.actionEngine = new ActionEngine(gameState);
+        this.roundEngine = new RoundEngine(gameState);
+    }
+
+    public void saveState(){
+        history.save(gameState);
+    }
+
+    public void saveGame(String filename){
+        SaveManager.saveGame(this, filename);
+    }
+
+    public static GameEngine loadGame(String filename){
+        return SaveManager.loadGame(filename);
+    }
+
+    /*
+    public void loadGame(String filename){
+        GameState loaded = SaveManager.loadGame(filename);
+
+        if (loaded != null){
+            this.gameState = loaded;
+
+            this.actionEngine = new ActionEngine(gameState);
+            this.roundEngine = new RoundEngine(gameState);
+        }
+    }
+    */
 }

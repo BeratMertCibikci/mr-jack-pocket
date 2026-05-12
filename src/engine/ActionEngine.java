@@ -1,5 +1,6 @@
 package engine;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import model.GameCharacter;
@@ -7,7 +8,10 @@ import model.GameState;
 import model.Tile;
 import model.Token;
 
-public class ActionEngine {
+public class ActionEngine implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
     private GameState gameState;
     private MoveValidator moveValidator;
 

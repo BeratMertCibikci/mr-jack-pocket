@@ -22,23 +22,34 @@ public class JeuPanel extends JPanel {
     private boolean premierAffichage = true;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
-        this(mode, player1Role, fenetre, null);
-    }
-
-    public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, GameEngine loadedEngine) {
-        this(mode, player1Role, fenetre, AIDifficulty.HARD);
+        this(mode, player1Role, fenetre, AIDifficulty.HARD, null);
     }
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, AIDifficulty difficulty) {
+        this(mode, player1Role, fenetre, difficulty, null);
+    }
+
+    public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, GameEngine loadedEngine) {
+        this(mode, player1Role, fenetre, AIDifficulty.HARD, loadedEngine);
+    }
+
+    private JeuPanel(
+            GameMode mode,
+            String player1Role,
+            FenetrePrincipale fenetre,
+            AIDifficulty difficulty,
+            GameEngine loadedEngine
+    ) {
         this.mode = mode;
         this.fenetre = fenetre;
 
-        if(loadedEngine != null){
+        if (loadedEngine != null) {
             gameEngine = loadedEngine;
         } else {
-        gameEngine = new GameEngine(player1Role);
-        gameEngine.startGame();
+            gameEngine = new GameEngine(player1Role);
+            gameEngine.startGame();
         }
+
         gameState = gameEngine.getGameState();
 
         setLayout(new BorderLayout());
@@ -87,7 +98,6 @@ public class JeuPanel extends JPanel {
         pauseButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
         pauseButton.setPreferredSize(new Dimension(75, 45));
-
         pauseButton.addActionListener(e -> afficherPauseMenu());
 
         topPanel.add(pauseButton, BorderLayout.EAST);
@@ -154,7 +164,7 @@ public class JeuPanel extends JPanel {
                 Dialog.ModalityType.APPLICATION_MODAL
         );
 
-        pauseDialog.setSize(320, 360);
+        pauseDialog.setSize(320, 460);
         pauseDialog.setLocationRelativeTo(this);
         pauseDialog.setResizable(false);
 
@@ -214,17 +224,17 @@ public class JeuPanel extends JPanel {
         });
 
         pausePanel.add(titre);
-        pausePanel.add(Box.createVerticalStrut(30));
+        pausePanel.add(Box.createVerticalStrut(25));
         pausePanel.add(resumeButton);
-        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(Box.createVerticalStrut(12));
         pausePanel.add(saveButton);
-        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(Box.createVerticalStrut(12));
         pausePanel.add(settingsButton);
-        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(Box.createVerticalStrut(12));
         pausePanel.add(reglesButton);
-        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(Box.createVerticalStrut(12));
         pausePanel.add(saveQuitButton);
-        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(Box.createVerticalStrut(12));
         pausePanel.add(retourMenuButton);
 
         pauseDialog.setContentPane(pausePanel);
@@ -282,6 +292,8 @@ public class JeuPanel extends JPanel {
         );
 
         return true;
+    }
+
     private JPanel creerTransitionScreen() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

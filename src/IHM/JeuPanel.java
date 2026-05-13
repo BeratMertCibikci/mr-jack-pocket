@@ -13,6 +13,14 @@ public class JeuPanel extends JPanel {
     private GameState gameState;
     private FenetrePrincipale fenetre;
 
+    private CardLayout cardLayout;
+    private JPanel mainContainer;
+    private JPanel gameScreen;
+    private JPanel transitionScreen;
+    private JLabel transitionMessageLabel;
+    private JLabel transitionTitleLabel;
+    private boolean premierAffichage = true;
+
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
         this.mode = mode;
         this.fenetre = fenetre;
@@ -24,6 +32,14 @@ public class JeuPanel extends JPanel {
 
         setLayout(new BorderLayout());
         setBackground(new Color(25, 25, 25));
+
+        cardLayout = new CardLayout();
+
+        mainContainer = new JPanel(cardLayout);
+        mainContainer.setBackground(new Color(25, 25, 25));
+
+        gameScreen = new JPanel(new BorderLayout());
+        gameScreen.setBackground(new Color(25, 25, 25));
 
         JLabel titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 26));
@@ -40,7 +56,8 @@ public class JeuPanel extends JPanel {
                 infoJeuPanel,
                 plateauPanel,
                 timeTokensPanel,
-                alibiPanel
+                alibiPanel,
+                this::afficherTransitionTour
         );
 
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -73,8 +90,17 @@ public class JeuPanel extends JPanel {
         plateauWrapper.add(plateauPanel, BorderLayout.CENTER);
         plateauWrapper.add(rightGamePanel, BorderLayout.EAST);
 
-        add(topPanel, BorderLayout.NORTH);
-        add(plateauWrapper, BorderLayout.CENTER);
+        gameScreen.add(topPanel, BorderLayout.NORTH);
+        gameScreen.add(plateauWrapper, BorderLayout.CENTER);
+
+        transitionScreen = creerTransitionScreen();
+
+        mainContainer.add(gameScreen, "GAME");
+        mainContainer.add(transitionScreen, "TRANSITION");
+
+        add(mainContainer, BorderLayout.CENTER);
+
+        afficherTransitionTour();
 
         installerRaccourciPause();
     }
@@ -175,5 +201,52 @@ public class JeuPanel extends JPanel {
         bouton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
 
         return bouton;
+    }
+
+    private JPanel creerTransitionScreen() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(20, 20, 20));
+        panel.setBorder(BorderFactory.createEmptyBorder(120, 80, 120, 80));
+
+        transitionTitleLabel = new JLabel("Changement de tour");
+        transitionTitleLabel.setFont(new Font("Arial", Font.BOLD, 34));
+        transitionTitleLabel.setForeground(new Color(245, 235, 210));
+        transitionTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        transitionMessageLabel = new JLabel("", SwingConstants.CENTER);
+        transitionMessageLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        transitionMessageLabel.setForeground(new Color(212, 175, 55));
+        transitionMessageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton commencerButton = creerBoutonPause("Commencer le tour");
+
+        commencerButton.addActionListener(e -> {
+            cardLayout.show(mainContainer, "GAME");
+        });
+
+        panel.add(Box.createVerticalGlue());
+        panel.add(transitionTitleLabel);
+        panel.add(Box.createVerticalStrut(30));
+        panel.add(transitionMessageLabel);
+        panel.add(Box.createVerticalStrut(40));
+        panel.add(commencerButton);
+        panel.add(Box.createVerticalGlue());
+
+        return panel;
+}
+
+    private void afficherTransitionTour() {
+        String joueurActuel = gameEngine.getCurrentPlayer();
+
+        if (premierAffichage) {
+            transitionTitleLabel.setText("Début de partie");
+            transitionMessageLabel.setText("Joueur actuel : " + joueurActuel);
+            premierAffichage = false;
+        } else {
+            transitionTitleLabel.setText("Changement de tour");
+        }
+
+        cardLayout.show(mainContainer, "TRANSITION");
     }
 }

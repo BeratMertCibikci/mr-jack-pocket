@@ -1,9 +1,9 @@
 package IHM;
 
-import javax.swing.*;
-import java.awt.*;
-
+import ai.AIDifficulty;
 import engine.GameEngine;
+import java.awt.*;
+import javax.swing.*;
 import model.GameState;
 
 public class JeuPanel extends JPanel {
@@ -14,6 +14,10 @@ public class JeuPanel extends JPanel {
     private FenetrePrincipale fenetre;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
+        this(mode, player1Role, fenetre, AIDifficulty.HARD);
+    }
+
+    public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, AIDifficulty difficulty) {
         this.mode = mode;
         this.fenetre = fenetre;
 
@@ -40,7 +44,10 @@ public class JeuPanel extends JPanel {
                 infoJeuPanel,
                 plateauPanel,
                 timeTokensPanel,
-                alibiPanel
+                alibiPanel,
+                mode,
+                difficulty,
+                player1Role
         );
 
         JPanel topPanel = new JPanel(new BorderLayout());

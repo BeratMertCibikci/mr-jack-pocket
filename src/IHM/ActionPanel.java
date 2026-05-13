@@ -154,17 +154,7 @@ public class ActionPanel extends JPanel {
                 plateauPanel.setTileSelectionListener(null);
                 actionEnCours = false;
 
-                plateauPanel.rafraichir();
-                infoJeuPanel.rafraichir();
-
-                if (timeTokensPanel != null) {
-                    timeTokensPanel.rafraichir();
-                }
-
-                removeAll();
-                afficherActions();
-                revalidate();
-                repaint();
+                rafraichirToutesLesVues();
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
@@ -282,15 +272,13 @@ public class ActionPanel extends JPanel {
                     break;
             }
 
-            plateauPanel.rafraichir();
-            infoJeuPanel.rafraichir();
-
-            if (timeTokensPanel != null) {
-                timeTokensPanel.rafraichir();
-            }
-
             if (actionType != ActionType.ROTATE && actionType != ActionType.EXCHANGE) {
                 actionEnCours = false;
+                rafraichirToutesLesVues();
+            } else {
+                plateauPanel.rafraichir();
+                infoJeuPanel.rafraichir();
+                if (timeTokensPanel != null) timeTokensPanel.rafraichir();
             }
 
         } catch (Exception ex) {
@@ -437,12 +425,7 @@ public class ActionPanel extends JPanel {
                 plateauPanel.setTileSelectionListener(null);
                 actionEnCours = false;
 
-                plateauPanel.rafraichir();
-                infoJeuPanel.rafraichir();
-
-                if (timeTokensPanel != null) {
-                    timeTokensPanel.rafraichir();
-                }
+                rafraichirToutesLesVues();
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
@@ -507,12 +490,7 @@ public class ActionPanel extends JPanel {
                     plateauPanel.setTileSelectionListener(null);
                     actionEnCours = false;
 
-                    plateauPanel.rafraichir();
-                    infoJeuPanel.rafraichir();
-
-                    if (timeTokensPanel != null) {
-                        timeTokensPanel.rafraichir();
-                    }
+                    rafraichirToutesLesVues();
                 }
 
             } catch (Exception ex) {

@@ -16,23 +16,40 @@ public class PlateauPanel extends JPanel {
     private GameState gameState;
     private TileSelectionListener tileSelectionListener;
 
+    private static final int PANEL_W = 920;
+    private static final int PANEL_H = 760;
+
+    private static final int BOARD_X = 300;
+    private static final int BOARD_Y = 95;
+    private static final int BOARD_W = 574;
+    private static final int BOARD_H = 574;
+    private static final int CARD_SIZE = 190;
+
+    private static final int DETECTIVE_SIZE = 70;
+    private static final int DETECTIVE_MARGIN = 25;
+
     public interface TileSelectionListener {
         void onTileSelected(Tile tile);
     }
 
     public void setTileSelectionListener(TileSelectionListener tileSelectionListener) {
         this.tileSelectionListener = tileSelectionListener;
-}
+    }
 
     public PlateauPanel(GameState gameState) {
         this.gameState = gameState;
 
-        setPreferredSize(new Dimension(700, 500));
-        setLayout(new GridLayout(3, 3, 10, 10));
-        setBackground(new Color(40, 40, 40));
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setLayout(null);
+        setPreferredSize(new Dimension(PANEL_W, PANEL_H));
+        setMaximumSize(new Dimension(PANEL_W, PANEL_H));
+        setBackground(new Color(35, 35, 35));
+        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         afficherPlateau();
+    }
+
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
     }
 
     public void rafraichir() {
@@ -45,6 +62,10 @@ public class PlateauPanel extends JPanel {
     private void afficherPlateau() {
         Tile[][] board = gameState.getBoard().getBoardForUI();
 
+        JPanel boardPanel = new JPanel(new GridLayout(3, 3, 2, 2));
+        boardPanel.setOpaque(false);
+        boardPanel.setBounds(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
+
         for (int li = 0; li < 3; li++) {
             for (int ci = 0; ci < 3; ci++) {
                 Tile tile = board[li][ci];
@@ -52,33 +73,24 @@ public class PlateauPanel extends JPanel {
                 String nom = character != null ? character.getName() : "Carte vide";
 
                 JPanel cartePanel = new JPanel(new BorderLayout());
-                cartePanel.setBackground(new Color(245, 235, 210));
-                cartePanel.setBorder(BorderFactory.createLineBorder(new Color(80, 55, 35), 3));
+                cartePanel.setOpaque(false);
+                cartePanel.setBorder(null);
                 cartePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
                 JLabel imageLabel = new JLabel();
                 imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-                JLabel nomLabel = new JLabel(nom, SwingConstants.CENTER);
-                nomLabel.setFont(new Font("Arial", Font.BOLD, 14));
-                nomLabel.setForeground(new Color(40, 30, 20));
-                nomLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+                imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
                 if (tile.isEliminated() || tile.isEmptySide()) {
-                    ImageIcon dosIcon = chargerImageDos("derriere.png",tile.getOrientation());
+                    ImageIcon dosIcon = chargerImageDos("derriere.png", tile.getOrientation());
 
                     if (dosIcon != null) {
                         imageLabel.setIcon(dosIcon);
                     } else {
-                        //imageLabel.setText("Carte retournée");
+                        imageLabel.setText("Carte retournée");
                         imageLabel.setFont(new Font("Arial", Font.BOLD, 12));
                         imageLabel.setForeground(new Color(245, 235, 210));
                     }
-
-                    cartePanel.setBackground(new Color(45, 40, 35));
-                    cartePanel.setBorder(BorderFactory.createLineBorder(new Color(120, 100, 70), 3));
-                    //nomLabel.setText(tile.isEliminated() ? "Éliminé" : "Carte retournée");
-                    nomLabel.setForeground(new Color(245, 235, 210));
 
                 } else {
                     ImageIcon icon = chargerImagePersonnage(nom, tile.getOrientation());
@@ -88,13 +100,11 @@ public class PlateauPanel extends JPanel {
                     } else {
                         imageLabel.setText("Image");
                         imageLabel.setFont(new Font("Arial", Font.BOLD, 12));
-                        imageLabel.setForeground(new Color(80, 55, 35));
+                        imageLabel.setForeground(new Color(245, 235, 210));
                     }
                 }
-                ajouterDetectivesSurCarte(imageLabel, li, ci);
-                
+
                 cartePanel.add(imageLabel, BorderLayout.CENTER);
-                cartePanel.add(nomLabel, BorderLayout.SOUTH);
 
                 final int l = li;
                 final int c = ci;
@@ -116,9 +126,12 @@ public class PlateauPanel extends JPanel {
                     }
                 });
 
-                add(cartePanel);
+                boardPanel.add(cartePanel);
             }
         }
+
+        add(boardPanel);
+        ajouterDetectiveTokensAutourPlateau();
     }
 
     private ImageIcon chargerImagePersonnage(String nom, Orientation orientation) {
@@ -133,7 +146,7 @@ public class PlateauPanel extends JPanel {
         File fichierImage = trouverFichierImage(cheminBase);
 
         if (fichierImage == null) {
-            System.out.println("Image non trouvée : " + cheminBase);
+            System.out.println("Image non trouvée : " + cheminBase + ".png");
             return null;
         }
 
@@ -145,7 +158,7 @@ public class PlateauPanel extends JPanel {
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImage(imageOriginale, 130, 100);
+            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_SIZE, CARD_SIZE);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -176,7 +189,7 @@ public class PlateauPanel extends JPanel {
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImage(imageOriginale, 130, 100);
+            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_SIZE, CARD_SIZE);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -188,29 +201,41 @@ public class PlateauPanel extends JPanel {
     }
 
     private File trouverFichierImage(String cheminBase) {
-        String[] extensions = {".png"};
+        File fichier = new File(cheminBase + ".png");
 
-        for (String extension : extensions) {
-            File fichier = new File(cheminBase + extension);
-
-            if (fichier.exists()) {
-                return fichier;
-            }
+        if (fichier.exists()) {
+            return fichier;
         }
 
         return null;
     }
 
-    private BufferedImage redimensionnerImage(BufferedImage imageOriginale, int largeur, int hauteur) {
+    private BufferedImage redimensionnerImageCover(BufferedImage imageOriginale, int largeurCible, int hauteurCible) {
+        int largeurOriginale = imageOriginale.getWidth();
+        int hauteurOriginale = imageOriginale.getHeight();
+
+        double ratioLargeur = (double) largeurCible / largeurOriginale;
+        double ratioHauteur = (double) hauteurCible / hauteurOriginale;
+        double ratio = Math.max(ratioLargeur, ratioHauteur);
+
+        int nouvelleLargeur = (int) Math.round(largeurOriginale * ratio);
+        int nouvelleHauteur = (int) Math.round(hauteurOriginale * ratio);
+
         BufferedImage imageRedimensionnee = new BufferedImage(
-                largeur,
-                hauteur,
+                largeurCible,
+                hauteurCible,
                 BufferedImage.TYPE_INT_ARGB
         );
 
         Graphics2D g = imageRedimensionnee.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.drawImage(imageOriginale, 0, 0, largeur, hauteur, null);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int x = (largeurCible - nouvelleLargeur) / 2;
+        int y = (hauteurCible - nouvelleHauteur) / 2;
+
+        g.drawImage(imageOriginale, x, y, nouvelleLargeur, nouvelleHauteur, null);
         g.dispose();
 
         return imageRedimensionnee;
@@ -227,6 +252,9 @@ public class PlateauPanel extends JPanel {
         );
 
         Graphics2D g = imageTournee.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         int angle = getAngleOrientation(orientation);
 
@@ -257,70 +285,177 @@ public class PlateauPanel extends JPanel {
         return 0;
     }
 
-    private void ajouterDetectivesSurCarte(JLabel imageLabel, int ligne, int colonne) { // ajoute des detective tokens sur les cartes
-        imageLabel.setLayout(null);
-
-        JPanel badgesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
-        badgesPanel.setOpaque(false);
-        badgesPanel.setBounds(4, 4, 90, 24);
-
+    private void ajouterDetectiveTokensAutourPlateau() {
         int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
         int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
         int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
 
-        if (detectiveEstSurCetteCarte(holmesPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("H"));
-        if (detectiveEstSurCetteCarte(watsonPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("W"));
-        if (detectiveEstSurCetteCarte(tobyPos, ligne, colonne)) badgesPanel.add(creerBadgeDetective("T"));
-        if (badgesPanel.getComponentCount() > 0) imageLabel.add(badgesPanel);    
+        for (int position = 0; position < 12; position++) {
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            panel.setOpaque(false);
+            panel.setBounds(
+                    getXDetective(position),
+                    getYDetective(position),
+                    DETECTIVE_SIZE,
+                    DETECTIVE_SIZE
+            );
+
+            boolean contientDetective = false;
+
+            if (holmesPos == position) {
+                panel.add(creerBadgeDetective("H"));
+                contientDetective = true;
+            }
+
+            if (watsonPos == position) {
+                panel.add(creerBadgeDetective("W"));
+                contientDetective = true;
+            }
+
+            if (tobyPos == position) {
+                panel.add(creerBadgeDetective("T"));
+                contientDetective = true;
+            }
+
+            if (!contientDetective) {
+                panel.add(creerPointVide());
+            }
+
+            add(panel);
+        }
     }
 
-    private JLabel creerBadgeDetective(String texte) { // création des badges des detective tokens
+    private int getXDetective(int position) {
+        int left = BOARD_X - DETECTIVE_SIZE - DETECTIVE_MARGIN;
+        int right = BOARD_X + BOARD_W + DETECTIVE_MARGIN;
+
+        int x0 = BOARD_X + BOARD_W / 6 - DETECTIVE_SIZE / 2;
+        int x1 = BOARD_X + BOARD_W / 2 - DETECTIVE_SIZE / 2;
+        int x2 = BOARD_X + (5 * BOARD_W) / 6 - DETECTIVE_SIZE / 2;
+
+        switch (position) {
+            case 0:
+                return x0;
+
+            case 1:
+                return x1;
+
+            case 2:
+                return x2;
+
+            case 3:
+            case 4:
+            case 5:
+                return right;
+
+            case 6:
+                return x2;
+
+            case 7:
+                return x1;
+
+            case 8:
+                return x0;
+
+            case 9:
+            case 10:
+            case 11:
+                return left;
+
+            default:
+                return 0;
+        }
+    }
+
+    private int getYDetective(int position) {
+        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN;
+        int bottom = BOARD_Y + BOARD_H + DETECTIVE_MARGIN;
+
+        int y0 = BOARD_Y + BOARD_H / 6 - DETECTIVE_SIZE / 2;
+        int y1 = BOARD_Y + BOARD_H / 2 - DETECTIVE_SIZE / 2;
+        int y2 = BOARD_Y + (5 * BOARD_H) / 6 - DETECTIVE_SIZE / 2;
+
+        switch (position) {
+            case 0:
+            case 1:
+            case 2:
+                return top;
+
+            case 3:
+                return y0;
+
+            case 4:
+                return y1;
+
+            case 5:
+                return y2;
+
+            case 6:
+            case 7:
+            case 8:
+                return bottom;
+
+            case 9:
+                return y2;
+
+            case 10:
+                return y1;
+
+            case 11:
+                return y0;
+
+            default:
+                return 0;
+        }
+    }
+
+    private JComponent creerBadgeDetective(String texte) {
+        if (texte.equals("H")) {
+            return new DetectiveTokenPanel("Holmes");
+        }
+
+        if (texte.equals("W")) {
+            return new DetectiveTokenPanel("Watson");
+        }
+
+        if (texte.equals("T")) {
+            return new DetectiveTokenPanel("Toby");
+        }
+
         JLabel badge = new JLabel(texte, SwingConstants.CENTER);
-        badge.setPreferredSize(new Dimension(22, 22));
+        badge.setPreferredSize(new Dimension(40, 40));
         badge.setOpaque(true);
-        badge.setBackground(new Color(35, 30, 25));
-        badge.setForeground(new Color(245, 235, 210));
-        badge.setFont(new Font("Arial", Font.BOLD, 12));
-        badge.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        badge.setBackground(Color.WHITE);
+        badge.setForeground(Color.BLACK);
+        badge.setFont(new Font("Arial", Font.BOLD, 14));
+        badge.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
 
         return badge;
     }
 
-    private boolean detectiveEstSurCetteCarte(int position, int ligne, int colonne) { // fonction booléen pour savoir où sont les detectives
-        Point p = carteAssocieeAUnePositionDetective(position);
-        if (p == null) return false;
+    private JLabel creerPointVide() {
+        JLabel point = new JLabel("•", SwingConstants.CENTER);
+        point.setPreferredSize(new Dimension(16, 16));
+        point.setForeground(new Color(180, 180, 180));
+        point.setFont(new Font("Arial", Font.BOLD, 16));
 
-        return p.x == ligne && p.y == colonne;
+        return point;
     }
 
-    private Point carteAssocieeAUnePositionDetective(int position) { // positionnement des detective tokens
-        switch (position) {
-            case 0:
-                return new Point(0, 0); // Gauche haut
-    
-            case 1:
-                return new Point(0, 1); // Haut milieu
-    
-            case 2:
-                return new Point(0, 2); // Droit haut
-    
-            case 3:
-                return new Point(1, 2); // Droit milieu
-    
-            case 4:
-                return new Point(2, 2); // Droit bas
-    
-            case 5:
-                return new Point(2, 1); // Bas milieu
-    
-            case 6:
-                return new Point(2, 0); // Gauche bas
-    
-            case 7:
-                return new Point(1, 0); // Gauche milieu
-    
-            default:
-                return null;
-        }
+    private BufferedImage sharpenImage(BufferedImage image) {
+        float[] sharpenKernel = {
+                0f, -0.4f, 0f,
+                -0.4f, 2.6f, -0.4f,
+                0f, -0.4f, 0f
+        };
+
+        java.awt.image.Kernel kernel = new java.awt.image.Kernel(3, 3, sharpenKernel);
+        java.awt.image.ConvolveOp op = new java.awt.image.ConvolveOp(
+                kernel,
+                java.awt.image.ConvolveOp.EDGE_NO_OP,
+                null
+        );
+
+        return op.filter(image, null);
     }
 }

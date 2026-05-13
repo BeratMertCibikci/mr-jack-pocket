@@ -21,6 +21,10 @@ public class TimeTokensPanel extends JPanel {
         afficherTimeTokens();
     }
 
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
+    }
+
     public void rafraichir() {
         removeAll();
         afficherTimeTokens();
@@ -57,15 +61,22 @@ public class TimeTokensPanel extends JPanel {
         label.setForeground(new Color(245, 235, 210));
 
         String proprietaire = getProprietaireToken(numeroTour);
+        
         if (proprietaire.equals("CURRENT")) {
             panel.setBackground(new Color(80, 65, 35));
+            panel.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 3));
             label.setText(numeroTour + "*");
+            panel.setToolTipText("Tour actuel");
         } else if (proprietaire.equals("INVESTIGATOR")) {
             panel.setBackground(new Color(35, 60, 90));
             label.setText(numeroTour + "I");
+            panel.setToolTipText("Pris par l'Investigateur");
         } else if (proprietaire.equals("JACK")) {
             panel.setBackground(new Color(90, 35, 35));
-            label.setText(numeroTour + "J");
+            label.setText(numeroTour + "⌛");
+            panel.setToolTipText("Pris par Jack");
+        } else {
+            panel.setToolTipText("Tour " + numeroTour + " disponible");
         }
 
         panel.add(label, BorderLayout.CENTER);
@@ -77,17 +88,17 @@ public class TimeTokensPanel extends JPanel {
         if (current != null && valeurToken(current) == numeroTour) return "CURRENT";
 
         for (Token token : gameState.getDetectivePlayerState().getOwnedTurnTokens()) {
-            if (valeurToken(current) == numeroTour) return "INVESTIGATOR";
+            if (valeurToken(token) == numeroTour) return "INVESTIGATOR";
         }
 
         for (Token token : gameState.getJackPlayerState().getOwnedTurnTokens()) {
-            if (valeurToken(current) == numeroTour) return "JACK";
+            if (valeurToken(token) == numeroTour) return "JACK";
         }
 
         return "NONE";
     }
 
-    private int valeurToken(Token token) {
+    protected int valeurToken(Token token) {
         String face = token.getFrontSide();
 
         switch (face) {

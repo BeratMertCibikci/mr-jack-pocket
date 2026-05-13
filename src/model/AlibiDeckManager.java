@@ -11,10 +11,11 @@ public class AlibiDeckManager implements Serializable {
     
     private List<AlibiCards> cards;
     private int jackHourglassTotal;
-
+    private int jackHiddenAlibiDrawCount; // minmax da detective in bilmemesi gerekiyor gerçek sayıyı ort bi değer alıyo o yüzden kart başı 8/9
     public AlibiDeckManager(List<GameCharacter> characters) {
         this.cards = new ArrayList<>();
         this.jackHourglassTotal = 0;
+        this.jackHiddenAlibiDrawCount = 0;
         this.initializeDeck(characters);
     }
 
@@ -38,6 +39,46 @@ public class AlibiDeckManager implements Serializable {
         }
 
         throw new IllegalArgumentException("Character not found: " + name);
+    }
+    private AlibiCards drawCardById(int cardId) {
+        for (AlibiCards card : cards) {
+            if (card.getId() == cardId && !card.isDrawn()) {
+                card.setDrawn(true);
+                return card;
+            }
+        }
+
+        return null;
+    }
+    public GameCharacter investigatorDrawsCardById(int cardId) {
+        AlibiCards card = drawCardById(cardId);
+
+        if (card != null) {
+            card.setOwner("Investigator");
+
+            GameCharacter character = card.getCharacter();
+            character.eliminate();
+
+            return character;
+        }
+
+        return null;
+    }
+    public AlibiCards mrJackDrawsCardById(int cardId, boolean isInitialIdentity) {
+        AlibiCards card = drawCardById(cardId);
+
+        if (card != null) {
+            card.setOwner("Jack");
+
+            if (!isInitialIdentity) {
+                jackHourglassTotal += card.getHourglassValue();
+                jackHiddenAlibiDrawCount++;
+            }
+
+            return card;
+        }
+
+        return null;
     }
 
     public void shuffleCards() {
@@ -78,6 +119,7 @@ public class AlibiDeckManager implements Serializable {
 
             if (!isInitialIdentity) {
                 jackHourglassTotal += card.getHourglassValue();
+                jackHiddenAlibiDrawCount++;
             }
 
             return card;
@@ -88,6 +130,10 @@ public class AlibiDeckManager implements Serializable {
 
     public int getJackHourglassTotal() {
         return jackHourglassTotal;
+    }
+    
+    public int getJackHiddenAlibiDrawCount() {
+        return jackHiddenAlibiDrawCount;
     }
 
     public List<GameCharacter> getEliminatedCharacters() {
@@ -107,6 +153,17 @@ public class AlibiDeckManager implements Serializable {
     public List<AlibiCards> getCards() {
         return cards;
     }
+    public List<AlibiCards> getAvailableCards() {
+        List<AlibiCards> availableCards = new ArrayList<>();
+
+        for (AlibiCards card : cards) {
+            if (!card.isDrawn()) {
+                availableCards.add(card);
+            }
+        }
+
+        return availableCards;
+    }
 
     public AlibiDeckManager deepCopy(List<GameCharacter> characterCopies){
         AlibiDeckManager copy = new AlibiDeckManager(characterCopies);
@@ -124,6 +181,7 @@ public class AlibiDeckManager implements Serializable {
             copy.cards.add(cardCopy);
         }
         copy.jackHourglassTotal = this.jackHourglassTotal;
+        copy.jackHiddenAlibiDrawCount = this.jackHiddenAlibiDrawCount;
 
         return copy;
     }

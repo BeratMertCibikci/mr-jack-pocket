@@ -1,8 +1,6 @@
 package engine;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import model.GameCharacter;
 import model.GameState;
 import model.Tile;
@@ -16,13 +14,11 @@ public class ActionEngine implements Serializable {
     private MoveValidator moveValidator;
 
     private Token selectedActionToken;
-    private Set<Integer> rotatedTileIdsThisRound;
 
     public ActionEngine(GameState gameState) {
         this.gameState = gameState;
         this.moveValidator = new MoveValidator();
         this.selectedActionToken = null;
-        this.rotatedTileIdsThisRound = new HashSet<>();
     }
 
     public Token selectActionToken(int index) {
@@ -99,6 +95,26 @@ public class ActionEngine implements Serializable {
 
         return eliminatedCharacter;
     }
+    public GameCharacter investigatorDrawsAlibiCardById(int cardId) {
+        ensureSelectedActionIs(ActionType.ALIBI);
+
+        if (!gameState.getTurnManager().isInvestigatorTurn()) {
+            throw new IllegalStateException("Only Investigator can draw investigator alibi.");
+        }
+
+        GameCharacter eliminatedCharacter =
+                gameState.getAlibiDeckManager().investigatorDrawsCardById(cardId);
+
+        if (eliminatedCharacter != null && eliminatedCharacter.getTile() != null) {
+            eliminatedCharacter.getTile().flipToEmptySide();
+        }
+
+        gameState.updateVisibility();
+
+        finishAction();
+
+        return eliminatedCharacter;
+    }
 
     public void jackDrawsAlibi() {
         ensureSelectedActionIs(ActionType.ALIBI);
@@ -108,6 +124,17 @@ public class ActionEngine implements Serializable {
         }
 
         gameState.getAlibiDeckManager().mrJackDraws(false);
+
+        finishAction();
+    }
+    public void jackDrawsAlibiCardById(int cardId) {
+        ensureSelectedActionIs(ActionType.ALIBI);
+
+        if (!gameState.getTurnManager().isJackTurn()) {
+            throw new IllegalStateException("Only Jack can draw Jack alibi.");
+        }
+
+        gameState.getAlibiDeckManager().mrJackDrawsCardById(cardId, false);
 
         finishAction();
     }
@@ -123,8 +150,7 @@ public class ActionEngine implements Serializable {
             tile.rotate();
         }
 
-        rotatedTileIdsThisRound.add(tile.getId());
-
+        gameState.markTileRotatedThisRound(tile);
         gameState.updateVisibility();
 
         finishAction();
@@ -177,10 +203,15 @@ public class ActionEngine implements Serializable {
     public boolean hasSelectedAction() {
         return selectedActionToken != null;
     }
-
+    
     public void resetRotatedTilesThisRound() {
-        rotatedTileIdsThisRound.clear();
+        gameState.resetRotatedTilesThisRound();
     }
+
+    public boolean hasTileBeenRotatedThisRound(Tile tile) {
+        return gameState.hasTileBeenRotatedThisRound(tile);
+    }
+
 
     private void validateRotationCount(int rotations) {
         if (rotations < 1 || rotations > 3) {
@@ -189,7 +220,7 @@ public class ActionEngine implements Serializable {
     }
 
     private void validateTileNotAlreadyRotatedThisRound(Tile tile) {
-        if (rotatedTileIdsThisRound.contains(tile.getId())) {
+        if (gameState.hasTileBeenRotatedThisRound(tile)) {
             throw new IllegalStateException("This tile has already been rotated this round.");
         }
     }

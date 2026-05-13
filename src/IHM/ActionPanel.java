@@ -286,11 +286,22 @@ public class ActionPanel extends JPanel {
         ImageIcon icon = chargerImageAction(actionName);
 
         if (icon != null) {
-            imageLabel.setIcon(icon);
+            if (token.isUsed()) {
+                imageLabel.setIcon(griserIcone(icon));
+                imageLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+                imageLabel.setVerticalTextPosition(SwingConstants.CENTER);
+                imageLabel.setForeground(new Color(220, 220, 220));
+                imageLabel.setFont(new Font("Arial", Font.BOLD, 28));
+            } else {
+                imageLabel.setIcon(icon);
+            }
         } else {
             imageLabel.setText(actionName);
             imageLabel.setFont(new Font("Arial", Font.BOLD, 13));
             imageLabel.setForeground(new Color(245, 235, 210));
+            imageLabel.setForeground(token.isUsed()
+                    ? new Color(130, 130, 130)
+                    : new Color(245, 235, 210));
         }
 
         if (token.isUsed()) {
@@ -980,5 +991,47 @@ public class ActionPanel extends JPanel {
         g.dispose();
 
         return imageRedimensionnee;
+    }
+
+    private ImageIcon griserIcone(ImageIcon icon) {
+        Image image = icon.getImage();
+
+        BufferedImage original = new BufferedImage(
+                icon.getIconWidth(),
+                icon.getIconHeight(),
+                BufferedImage.TYPE_INT_ARGB
+        );
+
+        Graphics2D g = original.createGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+
+        BufferedImage grisee = new BufferedImage(
+                original.getWidth(),
+                original.getHeight(),
+                BufferedImage.TYPE_INT_ARGB
+        );
+
+        for (int y = 0; y < original.getHeight(); y++) {
+            for (int x = 0; x < original.getWidth(); x++) {
+                int rgba = original.getRGB(x, y);
+
+                Color color = new Color(rgba, true);
+
+                int alpha = color.getAlpha();
+                int gris = (color.getRed() + color.getGreen() + color.getBlue()) / 3;
+
+                Color nouvelleCouleur = new Color(
+                        gris,
+                        gris,
+                        gris,
+                        alpha / 2
+                );
+
+                grisee.setRGB(x, y, nouvelleCouleur.getRGB());
+            }
+        }
+
+        return new ImageIcon(grisee);
     }
 }

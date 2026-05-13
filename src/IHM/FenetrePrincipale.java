@@ -1,5 +1,6 @@
 package IHM;
 
+import ai.AIDifficulty;
 import java.awt.*;
 import javax.swing.*;
 import engine.GameEngine;
@@ -21,6 +22,7 @@ public class FenetrePrincipale extends JFrame {
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
+
         mainPanel.add(new MenuPrincipalPanel(this), "menu principale");
         mainPanel.add(new ChoixModePanel(this), "choixMode");
         mainPanel.add(new ReglesPanel(this), "regles");
@@ -42,12 +44,21 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public void lancerJeu(GameMode mode, String player1Role) {
+        lancerJeu(mode, player1Role, AIDifficulty.HARD);
+    }
+
+    public void lancerJeu(GameMode mode, String player1Role, AIDifficulty difficulty) {
         System.out.println("Mode sélectionné: " + mode);
         System.out.println("Rôle Joueur 1 : " + player1Role);
+        System.out.println("Difficulté IA : " + difficulty);
 
-        JeuPanel jeuPanel = new JeuPanel(mode, player1Role, this);
-        mainPanel.add(jeuPanel, "jeu");// yeni oyun ekranı oluşturma
-        cardLayout.show(mainPanel, "jeu"); // CardLayout içine ekleme yani ekranda menü değil oyun ekranı döndürüyoz
+        JeuPanel jeuPanel = new JeuPanel(mode, player1Role, this, difficulty);
+
+        mainPanel.add(jeuPanel, "jeu");
+        cardLayout.show(mainPanel, "jeu");
+
+        revalidate();
+        repaint();
     }
 
     public void toggleMusique() {
@@ -66,7 +77,9 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public void changerVolumeMusique(int volume) {
-        if (musique != null) musique.changerVolume(volume);
+        if (musique != null) {
+            musique.changerVolume(volume);
+        }
     }
 
     public static void main(String[] args) {
@@ -125,3 +138,4 @@ public class FenetrePrincipale extends JFrame {
         cardLayout.show(mainPanel, "jeu");
     }
 } 
+}

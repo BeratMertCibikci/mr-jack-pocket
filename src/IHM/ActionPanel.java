@@ -29,6 +29,10 @@ public class ActionPanel extends JPanel {
     private AlibiPanel alibiPanel;
     private BoutonClickMusique boutonClickMusique;
 
+    private JLabel jackIdentityLabel;
+    private JLabel jackAlibisLabel;
+    private JLabel jackHourglassLabel;
+
     private boolean actionEnCours = false;
     private Runnable onTransitionTour;
 
@@ -183,6 +187,7 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
+        rafraichirInfosJack();
 
         SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
@@ -243,6 +248,9 @@ public class ActionPanel extends JPanel {
         });
 
         add(redoButton);
+
+        JPanel jackInfoPanel = creerJackInfoPanel();
+        add(jackInfoPanel);
     }
 
     private JButton creerBoutonControle(String texte, Color couleur) {
@@ -676,6 +684,87 @@ public class ActionPanel extends JPanel {
                     "Action obligatoire",
                     JOptionPane.WARNING_MESSAGE
             );
+        }
+    }
+
+    private JPanel creerJackInfoPanel() { // jack panel
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(35, 30, 25));
+        panel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+
+        JLabel titre = new JLabel("Jack");
+        titre.setFont(new Font("Arial", Font.BOLD, 13));
+        titre.setForeground(new Color(245, 235, 210));
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        jackIdentityLabel = creerPetitLabelJack();
+        jackAlibisLabel = creerPetitLabelJack();
+        jackHourglassLabel = creerPetitLabelJack();
+
+        panel.add(titre);
+        panel.add(Box.createVerticalStrut(3));
+        panel.add(jackIdentityLabel);
+        panel.add(jackAlibisLabel);
+        panel.add(jackHourglassLabel);
+
+        rafraichirInfosJack();
+
+        return panel;
+    }
+
+    private JLabel creerPetitLabelJack() { // jack label
+        JLabel label = new JLabel();
+        label.setFont(new Font("Arial", Font.PLAIN, 10));
+        label.setForeground(new Color(245, 235, 210));
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        return label;
+    }
+    
+    private void rafraichirInfosJack() { // rafraichir fonction pour jack
+        if (jackIdentityLabel == null || jackAlibisLabel == null || jackHourglassLabel == null) {
+            return;
+        }
+    
+        String identiteJack = gameEngine.getGameState().getJackCharacter().getName();
+        jackIdentityLabel.setText("ID: " + identiteJack);
+    
+        jackAlibisLabel.setText("Alibis: " + getAlibisJackTexte());
+    
+        jackHourglassLabel.setText("Hourglass: " + getNombreSabliersJack());
+    }
+
+    private String getAlibisJackTexte() { // les alibis que jack a pioché
+        try {
+            StringBuilder sb = new StringBuilder();
+    
+            for (model.AlibiCards card : gameEngine.getGameState().getAlibiDeckManager().getCards()) {
+                if ("Jack".equals(card.getOwner())
+                        && !card.getCharacter().isJack()) {
+                    sb.append(card.getCharacter().getName())
+                            .append(" (")
+                            .append(card.getHourglassValue())
+                            .append("), ");
+                }
+            }
+    
+            if (sb.length() == 0) {
+                return "aucun";
+            }
+    
+            sb.setLength(sb.length() - 2);
+            return sb.toString();
+    
+        } catch (Exception e) {
+            return "indisponible";
+        }
+    }
+    
+    private int getNombreSabliersJack() { // jack hourglass count
+        try {
+            return gameEngine.getGameState().getAlibiDeckManager().getJackHourglassTotal();
+        } catch (Exception e) {
+            return 0;
         }
     }
 

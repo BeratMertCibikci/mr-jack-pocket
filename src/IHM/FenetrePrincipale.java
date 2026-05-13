@@ -3,6 +3,7 @@ package IHM;
 import ai.AIDifficulty;
 import java.awt.*;
 import javax.swing.*;
+import engine.GameEngine;
 
 public class FenetrePrincipale extends JFrame {
 
@@ -87,4 +88,54 @@ public class FenetrePrincipale extends JFrame {
             fenetre.setVisible(true);
         });
     }
+
+    public void chargerJeuDepuisMenu() {
+        String filename = JOptionPane.showInputDialog(
+                this,
+                "Nom du fichier à charger :",
+                "Charger une partie",
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (filename == null) {
+            return;
+        }
+
+        filename = filename.trim();
+
+        if (filename.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Nom de fichier invalide.",
+                    "Erreur chargement",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        GameEngine loadedEngine = GameEngine.loadGame(filename);
+
+        if (loadedEngine == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Impossible de charger la partie.",
+                    "Erreur chargement",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        String player1Role = loadedEngine.getGameState().getPlayer1Role();
+
+        JeuPanel jeuPanel = new JeuPanel(
+                GameMode.HUMAN_VS_HUMAN,
+                player1Role,
+                this,
+                loadedEngine
+        );
+
+        mainPanel.add(jeuPanel, "jeu");
+        cardLayout.show(mainPanel, "jeu");
+    }
+} 
 }

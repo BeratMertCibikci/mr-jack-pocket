@@ -22,6 +22,10 @@ public class JeuPanel extends JPanel {
     private boolean premierAffichage = true;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
+        this(mode, player1Role, fenetre, null);
+    }
+
+    public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, GameEngine loadedEngine) {
         this(mode, player1Role, fenetre, AIDifficulty.HARD);
     }
 
@@ -29,9 +33,12 @@ public class JeuPanel extends JPanel {
         this.mode = mode;
         this.fenetre = fenetre;
 
+        if(loadedEngine != null){
+            gameEngine = loadedEngine;
+        } else {
         gameEngine = new GameEngine(player1Role);
         gameEngine.startGame();
-
+        }
         gameState = gameEngine.getGameState();
 
         setLayout(new BorderLayout());
@@ -162,11 +169,26 @@ public class JeuPanel extends JPanel {
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JButton resumeButton = creerBoutonPause("Resume");
+        JButton saveButton = creerBoutonPause("Save");
         JButton settingsButton = creerBoutonPause("Settings");
-        JButton reglesButton = creerBoutonPause("Règles");
-        JButton retourMenuButton = creerBoutonPause("Retour menu");
+        JButton reglesButton = creerBoutonPause("Game Rules");
+        JButton saveQuitButton = creerBoutonPause("Save and Quit");
+        JButton retourMenuButton = creerBoutonPause("Return to Menu");
 
         resumeButton.addActionListener(e -> pauseDialog.dispose());
+
+        saveButton.addActionListener(e -> {
+            sauvegarderAvecDialogue(pauseDialog);
+        });
+
+        saveQuitButton.addActionListener(e -> {
+            boolean saved = sauvegarderAvecDialogue(pauseDialog);
+
+            if (saved) {
+                pauseDialog.dispose();
+                fenetre.afficherMenu();
+            }
+        });
 
         settingsButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(
@@ -195,9 +217,13 @@ public class JeuPanel extends JPanel {
         pausePanel.add(Box.createVerticalStrut(30));
         pausePanel.add(resumeButton);
         pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(saveButton);
+        pausePanel.add(Box.createVerticalStrut(15));
         pausePanel.add(settingsButton);
         pausePanel.add(Box.createVerticalStrut(15));
         pausePanel.add(reglesButton);
+        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(saveQuitButton);
         pausePanel.add(Box.createVerticalStrut(15));
         pausePanel.add(retourMenuButton);
 
@@ -222,6 +248,40 @@ public class JeuPanel extends JPanel {
         return bouton;
     }
 
+    private boolean sauvegarderAvecDialogue(Component parent) {
+        String filename = JOptionPane.showInputDialog(
+                parent,
+                "Nom du fichier de sauvegarde :",
+                "Sauvegarder",
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (filename == null) {
+            return false;
+        }
+
+        filename = filename.trim();
+
+        if (filename.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    parent,
+                    "Nom de fichier invalide.",
+                    "Erreur sauvegarde",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return false;
+        }
+
+        gameEngine.saveGame(filename);
+
+        JOptionPane.showMessageDialog(
+                parent,
+                "Partie sauvegardée : " + filename,
+                "Sauvegarde",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        return true;
     private JPanel creerTransitionScreen() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

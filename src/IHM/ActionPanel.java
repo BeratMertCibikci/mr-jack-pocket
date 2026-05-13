@@ -1,18 +1,21 @@
 package IHM;
 
-import javax.swing.*;
+import ai.AIDifficulty;
+import ai.AIFactory;
+import ai.AIPlayer;
+import ai.EvaluationPerspective;
+import engine.ActionType;
+import engine.GameEngine;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
-
-import engine.GameEngine;
-import engine.ActionType;
-import model.Token;
+import javax.swing.*;
 import model.GameCharacter;
 import model.Tile;
+import model.Token;
 
 public class ActionPanel extends JPanel {
 
@@ -24,20 +27,29 @@ public class ActionPanel extends JPanel {
     private boolean actionEnCours = false;
     private AlibiPanel alibiPanel;
 
-    public ActionPanel(GameEngine gameEngine, InfoJeuPanel infoJeuPanel, PlateauPanel plateauPanel, TimeTokensPanel timeTokensPanel) {
-        this.gameEngine = gameEngine;
-        this.infoJeuPanel = infoJeuPanel;
-        this.plateauPanel = plateauPanel;
-        this.timeTokensPanel = timeTokensPanel;
-        this.boutonClickMusique = new BoutonClickMusique();
+    private GameMode mode;
+    private AIPlayer investigatorAI;
+    private AIPlayer jackAI;
+    private boolean aiEnCours = false;
+    private AIDifficulty difficulty;
+    private String humanRole;
 
-        setLayout(new GridLayout(0, 2, 10, 10));
-        setOpaque(false);
-        setPreferredSize(new Dimension(220, 360));
-        setMaximumSize(new Dimension(220, 360));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel) {
 
-        afficherActions();
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                null,
+                GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
+                "Investigator"
+        );
     }
 
     private void synchroniserGameStateDansVues() {
@@ -66,6 +78,7 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
+        SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
 
     private void afficherActions() {
@@ -154,17 +167,7 @@ public class ActionPanel extends JPanel {
                 plateauPanel.setTileSelectionListener(null);
                 actionEnCours = false;
 
-                plateauPanel.rafraichir();
-                infoJeuPanel.rafraichir();
-
-                if (timeTokensPanel != null) {
-                    timeTokensPanel.rafraichir();
-                }
-
-                removeAll();
-                afficherActions();
-                revalidate();
-                repaint();
+                rafraichirToutesLesVues();
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
@@ -209,6 +212,15 @@ public class ActionPanel extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
+                    if (isAITurn()) {
+                        JOptionPane.showMessageDialog(
+                                tokenPanel,
+                                "C'est le tour de l'IA.",
+                                "Tour IA",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                        return;
+                    }
                     if (actionEnCours) {
                         JOptionPane.showMessageDialog(
                                 tokenPanel,
@@ -282,15 +294,13 @@ public class ActionPanel extends JPanel {
                     break;
             }
 
-            plateauPanel.rafraichir();
-            infoJeuPanel.rafraichir();
-
-            if (timeTokensPanel != null) {
-                timeTokensPanel.rafraichir();
-            }
-
             if (actionType != ActionType.ROTATE && actionType != ActionType.EXCHANGE) {
                 actionEnCours = false;
+                rafraichirToutesLesVues();
+            } else {
+                plateauPanel.rafraichir();
+                infoJeuPanel.rafraichir();
+                if (timeTokensPanel != null) timeTokensPanel.rafraichir();
             }
 
         } catch (Exception ex) {
@@ -437,12 +447,7 @@ public class ActionPanel extends JPanel {
                 plateauPanel.setTileSelectionListener(null);
                 actionEnCours = false;
 
-                plateauPanel.rafraichir();
-                infoJeuPanel.rafraichir();
-
-                if (timeTokensPanel != null) {
-                    timeTokensPanel.rafraichir();
-                }
+                rafraichirToutesLesVues();
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
@@ -507,12 +512,7 @@ public class ActionPanel extends JPanel {
                     plateauPanel.setTileSelectionListener(null);
                     actionEnCours = false;
 
-                    plateauPanel.rafraichir();
-                    infoJeuPanel.rafraichir();
-
-                    if (timeTokensPanel != null) {
-                        timeTokensPanel.rafraichir();
-                    }
+                    rafraichirToutesLesVues();
                 }
 
             } catch (Exception ex) {
@@ -554,24 +554,142 @@ public class ActionPanel extends JPanel {
     }
 
     public ActionPanel(
-        GameEngine gameEngine,
-        InfoJeuPanel infoJeuPanel,
-        PlateauPanel plateauPanel,
-        TimeTokensPanel timeTokensPanel,
-        AlibiPanel alibiPanel) {
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel,
+            GameMode mode,
+            AIDifficulty difficulty,
+            String humanRole) {
 
         this.gameEngine = gameEngine;
         this.infoJeuPanel = infoJeuPanel;
         this.plateauPanel = plateauPanel;
         this.timeTokensPanel = timeTokensPanel;
         this.alibiPanel = alibiPanel;
+        this.mode = mode;
+        this.difficulty = difficulty;
+        this.humanRole = humanRole;
         this.boutonClickMusique = new BoutonClickMusique();
 
-        setLayout(new GridLayout(0,2,8,8));
+        setupAIPlayers();
+
+        setLayout(new GridLayout(0, 2, 8, 8));
         setOpaque(false);
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         afficherActions();
+
+        SwingUtilities.invokeLater(this::jouerSiTourIA);
+    }
+    private void setupAIPlayers() {
+        AIDifficulty selectedDifficulty = difficulty;
+
+        if (selectedDifficulty == null) {
+            selectedDifficulty = AIDifficulty.HARD;
+        }
+
+        if (mode == GameMode.HUMAN_VS_IA) {
+            if ("Investigator".equals(humanRole)) {
+                jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
+            } else {
+                investigatorAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.INVESTIGATOR);
+            }
+        } else if (mode == GameMode.IA_VS_IA) {
+            investigatorAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.INVESTIGATOR);
+            jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
+        }
+    }
+    private boolean isAITurn() {
+        if (mode == null) {
+            return false;
+        }
+
+        if (gameEngine.getGameState().isGameOver()) {
+            return false;
+        }
+
+        if (gameEngine.isRoundOver()) {
+            return false;
+        }
+
+        boolean investigatorTurn = gameEngine.getGameState().getTurnManager().isInvestigatorTurn();
+        boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
+
+        if (mode == GameMode.IA_VS_IA) {
+            return investigatorTurn || jackTurn;
+        }
+
+        if (mode == GameMode.HUMAN_VS_IA) {
+            if ("Investigator".equals(humanRole)) {
+                return jackTurn;
+            }
+
+            return investigatorTurn;
+        }
+
+        return false;
+    }
+    private AIPlayer getCurrentAI() {
+        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
+            return investigatorAI;
+        }
+
+        if (gameEngine.getGameState().getTurnManager().isJackTurn()) {
+            return jackAI;
+        }
+
+        return null;
+    }
+    private void jouerSiTourIA() {
+        if (aiEnCours || actionEnCours) {
+            return;
+        }
+
+        if (!isAITurn()) {
+            return;
+        }
+
+        AIPlayer currentAI = getCurrentAI();
+
+        if (currentAI == null) {
+            return;
+        }
+
+        aiEnCours = true;
+
+        Timer timer = new Timer(500, e -> {
+            try {
+                currentAI.play(gameEngine);
+
+                plateauPanel.setTileSelectionListener(null);
+                actionEnCours = false;
+
+                rafraichirToutesLesVues();
+
+                if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
+                    gameEngine.endRound();
+                    rafraichirToutesLesVues();
+                }
+
+                aiEnCours = false;
+
+                SwingUtilities.invokeLater(this::jouerSiTourIA);
+
+            } catch (Exception ex) {
+                aiEnCours = false;
+                JOptionPane.showMessageDialog(
+                        this,
+                        ex.getMessage(),
+                        "Erreur IA",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        timer.setRepeats(false);
+        timer.start();
     }
 
     private ImageIcon chargerImageAction(String actionName) {

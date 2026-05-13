@@ -11,15 +11,15 @@ public class JeuPanel extends JPanel {
     private GameMode mode;
     private GameEngine gameEngine;
     private GameState gameState;
+    private FenetrePrincipale fenetre;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
         this.mode = mode;
+        this.fenetre = fenetre;
 
-        // Oyun motorunu başlatıyoruz
-        gameEngine = new GameEngine(player1Role); 
+        gameEngine = new GameEngine(player1Role);
         gameEngine.startGame();
 
-        // Engine içindeki mevcut GameState'i alıyoruz
         gameState = gameEngine.getGameState();
 
         setLayout(new BorderLayout());
@@ -33,20 +33,19 @@ public class JeuPanel extends JPanel {
         PlateauPanel plateauPanel = new PlateauPanel(gameState);
         InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
         TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
-        ActionPanel actionPanel = new ActionPanel(gameEngine, infoJeuPanel, plateauPanel, timeTokensPanel);
         AlibiPanel alibiPanel = new AlibiPanel();
 
-        JButton retourButton = new JButton("Retour menu");
-        retourButton.addActionListener(e -> fenetre.afficherMenu());
+        ActionPanel actionPanel = new ActionPanel(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                alibiPanel
+        );
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(20, 20, 20));
         topPanel.add(titre, BorderLayout.CENTER);
-        topPanel.add(retourButton, BorderLayout.EAST);
-
-        JPanel plateauEtActionsPanel = new JPanel(new BorderLayout());
-        plateauEtActionsPanel.setOpaque(false);
-        plateauEtActionsPanel.add(plateauPanel, BorderLayout.CENTER);
 
         JPanel rightGamePanel = new JPanel();
         rightGamePanel.setOpaque(false);
@@ -76,7 +75,105 @@ public class JeuPanel extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
         add(plateauWrapper, BorderLayout.CENTER);
-        //info panel
-        //add(infoJeuPanel, BorderLayout.EAST);
+
+        installerRaccourciPause();
     }
-}   
+
+    private void installerRaccourciPause() {
+        InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "pause");
+
+        actionMap.put("pause", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                afficherPauseMenu();
+            }
+        });
+    }
+
+    private void afficherPauseMenu() {
+        JDialog pauseDialog = new JDialog(
+                SwingUtilities.getWindowAncestor(this),
+                "Pause",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+
+        pauseDialog.setSize(320, 360);
+        pauseDialog.setLocationRelativeTo(this);
+        pauseDialog.setResizable(false);
+
+        JPanel pausePanel = new JPanel();
+        pausePanel.setLayout(new BoxLayout(pausePanel, BoxLayout.Y_AXIS));
+        pausePanel.setBackground(new Color(25, 25, 25));
+        pausePanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+
+        JLabel titre = new JLabel("Pause");
+        titre.setFont(new Font("Arial", Font.BOLD, 28));
+        titre.setForeground(new Color(245, 235, 210));
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton resumeButton = creerBoutonPause("Resume");
+        JButton settingsButton = creerBoutonPause("Settings");
+        JButton reglesButton = creerBoutonPause("Règles");
+        JButton retourMenuButton = creerBoutonPause("Retour menu");
+
+        resumeButton.addActionListener(e -> {
+            pauseDialog.dispose();
+        });
+
+        settingsButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    pauseDialog,
+                    "Settings à ajouter plus tard.",
+                    "Settings",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+
+        reglesButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    pauseDialog,
+                    "Règles du jeu à afficher ici.",
+                    "Règles",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+
+        retourMenuButton.addActionListener(e -> {
+            pauseDialog.dispose();
+            fenetre.afficherMenu();
+        });
+
+        pausePanel.add(titre);
+        pausePanel.add(Box.createVerticalStrut(30));
+        pausePanel.add(resumeButton);
+        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(settingsButton);
+        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(reglesButton);
+        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(retourMenuButton);
+
+        pauseDialog.setContentPane(pausePanel);
+        pauseDialog.setVisible(true);
+    }
+
+    private JButton creerBoutonPause(String texte) {
+        JButton bouton = new JButton(texte);
+
+        bouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bouton.setMaximumSize(new Dimension(220, 45));
+        bouton.setPreferredSize(new Dimension(220, 45));
+
+        bouton.setFont(new Font("Arial", Font.BOLD, 16));
+        bouton.setForeground(new Color(245, 235, 210));
+        bouton.setBackground(new Color(55, 45, 35));
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        bouton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+
+        return bouton;
+    }
+}

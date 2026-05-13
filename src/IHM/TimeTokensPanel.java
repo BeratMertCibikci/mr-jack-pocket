@@ -21,6 +21,10 @@ public class TimeTokensPanel extends JPanel {
         afficherTimeTokens();
     }
 
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
+    }
+
     public void rafraichir() {
         removeAll();
         afficherTimeTokens();
@@ -94,7 +98,7 @@ public class TimeTokensPanel extends JPanel {
         return "NONE";
     }
 
-    private int valeurToken(Token token) {
+    protected int valeurToken(Token token) {
         String face = token.getFrontSide();
 
         switch (face) {

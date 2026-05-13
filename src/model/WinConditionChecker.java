@@ -70,17 +70,17 @@ public class WinConditionChecker implements Serializable {
             List<GameCharacter> characters,
             GameCharacter jackCharacter,
             AlibiDeckManager alibiDeckManager,
-            PlayerState jackPlayerState
+            PlayerState jackPlayerState,
+            int roundNumber
     ) {
         boolean investigatorReachedGoal = hasOnlyJackRemaining(characters, jackCharacter);
         boolean jackReachedGoal = hasJackWonByHourglasses(alibiDeckManager, jackPlayerState);
 
         if (investigatorReachedGoal && jackReachedGoal) {
-            if (jackCharacter.isVisible()) {
-                return "Investigator";
+            if (roundNumber < 8){
+                return null; // No winner yet, game continues
             }
-
-            return "Jack";
+            return jackCharacter.isVisible() ? "Investigator" : "Jack";
         }
 
         if (investigatorReachedGoal) {

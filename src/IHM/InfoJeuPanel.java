@@ -59,29 +59,29 @@ public class InfoJeuPanel extends JPanel {
 
         //panele ekleme 
         add(titre);
-        add(Box.createVerticalStrut(25));
+        add(Box.createVerticalStrut(15));
         add(joueur1RoleLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(joueur2RoleLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(modeLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(joueurActuelLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(roundLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(actionLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(selectedActionLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(roundOverLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(holmesLabel);
-        add(Box.createVerticalStrut(10)); 
+        add(Box.createVerticalStrut(5)); 
         add(watsonLabel);
-        add(Box.createVerticalStrut(10));
+        add(Box.createVerticalStrut(5));
         add(tobyLabel);
-        add(Box.createVerticalStrut(25));
+        add(Box.createVerticalStrut(15));
         
         JLabel personnagesTitre = new JLabel("Personnages");
         personnagesTitre.setFont(new Font("Arial", Font.BOLD, 15));

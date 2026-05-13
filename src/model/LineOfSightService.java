@@ -110,7 +110,7 @@ public class LineOfSightService implements Serializable {
             return visibleTiles;
         }
 
-        if (currentTile.blocksLineOfSight(direction)) {
+        if (currentTile.blocksLineOfSight(direction.opposite())) {
             return visibleTiles;
         }
 

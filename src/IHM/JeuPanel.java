@@ -1,9 +1,9 @@
 package IHM;
 
-import javax.swing.*;
-import java.awt.*;
-
+import ai.AIDifficulty;
 import engine.GameEngine;
+import java.awt.*;
+import javax.swing.*;
 import model.GameState;
 
 public class JeuPanel extends JPanel {
@@ -22,6 +22,10 @@ public class JeuPanel extends JPanel {
     private boolean premierAffichage = true;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
+        this(mode, player1Role, fenetre, AIDifficulty.HARD);
+    }
+
+    public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, AIDifficulty difficulty) {
         this.mode = mode;
         this.fenetre = fenetre;
 
@@ -57,28 +61,29 @@ public class JeuPanel extends JPanel {
                 plateauPanel,
                 timeTokensPanel,
                 alibiPanel,
-                this::afficherTransitionTour
+                this::afficherTransitionTour,
+                mode,
+                difficulty,
+                player1Role
         );
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(20, 20, 20));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         topPanel.add(titre, BorderLayout.CENTER);
 
         JButton pauseButton = new JButton("⏸");
-        pauseButton.setFont(new Font("Arial", Font.BOLD, 30));
+        pauseButton.setFont(new Font("Arial", Font.BOLD, 26));
         pauseButton.setForeground(new Color(245, 235, 210));
         pauseButton.setBackground(new Color(55, 45, 35));
         pauseButton.setFocusPainted(false);
         pauseButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55),2));
-        pauseButton.setPreferredSize(new Dimension(75, 35));
+        pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        pauseButton.setPreferredSize(new Dimension(75, 45));
 
-        pauseButton.addActionListener(e -> {
-            afficherPauseMenu();
-        });
+        pauseButton.addActionListener(e -> afficherPauseMenu());
 
         topPanel.add(pauseButton, BorderLayout.EAST);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel rightGamePanel = new JPanel();
         rightGamePanel.setOpaque(false);
@@ -161,9 +166,7 @@ public class JeuPanel extends JPanel {
         JButton reglesButton = creerBoutonPause("Règles");
         JButton retourMenuButton = creerBoutonPause("Retour menu");
 
-        resumeButton.addActionListener(e -> {
-            pauseDialog.dispose();
-        });
+        resumeButton.addActionListener(e -> pauseDialog.dispose());
 
         settingsButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(
@@ -250,7 +253,7 @@ public class JeuPanel extends JPanel {
         panel.add(Box.createVerticalGlue());
 
         return panel;
-}
+    }
 
     private void afficherTransitionTour() {
         String joueurActuel = gameEngine.getCurrentPlayer();
@@ -261,6 +264,7 @@ public class JeuPanel extends JPanel {
             premierAffichage = false;
         } else {
             transitionTitleLabel.setText("Changement de tour");
+            transitionMessageLabel.setText("Passez l'ordinateur à : " + joueurActuel);
         }
 
         cardLayout.show(mainContainer, "TRANSITION");

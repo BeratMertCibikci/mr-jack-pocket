@@ -1,18 +1,24 @@
 package IHM;
 
-import javax.swing.*;
+import ai.AIDifficulty;
+import ai.AIFactory;
+import ai.AIPlayer;
+import ai.EvaluationPerspective;
+import engine.ActionType;
+import engine.GameEngine;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import javax.imageio.ImageIO;
 
-import engine.GameEngine;
-import engine.ActionType;
-import model.Token;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+
 import model.GameCharacter;
 import model.Tile;
+import model.Token;
 
 public class ActionPanel extends JPanel {
 
@@ -25,7 +31,52 @@ public class ActionPanel extends JPanel {
 
     private boolean actionEnCours = false;
     private Runnable onTransitionTour;
-    
+
+    private GameMode mode;
+    private AIPlayer investigatorAI;
+    private AIPlayer jackAI;
+    private boolean aiEnCours = false;
+    private AIDifficulty difficulty;
+    private String humanRole;
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel
+    ) {
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                null,
+                null,
+                GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
+                "Investigator"
+        );
+    }
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel
+    ) {
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                alibiPanel,
+                null,
+                GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
+                "Investigator"
+        );
+    }
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -35,13 +86,65 @@ public class ActionPanel extends JPanel {
             AlibiPanel alibiPanel,
             Runnable onTransitionTour
     ) {
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                alibiPanel,
+                onTransitionTour,
+                GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
+                "Investigator"
+        );
+    }
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel,
+            GameMode mode,
+            AIDifficulty difficulty,
+            String humanRole
+    ) {
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                alibiPanel,
+                null,
+                mode,
+                difficulty,
+                humanRole
+        );
+    }
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel,
+            Runnable onTransitionTour,
+            GameMode mode,
+            AIDifficulty difficulty,
+            String humanRole
+    ) {
         this.gameEngine = gameEngine;
         this.infoJeuPanel = infoJeuPanel;
         this.plateauPanel = plateauPanel;
         this.timeTokensPanel = timeTokensPanel;
         this.alibiPanel = alibiPanel;
         this.onTransitionTour = onTransitionTour;
+        this.mode = mode;
+        this.difficulty = difficulty;
+        this.humanRole = humanRole;
         this.boutonClickMusique = new BoutonClickMusique();
+
+        setupAIPlayers();
 
         setLayout(new GridLayout(0, 2, 8, 8));
         setOpaque(false);
@@ -50,6 +153,8 @@ public class ActionPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         afficherActions();
+
+        SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
 
     private void synchroniserGameStateDansVues() {
@@ -78,6 +183,8 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
+
+        SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
 
     private void afficherActions() {
@@ -192,6 +299,16 @@ public class ActionPanel extends JPanel {
                         return;
                     }
 
+                    if (isAITurn()) {
+                        JOptionPane.showMessageDialog(
+                                tokenPanel,
+                                "C'est le tour de l'IA.",
+                                "Tour IA",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                        return;
+                    }
+
                     if (actionEnCours) {
                         JOptionPane.showMessageDialog(
                                 tokenPanel,
@@ -277,6 +394,8 @@ public class ActionPanel extends JPanel {
             }
 
         } catch (Exception ex) {
+            actionEnCours = false;
+
             JOptionPane.showMessageDialog(
                     this,
                     ex.getMessage(),
@@ -299,7 +418,7 @@ public class ActionPanel extends JPanel {
 
             rafraichirToutesLesVues();
 
-            if (onTransitionTour != null) {
+            if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
                 onTransitionTour.run();
             }
 
@@ -452,6 +571,8 @@ public class ActionPanel extends JPanel {
                 verifierFinDeRoundEtTransition();
 
             } catch (Exception ex) {
+                actionEnCours = false;
+
                 JOptionPane.showMessageDialog(
                         this,
                         ex.getMessage(),
@@ -519,6 +640,8 @@ public class ActionPanel extends JPanel {
                 }
 
             } catch (Exception ex) {
+                actionEnCours = false;
+
                 JOptionPane.showMessageDialog(
                         this,
                         ex.getMessage(),
@@ -554,6 +677,123 @@ public class ActionPanel extends JPanel {
                     JOptionPane.WARNING_MESSAGE
             );
         }
+    }
+
+    private void setupAIPlayers() {
+        AIDifficulty selectedDifficulty = difficulty;
+
+        if (selectedDifficulty == null) {
+            selectedDifficulty = AIDifficulty.HARD;
+        }
+
+        if (mode == GameMode.HUMAN_VS_IA) {
+            if ("Investigator".equals(humanRole)) {
+                jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
+            } else {
+                investigatorAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.INVESTIGATOR);
+            }
+        } else if (mode == GameMode.IA_VS_IA) {
+            investigatorAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.INVESTIGATOR);
+            jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
+        }
+    }
+
+    private boolean isAITurn() {
+        if (mode == null) {
+            return false;
+        }
+
+        if (gameEngine.getGameState().isGameOver()) {
+            return false;
+        }
+
+        if (gameEngine.isRoundOver()) {
+            return false;
+        }
+
+        boolean investigatorTurn = gameEngine.getGameState().getTurnManager().isInvestigatorTurn();
+        boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
+
+        if (mode == GameMode.IA_VS_IA) {
+            return investigatorTurn || jackTurn;
+        }
+
+        if (mode == GameMode.HUMAN_VS_IA) {
+            if ("Investigator".equals(humanRole)) {
+                return jackTurn;
+            }
+
+            return investigatorTurn;
+        }
+
+        return false;
+    }
+
+    private AIPlayer getCurrentAI() {
+        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
+            return investigatorAI;
+        }
+
+        if (gameEngine.getGameState().getTurnManager().isJackTurn()) {
+            return jackAI;
+        }
+
+        return null;
+    }
+
+    private void jouerSiTourIA() {
+        if (aiEnCours || actionEnCours) {
+            return;
+        }
+
+        if (!isAITurn()) {
+            return;
+        }
+
+        AIPlayer currentAI = getCurrentAI();
+
+        if (currentAI == null) {
+            return;
+        }
+
+        aiEnCours = true;
+
+        Timer timer = new Timer(500, e -> {
+            try {
+                currentAI.play(gameEngine);
+
+                plateauPanel.setTileSelectionListener(null);
+                actionEnCours = false;
+
+                rafraichirToutesLesVues();
+
+                if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
+                    gameEngine.endRound();
+                    rafraichirToutesLesVues();
+
+                    if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
+                        onTransitionTour.run();
+                    }
+                }
+
+                aiEnCours = false;
+
+                SwingUtilities.invokeLater(this::jouerSiTourIA);
+
+            } catch (Exception ex) {
+                aiEnCours = false;
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        ex.getMessage(),
+                        "Erreur IA",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        timer.setRepeats(false);
+        timer.start();
     }
 
     private ImageIcon chargerImageAction(String actionName) {

@@ -10,10 +10,15 @@ public class MinimaxBenchmarkTest {
     private static final int RUNS = 10;
 
     public static void main(String[] args) {
-        runBenchmark(1);
-        runBenchmark(2);
-        runBenchmark(3);
-        runBenchmark(4);
+        //runBenchmark(1);
+        //runBenchmark(2);
+        //runBenchmark(3);
+        //runBenchmark(4);
+        runBenchmark(5);
+        runBenchmark(6);
+        runBenchmark(7);
+        runBenchmark(8);
+
 
     }
 

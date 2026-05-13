@@ -13,7 +13,19 @@ public class JeuPanel extends JPanel {
     private GameState gameState;
     private FenetrePrincipale fenetre;
 
+    private CardLayout cardLayout;
+    private JPanel mainContainer;
+    private JPanel gameScreen;
+    private JPanel transitionScreen;
+    private JLabel transitionMessageLabel;
+    private JLabel transitionTitleLabel;
+    private boolean premierAffichage = true;
+
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
+        this(mode, player1Role, fenetre, null);
+    }
+
+    public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, GameEngine loadedEngine) {
         this(mode, player1Role, fenetre, AIDifficulty.HARD);
     }
 
@@ -21,13 +33,24 @@ public class JeuPanel extends JPanel {
         this.mode = mode;
         this.fenetre = fenetre;
 
+        if(loadedEngine != null){
+            gameEngine = loadedEngine;
+        } else {
         gameEngine = new GameEngine(player1Role);
         gameEngine.startGame();
-
+        }
         gameState = gameEngine.getGameState();
 
         setLayout(new BorderLayout());
         setBackground(new Color(25, 25, 25));
+
+        cardLayout = new CardLayout();
+
+        mainContainer = new JPanel(cardLayout);
+        mainContainer.setBackground(new Color(25, 25, 25));
+
+        gameScreen = new JPanel(new BorderLayout());
+        gameScreen.setBackground(new Color(25, 25, 25));
 
         JLabel titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 26));
@@ -45,6 +68,7 @@ public class JeuPanel extends JPanel {
                 plateauPanel,
                 timeTokensPanel,
                 alibiPanel,
+                this::afficherTransitionTour,
                 mode,
                 difficulty,
                 player1Role
@@ -52,7 +76,21 @@ public class JeuPanel extends JPanel {
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(20, 20, 20));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         topPanel.add(titre, BorderLayout.CENTER);
+
+        JButton pauseButton = new JButton("⏸");
+        pauseButton.setFont(new Font("Arial", Font.BOLD, 26));
+        pauseButton.setForeground(new Color(245, 235, 210));
+        pauseButton.setBackground(new Color(55, 45, 35));
+        pauseButton.setFocusPainted(false);
+        pauseButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        pauseButton.setPreferredSize(new Dimension(75, 45));
+
+        pauseButton.addActionListener(e -> afficherPauseMenu());
+
+        topPanel.add(pauseButton, BorderLayout.EAST);
 
         JPanel rightGamePanel = new JPanel();
         rightGamePanel.setOpaque(false);
@@ -80,8 +118,17 @@ public class JeuPanel extends JPanel {
         plateauWrapper.add(plateauPanel, BorderLayout.CENTER);
         plateauWrapper.add(rightGamePanel, BorderLayout.EAST);
 
-        add(topPanel, BorderLayout.NORTH);
-        add(plateauWrapper, BorderLayout.CENTER);
+        gameScreen.add(topPanel, BorderLayout.NORTH);
+        gameScreen.add(plateauWrapper, BorderLayout.CENTER);
+
+        transitionScreen = creerTransitionScreen();
+
+        mainContainer.add(gameScreen, "GAME");
+        mainContainer.add(transitionScreen, "TRANSITION");
+
+        add(mainContainer, BorderLayout.CENTER);
+
+        afficherTransitionTour();
 
         installerRaccourciPause();
     }
@@ -122,12 +169,25 @@ public class JeuPanel extends JPanel {
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JButton resumeButton = creerBoutonPause("Resume");
+        JButton saveButton = creerBoutonPause("Save");
         JButton settingsButton = creerBoutonPause("Settings");
-        JButton reglesButton = creerBoutonPause("Règles");
-        JButton retourMenuButton = creerBoutonPause("Retour menu");
+        JButton reglesButton = creerBoutonPause("Game Rules");
+        JButton saveQuitButton = creerBoutonPause("Save and Quit");
+        JButton retourMenuButton = creerBoutonPause("Return to Menu");
 
-        resumeButton.addActionListener(e -> {
-            pauseDialog.dispose();
+        resumeButton.addActionListener(e -> pauseDialog.dispose());
+
+        saveButton.addActionListener(e -> {
+            sauvegarderAvecDialogue(pauseDialog);
+        });
+
+        saveQuitButton.addActionListener(e -> {
+            boolean saved = sauvegarderAvecDialogue(pauseDialog);
+
+            if (saved) {
+                pauseDialog.dispose();
+                fenetre.afficherMenu();
+            }
         });
 
         settingsButton.addActionListener(e -> {
@@ -157,9 +217,13 @@ public class JeuPanel extends JPanel {
         pausePanel.add(Box.createVerticalStrut(30));
         pausePanel.add(resumeButton);
         pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(saveButton);
+        pausePanel.add(Box.createVerticalStrut(15));
         pausePanel.add(settingsButton);
         pausePanel.add(Box.createVerticalStrut(15));
         pausePanel.add(reglesButton);
+        pausePanel.add(Box.createVerticalStrut(15));
+        pausePanel.add(saveQuitButton);
         pausePanel.add(Box.createVerticalStrut(15));
         pausePanel.add(retourMenuButton);
 
@@ -182,5 +246,87 @@ public class JeuPanel extends JPanel {
         bouton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
 
         return bouton;
+    }
+
+    private boolean sauvegarderAvecDialogue(Component parent) {
+        String filename = JOptionPane.showInputDialog(
+                parent,
+                "Nom du fichier de sauvegarde :",
+                "Sauvegarder",
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (filename == null) {
+            return false;
+        }
+
+        filename = filename.trim();
+
+        if (filename.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    parent,
+                    "Nom de fichier invalide.",
+                    "Erreur sauvegarde",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return false;
+        }
+
+        gameEngine.saveGame(filename);
+
+        JOptionPane.showMessageDialog(
+                parent,
+                "Partie sauvegardée : " + filename,
+                "Sauvegarde",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        return true;
+    private JPanel creerTransitionScreen() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(20, 20, 20));
+        panel.setBorder(BorderFactory.createEmptyBorder(120, 80, 120, 80));
+
+        transitionTitleLabel = new JLabel("Changement de tour");
+        transitionTitleLabel.setFont(new Font("Arial", Font.BOLD, 34));
+        transitionTitleLabel.setForeground(new Color(245, 235, 210));
+        transitionTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        transitionMessageLabel = new JLabel("", SwingConstants.CENTER);
+        transitionMessageLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        transitionMessageLabel.setForeground(new Color(212, 175, 55));
+        transitionMessageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton commencerButton = creerBoutonPause("Commencer le tour");
+
+        commencerButton.addActionListener(e -> {
+            cardLayout.show(mainContainer, "GAME");
+        });
+
+        panel.add(Box.createVerticalGlue());
+        panel.add(transitionTitleLabel);
+        panel.add(Box.createVerticalStrut(30));
+        panel.add(transitionMessageLabel);
+        panel.add(Box.createVerticalStrut(40));
+        panel.add(commencerButton);
+        panel.add(Box.createVerticalGlue());
+
+        return panel;
+    }
+
+    private void afficherTransitionTour() {
+        String joueurActuel = gameEngine.getCurrentPlayer();
+
+        if (premierAffichage) {
+            transitionTitleLabel.setText("Début de partie");
+            transitionMessageLabel.setText("Joueur actuel : " + joueurActuel);
+            premierAffichage = false;
+        } else {
+            transitionTitleLabel.setText("Changement de tour");
+            transitionMessageLabel.setText("Passez l'ordinateur à : " + joueurActuel);
+        }
+
+        cardLayout.show(mainContainer, "TRANSITION");
     }
 }

@@ -42,7 +42,7 @@ public class PlateauPanel extends JPanel {
         setLayout(null);
         setPreferredSize(new Dimension(PANEL_W, PANEL_H));
         setMaximumSize(new Dimension(PANEL_W, PANEL_H));
-        setBackground(new Color(35, 35, 35));
+        setBackground(couleurFondTourActuel());
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         afficherPlateau();
@@ -53,10 +53,25 @@ public class PlateauPanel extends JPanel {
     }
 
     public void rafraichir() {
+        setBackground(couleurFondTourActuel());
         removeAll();
         afficherPlateau();
         revalidate();
         repaint();
+    }
+
+    private Color couleurFondTourActuel() {
+        String joueur = gameState.getTurnManager().getCurrentPlayer();
+
+        if (joueur.equals("Investigator")) {
+            return new Color(18, 28, 48);
+        }
+
+        if (joueur.equals("Jack")) {
+            return new Color(48, 18, 18);
+        }
+
+        return new Color(35, 35, 35);
     }
 
     private void afficherPlateau() {

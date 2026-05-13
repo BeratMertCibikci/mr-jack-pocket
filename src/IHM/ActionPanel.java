@@ -6,13 +6,16 @@ import ai.AIPlayer;
 import ai.EvaluationPerspective;
 import engine.ActionType;
 import engine.GameEngine;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
+
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
@@ -23,9 +26,11 @@ public class ActionPanel extends JPanel {
     private InfoJeuPanel infoJeuPanel;
     private PlateauPanel plateauPanel;
     private TimeTokensPanel timeTokensPanel;
-    private BoutonClickMusique boutonClickMusique;
-    private boolean actionEnCours = false;
     private AlibiPanel alibiPanel;
+    private BoutonClickMusique boutonClickMusique;
+
+    private boolean actionEnCours = false;
+    private Runnable onTransitionTour;
 
     private GameMode mode;
     private AIPlayer investigatorAI;
@@ -38,18 +43,118 @@ public class ActionPanel extends JPanel {
             GameEngine gameEngine,
             InfoJeuPanel infoJeuPanel,
             PlateauPanel plateauPanel,
-            TimeTokensPanel timeTokensPanel) {
-
+            TimeTokensPanel timeTokensPanel
+    ) {
         this(
                 gameEngine,
                 infoJeuPanel,
                 plateauPanel,
                 timeTokensPanel,
                 null,
+                null,
                 GameMode.HUMAN_VS_HUMAN,
                 AIDifficulty.HARD,
                 "Investigator"
         );
+    }
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel
+    ) {
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                alibiPanel,
+                null,
+                GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
+                "Investigator"
+        );
+    }
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel,
+            Runnable onTransitionTour
+    ) {
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                alibiPanel,
+                onTransitionTour,
+                GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
+                "Investigator"
+        );
+    }
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel,
+            GameMode mode,
+            AIDifficulty difficulty,
+            String humanRole
+    ) {
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                alibiPanel,
+                null,
+                mode,
+                difficulty,
+                humanRole
+        );
+    }
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel,
+            Runnable onTransitionTour,
+            GameMode mode,
+            AIDifficulty difficulty,
+            String humanRole
+    ) {
+        this.gameEngine = gameEngine;
+        this.infoJeuPanel = infoJeuPanel;
+        this.plateauPanel = plateauPanel;
+        this.timeTokensPanel = timeTokensPanel;
+        this.alibiPanel = alibiPanel;
+        this.onTransitionTour = onTransitionTour;
+        this.mode = mode;
+        this.difficulty = difficulty;
+        this.humanRole = humanRole;
+        this.boutonClickMusique = new BoutonClickMusique();
+
+        setupAIPlayers();
+
+        setLayout(new GridLayout(0, 2, 8, 8));
+        setOpaque(false);
+        setPreferredSize(new Dimension(220, 360));
+        setMaximumSize(new Dimension(220, 360));
+        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        afficherActions();
+
+        SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
 
     private void synchroniserGameStateDansVues() {
@@ -78,6 +183,7 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
+
         SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
 
@@ -92,18 +198,17 @@ public class ActionPanel extends JPanel {
             add(tokenPanel);
         }
 
-        JButton undoButton = new JButton("Undo");
-        undoButton.setFont(new Font("Arial", Font.BOLD, 14));
-        undoButton.setBackground(new Color(55, 55, 70));
-        undoButton.setForeground(new Color(245, 235, 210));
-        undoButton.setFocusPainted(false);
-        undoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
+        JButton undoButton = creerBoutonControle("Undo", new Color(55, 55, 70));
         undoButton.addActionListener(e -> {
             try {
                 boutonClickMusique.jouerClick();
+
+                actionEnCours = false;
+                plateauPanel.setTileSelectionListener(null);
+
                 gameEngine.undo();
                 rafraichirToutesLesVues();
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
                         this,
@@ -116,18 +221,17 @@ public class ActionPanel extends JPanel {
 
         add(undoButton);
 
-        JButton redoButton = new JButton("Redo");
-        redoButton.setFont(new Font("Arial", Font.BOLD, 14));
-        redoButton.setBackground(new Color(55, 55, 70));
-        redoButton.setForeground(new Color(245, 235, 210));
-        redoButton.setFocusPainted(false);
-        redoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
+        JButton redoButton = creerBoutonControle("Redo", new Color(55, 55, 70));
         redoButton.addActionListener(e -> {
             try {
                 boutonClickMusique.jouerClick();
+
+                actionEnCours = false;
+                plateauPanel.setTileSelectionListener(null);
+
                 gameEngine.redo();
                 rafraichirToutesLesVues();
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
                         this,
@@ -139,56 +243,31 @@ public class ActionPanel extends JPanel {
         });
 
         add(redoButton);
+    }
 
-        JButton tourSuivantButton = new JButton("Tour suivant");
-        tourSuivantButton.setEnabled(gameEngine.isRoundOver());
-        tourSuivantButton.setFont(new Font("Arial", Font.BOLD, 14));
-        tourSuivantButton.setBackground(new Color(80, 65, 35));
-        tourSuivantButton.setForeground(new Color(245, 235, 210));
-        tourSuivantButton.setFocusPainted(false);
-        tourSuivantButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        tourSuivantButton.setPreferredSize(new Dimension(90, 35));
+    private JButton creerBoutonControle(String texte, Color couleur) {
+        JButton bouton = new JButton(texte);
 
-        tourSuivantButton.addActionListener(e -> {
-            try {
-                if (actionEnCours) {
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Une action est en cours. Terminez-la avant de passer au tour suivant.",
-                            "Action en cours",
-                            JOptionPane.WARNING_MESSAGE
-                    );
-                    return;
-                }
+        bouton.setFont(new Font("Arial", Font.BOLD, 13));
+        bouton.setBackground(couleur);
+        bouton.setForeground(new Color(245, 235, 210));
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-                boutonClickMusique.jouerClick();
-                gameEngine.endRound();
-
-                plateauPanel.setTileSelectionListener(null);
-                actionEnCours = false;
-
-                rafraichirToutesLesVues();
-
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur tour suivant",
-                        JOptionPane.ERROR_MESSAGE
-                );
-            }
-        });
-
-        add(tourSuivantButton);
+        return bouton;
     }
 
     private JPanel creerActionTokenPanel(Token token, int index) {
         JPanel tokenPanel = new JPanel(new BorderLayout());
         tokenPanel.setPreferredSize(new Dimension(90, 90));
-
         tokenPanel.setOpaque(false);
         tokenPanel.setBorder(null);
-        tokenPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        if (token.isUsed()) {
+            tokenPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        } else {
+            tokenPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
 
         String actionName = token.getCurrentSide();
 
@@ -202,8 +281,12 @@ public class ActionPanel extends JPanel {
             imageLabel.setIcon(icon);
         } else {
             imageLabel.setText(actionName);
-            imageLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            imageLabel.setFont(new Font("Arial", Font.BOLD, 13));
             imageLabel.setForeground(new Color(245, 235, 210));
+        }
+
+        if (token.isUsed()) {
+            imageLabel.setEnabled(false);
         }
 
         tokenPanel.add(imageLabel, BorderLayout.CENTER);
@@ -212,6 +295,10 @@ public class ActionPanel extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
+                    if (token.isUsed()) {
+                        return;
+                    }
+
                     if (isAITurn()) {
                         JOptionPane.showMessageDialog(
                                 tokenPanel,
@@ -221,6 +308,7 @@ public class ActionPanel extends JPanel {
                         );
                         return;
                     }
+
                     if (actionEnCours) {
                         JOptionPane.showMessageDialog(
                                 tokenPanel,
@@ -239,8 +327,6 @@ public class ActionPanel extends JPanel {
                     System.out.println("Action token choisi : " + selectedToken.getCurrentSide());
                     System.out.println("Type action : " + gameEngine.getSelectedActionType());
 
-                    tokenPanel.setOpaque(false);
-                    tokenPanel.setBorder(null);
                     tokenPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
                     infoJeuPanel.rafraichir();
@@ -297,17 +383,50 @@ public class ActionPanel extends JPanel {
             if (actionType != ActionType.ROTATE && actionType != ActionType.EXCHANGE) {
                 actionEnCours = false;
                 rafraichirToutesLesVues();
+                verifierFinDeRoundEtTransition();
             } else {
                 plateauPanel.rafraichir();
                 infoJeuPanel.rafraichir();
-                if (timeTokensPanel != null) timeTokensPanel.rafraichir();
+
+                if (timeTokensPanel != null) {
+                    timeTokensPanel.rafraichir();
+                }
+            }
+
+        } catch (Exception ex) {
+            actionEnCours = false;
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    ex.getMessage(),
+                    "Erreur action",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private void verifierFinDeRoundEtTransition() {
+        if (!gameEngine.isRoundOver()) {
+            return;
+        }
+
+        try {
+            gameEngine.endRound();
+
+            plateauPanel.setTileSelectionListener(null);
+            actionEnCours = false;
+
+            rafraichirToutesLesVues();
+
+            if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
+                onTransitionTour.run();
             }
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
                     this,
                     ex.getMessage(),
-                    "Erreur action",
+                    "Erreur fin de round",
                     JOptionPane.ERROR_MESSAGE
             );
         }
@@ -332,6 +451,7 @@ public class ActionPanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE
                 );
             }
+
         } else {
             gameEngine.jackDrawsAlibi();
 
@@ -448,8 +568,11 @@ public class ActionPanel extends JPanel {
                 actionEnCours = false;
 
                 rafraichirToutesLesVues();
+                verifierFinDeRoundEtTransition();
 
             } catch (Exception ex) {
+                actionEnCours = false;
+
                 JOptionPane.showMessageDialog(
                         this,
                         ex.getMessage(),
@@ -513,9 +636,12 @@ public class ActionPanel extends JPanel {
                     actionEnCours = false;
 
                     rafraichirToutesLesVues();
+                    verifierFinDeRoundEtTransition();
                 }
 
             } catch (Exception ex) {
+                actionEnCours = false;
+
                 JOptionPane.showMessageDialog(
                         this,
                         ex.getMessage(),
@@ -553,36 +679,6 @@ public class ActionPanel extends JPanel {
         }
     }
 
-    public ActionPanel(
-            GameEngine gameEngine,
-            InfoJeuPanel infoJeuPanel,
-            PlateauPanel plateauPanel,
-            TimeTokensPanel timeTokensPanel,
-            AlibiPanel alibiPanel,
-            GameMode mode,
-            AIDifficulty difficulty,
-            String humanRole) {
-
-        this.gameEngine = gameEngine;
-        this.infoJeuPanel = infoJeuPanel;
-        this.plateauPanel = plateauPanel;
-        this.timeTokensPanel = timeTokensPanel;
-        this.alibiPanel = alibiPanel;
-        this.mode = mode;
-        this.difficulty = difficulty;
-        this.humanRole = humanRole;
-        this.boutonClickMusique = new BoutonClickMusique();
-
-        setupAIPlayers();
-
-        setLayout(new GridLayout(0, 2, 8, 8));
-        setOpaque(false);
-        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        afficherActions();
-
-        SwingUtilities.invokeLater(this::jouerSiTourIA);
-    }
     private void setupAIPlayers() {
         AIDifficulty selectedDifficulty = difficulty;
 
@@ -601,6 +697,7 @@ public class ActionPanel extends JPanel {
             jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
         }
     }
+
     private boolean isAITurn() {
         if (mode == null) {
             return false;
@@ -631,6 +728,7 @@ public class ActionPanel extends JPanel {
 
         return false;
     }
+
     private AIPlayer getCurrentAI() {
         if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
             return investigatorAI;
@@ -642,6 +740,7 @@ public class ActionPanel extends JPanel {
 
         return null;
     }
+
     private void jouerSiTourIA() {
         if (aiEnCours || actionEnCours) {
             return;
@@ -671,6 +770,10 @@ public class ActionPanel extends JPanel {
                 if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
                     gameEngine.endRound();
                     rafraichirToutesLesVues();
+
+                    if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
+                        onTransitionTour.run();
+                    }
                 }
 
                 aiEnCours = false;
@@ -679,6 +782,7 @@ public class ActionPanel extends JPanel {
 
             } catch (Exception ex) {
                 aiEnCours = false;
+
                 JOptionPane.showMessageDialog(
                         this,
                         ex.getMessage(),
@@ -694,55 +798,67 @@ public class ActionPanel extends JPanel {
 
     private ImageIcon chargerImageAction(String actionName) {
         String nomFichier = getNomFichierAction(actionName);
-                
+
         String chemin = System.getProperty("user.dir")
                 + "/assets/images/characters/"
                 + nomFichier
                 + ".png";
+
         File fichierImage = new File(chemin);
+
         if (!fichierImage.exists()) {
-        System.out.println("Image action non trouvée : " + chemin);
-        return null;
-    }
-    try {
-        BufferedImage imageOriginale = ImageIO.read(fichierImage);
-        if (imageOriginale == null) {
-            System.out.println("Image action illisible : " + fichierImage.getAbsolutePath());
+            System.out.println("Image action non trouvée : " + chemin);
             return null;
-
         }
-        BufferedImage imageRedimensionnee = redimensionnerImageAction(imageOriginale, 85, 85);
-        return new ImageIcon(imageRedimensionnee);
 
-    } catch (Exception e) {
-        System.out.println("Erreur chargement image action : " + e.getMessage());
-        return null;
+        try {
+            BufferedImage imageOriginale = ImageIO.read(fichierImage);
+
+            if (imageOriginale == null) {
+                System.out.println("Image action illisible : " + fichierImage.getAbsolutePath());
+                return null;
+            }
+
+            BufferedImage imageRedimensionnee = redimensionnerImageAction(imageOriginale, 85, 85);
+            return new ImageIcon(imageRedimensionnee);
+
+        } catch (Exception e) {
+            System.out.println("Erreur chargement image action : " + e.getMessage());
+            return null;
         }
     }
+
     private String getNomFichierAction(String actionName) {
         String action = actionName.toLowerCase();
 
         if (action.contains("holmes")) {
             return "sherlock_action";
         }
+
         if (action.contains("watson")) {
             return "watson_action";
         }
+
         if (action.contains("toby")) {
             return "toby_action";
         }
+
         if (action.contains("rotate")) {
             return "rotate_action";
         }
+
         if (action.contains("exchange")) {
             return "exchange";
         }
+
         if (action.contains("alibi")) {
             return "alibi_action";
         }
+
         if (action.contains("joker")) {
             return "joker_action";
         }
+
         return action.replace(" ", "_");
     }
 

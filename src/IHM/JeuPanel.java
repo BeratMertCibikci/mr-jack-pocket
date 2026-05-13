@@ -64,6 +64,22 @@ public class JeuPanel extends JPanel {
         topPanel.setBackground(new Color(20, 20, 20));
         topPanel.add(titre, BorderLayout.CENTER);
 
+        JButton pauseButton = new JButton("⏸");
+        pauseButton.setFont(new Font("Arial", Font.BOLD, 30));
+        pauseButton.setForeground(new Color(245, 235, 210));
+        pauseButton.setBackground(new Color(55, 45, 35));
+        pauseButton.setFocusPainted(false);
+        pauseButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55),2));
+        pauseButton.setPreferredSize(new Dimension(75, 35));
+
+        pauseButton.addActionListener(e -> {
+            afficherPauseMenu();
+        });
+
+        topPanel.add(pauseButton, BorderLayout.EAST);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         JPanel rightGamePanel = new JPanel();
         rightGamePanel.setOpaque(false);
         rightGamePanel.setPreferredSize(new Dimension(240, 0));

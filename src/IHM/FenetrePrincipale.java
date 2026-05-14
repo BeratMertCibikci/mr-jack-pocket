@@ -196,6 +196,7 @@ public void demarrerReseauClient(String ipAddress, String role) {
 private void handleNetworkUpdate(model.GameState state, String role) {
     if (activeJeuPanel == null) {
         engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
+        proxyEngine.startGame(); 
         proxyEngine.setGameState(state);
         
         activeJeuPanel = new JeuPanel(GameMode.HUMAN_VS_HUMAN, role, this, proxyEngine);
@@ -203,7 +204,7 @@ private void handleNetworkUpdate(model.GameState state, String role) {
         cardLayout.show(mainPanel, "jeu");
     } else {
         activeJeuPanel.getGameEngine().setGameState(state);
-        activeJeuPanel.rafraichirToutesLesVues(); 
+        activeJeuPanel.rafraichirToutesLesVues();
     }
     
     revalidate();

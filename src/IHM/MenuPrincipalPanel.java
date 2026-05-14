@@ -26,6 +26,7 @@ public class MenuPrincipalPanel extends JPanel {
         boutonsPanel.setBorder(BorderFactory.createEmptyBorder(330, 90, 40, 0)); // le comptour des boutons sont vides
 
         JButton jouerButton = new JButton("Jouer");
+        JButton multijoueurButton = new JButton("Multijoueur");
         JButton loadButton = new JButton("Load Game");
         JButton reglesButton = new JButton("Règles");
         JButton quitterButton = new JButton("Quitter");
@@ -38,18 +39,22 @@ public class MenuPrincipalPanel extends JPanel {
         volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         BoutonTexte(jouerButton);
+        BoutonTexte(multijoueurButton); 
         BoutonTexte(loadButton);
         BoutonTexte(reglesButton);
         BoutonTexte(quitterButton);
         BoutonTexte(muteButton); 
 
         jouerButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        multijoueurButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         loadButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         reglesButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         quitterButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         muteButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         boutonsPanel.add(jouerButton);
+        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(multijoueurButton); 
         boutonsPanel.add(Box.createVerticalStrut(10));
         boutonsPanel.add(loadButton);
         boutonsPanel.add(Box.createVerticalStrut(10));
@@ -68,6 +73,11 @@ public class MenuPrincipalPanel extends JPanel {
             boutonClickMusique.jouerClick();
             System.out.println("Bouton Jouer cliqué");
             fenetre.afficherChoixMode();
+        });
+
+        multijoueurButton.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
+            fenetre.afficherMultijoueur(); // Birazdan FenetrePrincipale'e bu metodu ekleyeceğiz
         });
 
         loadButton.addActionListener(e -> {

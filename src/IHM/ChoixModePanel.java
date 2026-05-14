@@ -78,7 +78,7 @@ public class ChoixModePanel extends JPanel {
 
         iaVsIAButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
-            afficherChoixDifficulte(fenetre, GameMode.IA_VS_IA, "Investigator");
+            afficherChoixDifficulteInvestigatorIA(fenetre);
         });
 
         retourButton.addActionListener(e -> {
@@ -119,7 +119,7 @@ public class ChoixModePanel extends JPanel {
                 dialog.dispose();
 
                 if (mode == GameMode.HUMAN_VS_IA) {
-                    afficherChoixDifficulte(fenetre, mode, "Investigator");
+                    afficherChoixDifficulteUniqueIA(fenetre, mode, "Investigator");
                 } else {
                     fenetre.lancerJeu(mode, "Investigator");
                 }
@@ -133,7 +133,7 @@ public class ChoixModePanel extends JPanel {
                 dialog.dispose();
 
                 if (mode == GameMode.HUMAN_VS_IA) {
-                    afficherChoixDifficulte(fenetre, mode, "Jack");
+                    afficherChoixDifficulteUniqueIA(fenetre, mode, "Jack");
                 } else {
                     fenetre.lancerJeu(mode, "Jack");
                 }
@@ -148,83 +148,189 @@ public class ChoixModePanel extends JPanel {
         dialog.setVisible(true);
     }
 
-    private void afficherChoixDifficulte(FenetrePrincipale fenetre, GameMode mode, String player1Role) {
-        JDialog dialog = new JDialog(fenetre, "Choix de difficulté IA", true);
-        dialog.setSize(420, 340);
-        dialog.setLocationRelativeTo(fenetre);
-        dialog.setLayout(new BorderLayout());
+    private void afficherChoixDifficulteUniqueIA(
+            FenetrePrincipale fenetre,
+            GameMode mode,
+            String player1Role
+    ) {
+        JDialog dialog = creerDialogDifficulte(fenetre, "Choix de difficulté IA");
 
         JLabel titre = new JLabel("Choisissez la difficulté de l'IA", SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 20));
         titre.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 90, 25, 90));
+        JPanel panel = creerPanelDifficulte();
 
-        JButton randomButton = new JButton("Random");
-        JButton easyButton = new JButton("Easy");
-        JButton mediumButton = new JButton("Medium");
-        JButton hardButton = new JButton("Hard");
-        JButton expertButton = new JButton("Expert");
-
-        JButton[] buttons = {
-                randomButton,
-                easyButton,
-                mediumButton,
-                hardButton,
-                expertButton
-        };
-
-        for (JButton button : buttons) {
-            BoutonTexte(button);
-            button.setAlignmentX(Component.CENTER_ALIGNMENT);
-            button.setMaximumSize(new Dimension(220, 40));
-        }
-
-        randomButton.addActionListener(e -> {
-            boutonClickMusique.jouerClick();
+        ajouterBoutonDifficulte(panel, "Random", AIDifficulty.RANDOM, () -> {
             dialog.dispose();
             fenetre.lancerJeu(mode, player1Role, AIDifficulty.RANDOM);
         });
 
-        easyButton.addActionListener(e -> {
-            boutonClickMusique.jouerClick();
+        ajouterBoutonDifficulte(panel, "Easy", AIDifficulty.EASY, () -> {
             dialog.dispose();
             fenetre.lancerJeu(mode, player1Role, AIDifficulty.EASY);
         });
 
-        mediumButton.addActionListener(e -> {
-            boutonClickMusique.jouerClick();
+        ajouterBoutonDifficulte(panel, "Medium", AIDifficulty.MEDIUM, () -> {
             dialog.dispose();
             fenetre.lancerJeu(mode, player1Role, AIDifficulty.MEDIUM);
         });
 
-        hardButton.addActionListener(e -> {
-            boutonClickMusique.jouerClick();
+        ajouterBoutonDifficulte(panel, "Hard", AIDifficulty.HARD, () -> {
             dialog.dispose();
             fenetre.lancerJeu(mode, player1Role, AIDifficulty.HARD);
         });
 
-        expertButton.addActionListener(e -> {
-            boutonClickMusique.jouerClick();
+        ajouterBoutonDifficulte(panel, "Expert", AIDifficulty.EXPERT, () -> {
             dialog.dispose();
             fenetre.lancerJeu(mode, player1Role, AIDifficulty.EXPERT);
         });
 
-        panel.add(randomButton);
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(easyButton);
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(mediumButton);
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(hardButton);
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(expertButton);
+        dialog.add(titre, BorderLayout.NORTH);
+        dialog.add(panel, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
+
+    private void afficherChoixDifficulteInvestigatorIA(FenetrePrincipale fenetre) {
+        JDialog dialog = creerDialogDifficulte(fenetre, "Difficulté Investigator IA");
+
+        JLabel titre = new JLabel("Choisissez la difficulté de l'Investigator IA", SwingConstants.CENTER);
+        titre.setFont(new Font("Arial", Font.BOLD, 18));
+        titre.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+
+        JPanel panel = creerPanelDifficulte();
+
+        ajouterBoutonDifficulte(panel, "Random", AIDifficulty.RANDOM, () -> {
+            dialog.dispose();
+            afficherChoixDifficulteJackIA(fenetre, AIDifficulty.RANDOM);
+        });
+
+        ajouterBoutonDifficulte(panel, "Easy", AIDifficulty.EASY, () -> {
+            dialog.dispose();
+            afficherChoixDifficulteJackIA(fenetre, AIDifficulty.EASY);
+        });
+
+        ajouterBoutonDifficulte(panel, "Medium", AIDifficulty.MEDIUM, () -> {
+            dialog.dispose();
+            afficherChoixDifficulteJackIA(fenetre, AIDifficulty.MEDIUM);
+        });
+
+        ajouterBoutonDifficulte(panel, "Hard", AIDifficulty.HARD, () -> {
+            dialog.dispose();
+            afficherChoixDifficulteJackIA(fenetre, AIDifficulty.HARD);
+        });
+
+        ajouterBoutonDifficulte(panel, "Expert", AIDifficulty.EXPERT, () -> {
+            dialog.dispose();
+            afficherChoixDifficulteJackIA(fenetre, AIDifficulty.EXPERT);
+        });
 
         dialog.add(titre, BorderLayout.NORTH);
         dialog.add(panel, BorderLayout.CENTER);
         dialog.setVisible(true);
+    }
+
+    private void afficherChoixDifficulteJackIA(
+            FenetrePrincipale fenetre,
+            AIDifficulty investigatorDifficulty
+    ) {
+        JDialog dialog = creerDialogDifficulte(fenetre, "Difficulté Jack IA");
+
+        JLabel titre = new JLabel("Choisissez la difficulté de Jack IA", SwingConstants.CENTER);
+        titre.setFont(new Font("Arial", Font.BOLD, 18));
+        titre.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+
+        JPanel panel = creerPanelDifficulte();
+
+        ajouterBoutonDifficulte(panel, "Random", AIDifficulty.RANDOM, () -> {
+            dialog.dispose();
+            fenetre.lancerJeu(
+                    GameMode.IA_VS_IA,
+                    "Investigator",
+                    investigatorDifficulty,
+                    AIDifficulty.RANDOM
+            );
+        });
+
+        ajouterBoutonDifficulte(panel, "Easy", AIDifficulty.EASY, () -> {
+            dialog.dispose();
+            fenetre.lancerJeu(
+                    GameMode.IA_VS_IA,
+                    "Investigator",
+                    investigatorDifficulty,
+                    AIDifficulty.EASY
+            );
+        });
+
+        ajouterBoutonDifficulte(panel, "Medium", AIDifficulty.MEDIUM, () -> {
+            dialog.dispose();
+            fenetre.lancerJeu(
+                    GameMode.IA_VS_IA,
+                    "Investigator",
+                    investigatorDifficulty,
+                    AIDifficulty.MEDIUM
+            );
+        });
+
+        ajouterBoutonDifficulte(panel, "Hard", AIDifficulty.HARD, () -> {
+            dialog.dispose();
+            fenetre.lancerJeu(
+                    GameMode.IA_VS_IA,
+                    "Investigator",
+                    investigatorDifficulty,
+                    AIDifficulty.HARD
+            );
+        });
+
+        ajouterBoutonDifficulte(panel, "Expert", AIDifficulty.EXPERT, () -> {
+            dialog.dispose();
+            fenetre.lancerJeu(
+                    GameMode.IA_VS_IA,
+                    "Investigator",
+                    investigatorDifficulty,
+                    AIDifficulty.EXPERT
+            );
+        });
+
+        dialog.add(titre, BorderLayout.NORTH);
+        dialog.add(panel, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
+
+    private JDialog creerDialogDifficulte(FenetrePrincipale fenetre, String titre) {
+        JDialog dialog = new JDialog(fenetre, titre, true);
+        dialog.setSize(420, 340);
+        dialog.setLocationRelativeTo(fenetre);
+        dialog.setLayout(new BorderLayout());
+        return dialog;
+    }
+
+    private JPanel creerPanelDifficulte() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 90, 25, 90));
+        return panel;
+    }
+
+    private void ajouterBoutonDifficulte(
+            JPanel panel,
+            String texte,
+            AIDifficulty difficulty,
+            Runnable action
+    ) {
+        JButton button = new JButton(texte);
+        BoutonTexte(button);
+
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setMaximumSize(new Dimension(220, 40));
+
+        button.addActionListener(e -> {
+            boutonClickMusique.jouerClick();
+            action.run();
+        });
+
+        panel.add(button);
+        panel.add(Box.createVerticalStrut(10));
     }
 
     private JLabel creerRoleIcone(String texte, String cheminImage) {

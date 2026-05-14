@@ -1,9 +1,9 @@
 package IHM;
 
 import ai.AIDifficulty;
+import engine.GameEngine;
 import java.awt.*;
 import javax.swing.*;
-import engine.GameEngine;
 
 public class FenetrePrincipale extends JFrame {
 
@@ -44,15 +44,31 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public void lancerJeu(GameMode mode, String player1Role) {
-        lancerJeu(mode, player1Role, AIDifficulty.HARD);
+        lancerJeu(mode, player1Role, AIDifficulty.HARD, AIDifficulty.HARD);
     }
 
     public void lancerJeu(GameMode mode, String player1Role, AIDifficulty difficulty) {
+        lancerJeu(mode, player1Role, difficulty, difficulty);
+    }
+
+    public void lancerJeu(
+            GameMode mode,
+            String player1Role,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty
+    ) {
         System.out.println("Mode sélectionné: " + mode);
         System.out.println("Rôle Joueur 1 : " + player1Role);
-        System.out.println("Difficulté IA : " + difficulty);
+        System.out.println("Difficulté IA Investigator : " + investigatorDifficulty);
+        System.out.println("Difficulté IA Jack : " + jackDifficulty);
 
-        JeuPanel jeuPanel = new JeuPanel(mode, player1Role, this, difficulty);
+        JeuPanel jeuPanel = new JeuPanel(
+                mode,
+                player1Role,
+                this,
+                investigatorDifficulty,
+                jackDifficulty
+        );
 
         mainPanel.add(jeuPanel, "jeu");
         cardLayout.show(mainPanel, "jeu");
@@ -80,13 +96,6 @@ public class FenetrePrincipale extends JFrame {
         if (musique != null) {
             musique.changerVolume(volume);
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            FenetrePrincipale fenetre = new FenetrePrincipale();
-            fenetre.setVisible(true);
-        });
     }
 
     public void chargerJeuDepuisMenu() {
@@ -136,6 +145,15 @@ public class FenetrePrincipale extends JFrame {
 
         mainPanel.add(jeuPanel, "jeu");
         cardLayout.show(mainPanel, "jeu");
-    }
-} 
 
+        revalidate();
+        repaint();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            FenetrePrincipale fenetre = new FenetrePrincipale();
+            fenetre.setVisible(true);
+        });
+    }
+}

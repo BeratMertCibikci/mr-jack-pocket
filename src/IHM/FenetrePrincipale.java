@@ -15,6 +15,9 @@ public class FenetrePrincipale extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
 
+    private JeuPanel activeJeuPanel;
+    private GameClient networkClient;
+
     public FenetrePrincipale() {
         setTitle("Mr Jack Pocket");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -166,31 +169,51 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public void demarrerReseauHost(String roleChoisi) {
-        System.out.println("Création du serveur en cours... Rôle choisi : " + roleChoisi);
+    new Thread(() -> {
+        GameServer gameServer = new GameServer(8080);
+        gameServer.start();
+    }).start();
 
-        new Thread(() -> {
-            GameServer gameServer = new GameServer(8080);
-            gameServer.start();
-        }).start();
-
-        Timer timer = new Timer(500, e -> {
-            demarrerReseauClient("localhost", roleChoisi);
-        });
-        timer.setRepeats(false);
-        timer.start();
-    }
-
-    public void demarrerReseauClient(String ipAddress) {
+    Timer timer = new Timer(800, e -> demarrerReseauClient("localhost", roleChoisi));
+    timer.setRepeats(false);
+    timer.start();
+}
+public void demarrerReseauClient(String ipAddress) {
         demarrerReseauClient(ipAddress, "Client");
     }
 
-    private void demarrerReseauClient(String ipAddress, String role) {
-        System.out.println("Connexion à l'adresse " + ipAddress + " en cours...");
+public void demarrerReseauClient(String ipAddress, String role) {
+    new Thread(() -> {
+        this.networkClient = new GameClient(ipAddress, 8080, role, msg -> {
+            if (msg.getType() == Message.MessageType.UPDATE_STATE) {
+                model.GameState state = (model.GameState) msg.getGameStatePayload();
+                handleNetworkUpdate(state, role);
+            }
+        });
+    }).start();
+}
 
-        new Thread(() -> {
-            GameClient gameClient = new GameClient(ipAddress, 8080, role, msg -> {
-                System.out.println("Message reçu du serveur : " + msg.getType());
-            });
-        }).start();
+private void handleNetworkUpdate(model.GameState state, String role) {
+    if (activeJeuPanel == null) {
+        engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
+        
+        activeJeuPanel = new JeuPanel(GameMode.HUMAN_VS_HUMAN, role, this, proxyEngine);
+        mainPanel.add(activeJeuPanel, "jeu");
+        cardLayout.show(mainPanel, "jeu");
+    } else {
+        
+        activeJeuPanel.getGameEngine().setGameState(state);
+        activeJeuPanel.rafraichirToutesLesVues(); 
     }
+    revalidate();
+    repaint();
+
+    
+    
+    for (Window window : Window.getWindows()) {
+        if (window instanceof JDialog) {
+            window.dispose();
+        }
+    }
+}
 }

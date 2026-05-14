@@ -197,10 +197,6 @@ public class ActionPanel extends JPanel {
         dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
 
         afficherActions();
-
-        if (mode != GameMode.IA_VS_IA) {
-            SwingUtilities.invokeLater(this::jouerSiTourIA);
-        }
     }
 
     private void synchroniserGameStateDansVues() {
@@ -233,9 +229,7 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
-        if (mode != GameMode.IA_VS_IA) {
-            SwingUtilities.invokeLater(this::jouerSiTourIA);
-        }
+
     }
 
     private void afficherActions() {
@@ -294,15 +288,27 @@ public class ActionPanel extends JPanel {
         });
 
         add(redoButton);
-        if (mode == GameMode.IA_VS_IA) {
+        if (mode == GameMode.IA_VS_IA || mode == GameMode.HUMAN_VS_IA) {
             JButton nextAIButton = creerBoutonControle("Next IA", new Color(80, 65, 35));
 
             nextAIButton.addActionListener(e -> {
                 try {
                     boutonClickMusique.jouerClick();
+
+                    if (!isAITurn()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Ce n'est pas le tour de l'IA.",
+                                "Tour humain",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                        return;
+                    }
+
                     autoAIEnabled = false;
                     updateAutoAIButtonText();
                     jouerSiTourIA();
+
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(
                             this,
@@ -314,7 +320,9 @@ public class ActionPanel extends JPanel {
             });
 
             add(nextAIButton);
+        }
 
+        if (mode == GameMode.IA_VS_IA) {
             autoAIButton = creerBoutonControle("Auto IA", new Color(45, 85, 45));
 
             autoAIButton.addActionListener(e -> {
@@ -535,7 +543,7 @@ public class ActionPanel extends JPanel {
 
             rafraichirToutesLesVues();
 
-            if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
+            if (onTransitionTour != null && mode == GameMode.HUMAN_VS_HUMAN) {
                 dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
                 onTransitionTour.accept("Changement de tour");
             }
@@ -551,6 +559,10 @@ public class ActionPanel extends JPanel {
     }
 
     private void verifierChangementDeJoueurEtTransition(String joueurAvantAction) {
+        if (mode != GameMode.HUMAN_VS_HUMAN) {
+            return;
+        }
+
         String joueurApresAction = String.valueOf(gameEngine.getCurrentPlayer());
 
         if (joueurAvantAction == null) {
@@ -560,9 +572,7 @@ public class ActionPanel extends JPanel {
         if (!joueurAvantAction.equals(joueurApresAction)) {
             dernierJoueurAffiche = joueurApresAction;
 
-            if (onTransitionTour != null
-                    && mode != GameMode.IA_VS_IA
-                    && !gameEngine.getGameState().isGameOver()) {
+            if (onTransitionTour != null && !gameEngine.getGameState().isGameOver()) {
                 onTransitionTour.accept("Joueur");
             }
         }
@@ -954,9 +964,10 @@ public class ActionPanel extends JPanel {
 
                 aiEnCours = false;
 
-                if (mode != GameMode.IA_VS_IA) {
-                    SwingUtilities.invokeLater(this::jouerSiTourIA);
-                } else if (autoAIEnabled && !gameEngine.getGameState().isGameOver()) {
+                if (mode == GameMode.IA_VS_IA
+                        && autoAIEnabled
+                        && !gameEngine.getGameState().isGameOver()) {
+
                     Timer autoTimer = new Timer(700, next -> jouerSiTourIA());
                     autoTimer.setRepeats(false);
                     autoTimer.start();

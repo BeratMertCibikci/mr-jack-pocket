@@ -22,22 +22,61 @@ public class JeuPanel extends JPanel {
     private boolean premierAffichage = true;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
-        this(mode, player1Role, fenetre, AIDifficulty.HARD, null);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                AIDifficulty.HARD,
+                AIDifficulty.HARD,
+                null
+        );
     }
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, AIDifficulty difficulty) {
-        this(mode, player1Role, fenetre, difficulty, null);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                difficulty,
+                difficulty,
+                null
+        );
+    }
+
+    public JeuPanel(
+            GameMode mode,
+            String player1Role,
+            FenetrePrincipale fenetre,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty
+    ) {
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                investigatorDifficulty,
+                jackDifficulty,
+                null
+        );
     }
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, GameEngine loadedEngine) {
-        this(mode, player1Role, fenetre, AIDifficulty.HARD, loadedEngine);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                AIDifficulty.HARD,
+                AIDifficulty.HARD,
+                loadedEngine
+        );
     }
 
     private JeuPanel(
             GameMode mode,
             String player1Role,
             FenetrePrincipale fenetre,
-            AIDifficulty difficulty,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty,
             GameEngine loadedEngine
     ) {
         this.mode = mode;
@@ -81,7 +120,8 @@ public class JeuPanel extends JPanel {
                 alibiPanel,
                 this::afficherTransitionTour,
                 mode,
-                difficulty,
+                investigatorDifficulty,
+                jackDifficulty,
                 player1Role
         );
 

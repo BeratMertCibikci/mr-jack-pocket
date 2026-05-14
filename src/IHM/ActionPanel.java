@@ -6,16 +6,13 @@ import ai.AIPlayer;
 import ai.EvaluationPerspective;
 import engine.ActionType;
 import engine.GameEngine;
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
-
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
@@ -37,11 +34,13 @@ public class ActionPanel extends JPanel {
     private Runnable onTransitionTour;
 
     private GameMode mode;
+    private AIDifficulty investigatorDifficulty;
+    private AIDifficulty jackDifficulty;
+    private String humanRole;
+
     private AIPlayer investigatorAI;
     private AIPlayer jackAI;
     private boolean aiEnCours = false;
-    private AIDifficulty difficulty;
-    private String humanRole;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -57,6 +56,7 @@ public class ActionPanel extends JPanel {
                 null,
                 null,
                 GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
                 AIDifficulty.HARD,
                 "Investigator"
         );
@@ -78,6 +78,7 @@ public class ActionPanel extends JPanel {
                 null,
                 GameMode.HUMAN_VS_HUMAN,
                 AIDifficulty.HARD,
+                AIDifficulty.HARD,
                 "Investigator"
         );
     }
@@ -98,6 +99,7 @@ public class ActionPanel extends JPanel {
                 alibiPanel,
                 onTransitionTour,
                 GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
                 AIDifficulty.HARD,
                 "Investigator"
         );
@@ -122,6 +124,7 @@ public class ActionPanel extends JPanel {
                 null,
                 mode,
                 difficulty,
+                difficulty,
                 humanRole
         );
     }
@@ -134,7 +137,8 @@ public class ActionPanel extends JPanel {
             AlibiPanel alibiPanel,
             Runnable onTransitionTour,
             GameMode mode,
-            AIDifficulty difficulty,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty,
             String humanRole
     ) {
         this.gameEngine = gameEngine;
@@ -144,7 +148,8 @@ public class ActionPanel extends JPanel {
         this.alibiPanel = alibiPanel;
         this.onTransitionTour = onTransitionTour;
         this.mode = mode;
-        this.difficulty = difficulty;
+        this.investigatorDifficulty = investigatorDifficulty;
+        this.jackDifficulty = jackDifficulty;
         this.humanRole = humanRole;
         this.boutonClickMusique = new BoutonClickMusique();
 
@@ -298,7 +303,6 @@ public class ActionPanel extends JPanel {
         } else {
             imageLabel.setText(actionName);
             imageLabel.setFont(new Font("Arial", Font.BOLD, 13));
-            imageLabel.setForeground(new Color(245, 235, 210));
             imageLabel.setForeground(token.isUsed()
                     ? new Color(130, 130, 130)
                     : new Color(245, 235, 210));
@@ -698,7 +702,7 @@ public class ActionPanel extends JPanel {
         }
     }
 
-    private JPanel creerJackInfoPanel() { // jack panel
+    private JPanel creerJackInfoPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(new Color(35, 30, 25));
@@ -724,31 +728,30 @@ public class ActionPanel extends JPanel {
         return panel;
     }
 
-    private JLabel creerPetitLabelJack() { // jack label
+    private JLabel creerPetitLabelJack() {
         JLabel label = new JLabel();
         label.setFont(new Font("Arial", Font.PLAIN, 10));
         label.setForeground(new Color(245, 235, 210));
         label.setAlignmentX(Component.CENTER_ALIGNMENT);
         return label;
     }
-    
-    private void rafraichirInfosJack() { // rafraichir fonction pour jack
+
+    private void rafraichirInfosJack() {
         if (jackIdentityLabel == null || jackAlibisLabel == null || jackHourglassLabel == null) {
             return;
         }
-    
+
         String identiteJack = gameEngine.getGameState().getJackCharacter().getName();
         jackIdentityLabel.setText("ID: " + identiteJack);
-    
+
         jackAlibisLabel.setText("Alibis: " + getAlibisJackTexte());
-    
         jackHourglassLabel.setText("Hourglass: " + getNombreSabliersJack());
     }
 
-    private String getAlibisJackTexte() { // les alibis que jack a pioché
+    private String getAlibisJackTexte() {
         try {
             StringBuilder sb = new StringBuilder();
-    
+
             for (model.AlibiCards card : gameEngine.getGameState().getAlibiDeckManager().getCards()) {
                 if ("Jack".equals(card.getOwner())
                         && !card.getCharacter().isJack()) {
@@ -758,20 +761,20 @@ public class ActionPanel extends JPanel {
                             .append("), ");
                 }
             }
-    
+
             if (sb.length() == 0) {
                 return "aucun";
             }
-    
+
             sb.setLength(sb.length() - 2);
             return sb.toString();
-    
+
         } catch (Exception e) {
             return "indisponible";
         }
     }
-    
-    private int getNombreSabliersJack() { // jack hourglass count
+
+    private int getNombreSabliersJack() {
         try {
             return gameEngine.getGameState().getAlibiDeckManager().getJackHourglassTotal();
         } catch (Exception e) {
@@ -780,21 +783,37 @@ public class ActionPanel extends JPanel {
     }
 
     private void setupAIPlayers() {
-        AIDifficulty selectedDifficulty = difficulty;
+        AIDifficulty selectedInvestigatorDifficulty = investigatorDifficulty;
+        AIDifficulty selectedJackDifficulty = jackDifficulty;
 
-        if (selectedDifficulty == null) {
-            selectedDifficulty = AIDifficulty.HARD;
+        if (selectedInvestigatorDifficulty == null) {
+            selectedInvestigatorDifficulty = AIDifficulty.HARD;
+        }
+
+        if (selectedJackDifficulty == null) {
+            selectedJackDifficulty = AIDifficulty.HARD;
         }
 
         if (mode == GameMode.HUMAN_VS_IA) {
             if ("Investigator".equals(humanRole)) {
-                jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
+                jackAI = AIFactory.create(selectedJackDifficulty, EvaluationPerspective.JACK);
             } else {
-                investigatorAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.INVESTIGATOR);
+                investigatorAI = AIFactory.create(
+                        selectedInvestigatorDifficulty,
+                        EvaluationPerspective.INVESTIGATOR
+                );
             }
+
         } else if (mode == GameMode.IA_VS_IA) {
-            investigatorAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.INVESTIGATOR);
-            jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
+            investigatorAI = AIFactory.create(
+                    selectedInvestigatorDifficulty,
+                    EvaluationPerspective.INVESTIGATOR
+            );
+
+            jackAI = AIFactory.create(
+                    selectedJackDifficulty,
+                    EvaluationPerspective.JACK
+            );
         }
     }
 

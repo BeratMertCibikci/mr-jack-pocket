@@ -2,8 +2,10 @@ package IHM;
 
 import ai.AIDifficulty;
 import ai.AIFactory;
+import ai.AIMove;
 import ai.AIPlayer;
 import ai.EvaluationPerspective;
+import ai.MinimaxAI;
 import engine.ActionType;
 import engine.GameEngine;
 import java.awt.*;
@@ -42,6 +44,7 @@ public class ActionPanel extends JPanel {
     private boolean aiEnCours = false;
     private boolean autoAIEnabled = false;
     private JButton autoAIButton;
+    private boolean gameOverDialogShown = false;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -229,6 +232,7 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
+        verifierGameOverEtAfficher();
 
     }
 
@@ -338,6 +342,66 @@ public class ActionPanel extends JPanel {
 
             add(autoAIButton);
         }
+        if (mode == GameMode.HUMAN_VS_HUMAN) {
+            JButton hintButton = creerBoutonControle("Conseil IA", new Color(70, 55, 90));
+
+            hintButton.addActionListener(e -> {
+                try {
+                    boutonClickMusique.jouerClick();
+                    afficherConseilIA();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            ex.getMessage(),
+                            "Erreur conseil IA",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            });
+
+            add(hintButton);
+        }
+    }
+    private void afficherConseilIA() {
+        if (gameEngine.getGameState().isGameOver()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "La partie est terminée.",
+                    "Conseil IA",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        if (gameEngine.isRoundOver()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "La manche est terminée. Passez à la manche suivante avant de demander un conseil.",
+                    "Conseil IA",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        EvaluationPerspective perspective;
+
+        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
+            perspective = EvaluationPerspective.INVESTIGATOR;
+        } else {
+            perspective = EvaluationPerspective.JACK;
+        }
+
+        MinimaxAI expertAI = new MinimaxAI(4, perspective);
+
+        AIMove suggestedMove = expertAI.chooseBestMove(gameEngine);
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Suggestion IA Expert pour " + gameEngine.getCurrentPlayer() + " :\n\n"
+                        + suggestedMove,
+                "Conseil IA",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
     private void updateAutoAIButtonText() {
         if (autoAIButton == null) {
@@ -543,10 +607,13 @@ public class ActionPanel extends JPanel {
 
             rafraichirToutesLesVues();
 
-            if (onTransitionTour != null && mode == GameMode.HUMAN_VS_HUMAN) {
-                dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
-                onTransitionTour.accept("Changement de tour");
-            }
+        if (onTransitionTour != null
+                && mode == GameMode.HUMAN_VS_HUMAN
+                && !gameEngine.getGameState().isGameOver()) {
+            dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
+            onTransitionTour.accept("Changement de tour");
+
+        }
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
@@ -1126,5 +1193,37 @@ public class ActionPanel extends JPanel {
         }
 
         return new ImageIcon(grisee);
+    }
+    private void verifierGameOverEtAfficher() {
+        if (gameOverDialogShown) {
+            return;
+        }
+
+        if (!gameEngine.getGameState().isGameOver()) {
+            return;
+        }
+
+        gameOverDialogShown = true;
+        autoAIEnabled = false;
+        updateAutoAIButtonText();
+
+        String winner = gameEngine.getGameState().getWinner();
+
+        String message;
+
+        if ("Investigator".equals(winner)) {
+            message = "L'Investigator gagne la partie.";
+        } else if ("Jack".equals(winner)) {
+            message = "Jack gagne la partie.";
+        } else {
+            message = "La partie est terminée.";
+        }
+
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Game Over",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 }

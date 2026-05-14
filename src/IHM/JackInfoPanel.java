@@ -8,19 +8,23 @@ public class JackInfoPanel extends JPanel {
 
     private GameEngine gameEngine;
     private GameMode mode;
-
+    private String humanRole;
     private JLabel titleLabel;
     private JLabel jackIdentityLabel;
     private JLabel jackAlibisLabel;
     private JLabel jackHourglassLabel;
 
     public JackInfoPanel(GameEngine gameEngine) {
-        this(gameEngine, GameMode.HUMAN_VS_HUMAN);
+        this(gameEngine, GameMode.HUMAN_VS_HUMAN, "Investigator");
+    }
+    public JackInfoPanel(GameEngine gameEngine, GameMode mode) {
+        this(gameEngine, mode, "Investigator");
     }
 
-    public JackInfoPanel(GameEngine gameEngine, GameMode mode) {
+    public JackInfoPanel(GameEngine gameEngine, GameMode mode,String humanRole) {
         this.gameEngine = gameEngine;
         this.mode = mode;
+        this.humanRole = humanRole;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(new Color(35, 30, 25));
@@ -101,6 +105,14 @@ public class JackInfoPanel extends JPanel {
     }
 
     private boolean shouldShowJackInfo() {
+        if (mode == GameMode.IA_VS_IA) {
+            return true;
+        }
+
+        if (mode == GameMode.HUMAN_VS_IA) {
+            return "Jack".equals(humanRole);
+        }
+
         try {
             boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
             String currentPlayer = String.valueOf(gameEngine.getCurrentPlayer());

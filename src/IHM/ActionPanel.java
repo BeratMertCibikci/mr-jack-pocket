@@ -46,6 +46,7 @@ public class ActionPanel extends JPanel {
     private boolean autoAIEnabled = false;
     private JButton autoAIButton;
     private boolean gameOverDialogShown = false;
+    private int autoAIDelayMs = 700;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -362,6 +363,23 @@ public class ActionPanel extends JPanel {
             });
 
             add(autoAIButton);
+            JButton speedButton = creerBoutonControle(getAutoSpeedText(), new Color(55, 70, 90));
+            speedButton.addActionListener(e -> {
+                boutonClickMusique.jouerClick();
+
+                if (autoAIDelayMs == 1000) {
+                    autoAIDelayMs = 700;
+                    speedButton.setText("Speed: Normal");
+                } else if (autoAIDelayMs == 700) {
+                    autoAIDelayMs = 300;
+                    speedButton.setText("Speed: Fast");
+                } else {
+                    autoAIDelayMs = 1000;
+                    speedButton.setText("Speed: Slow");
+                }
+            });
+
+            add(speedButton);
         }
     }
 
@@ -1144,7 +1162,7 @@ public class ActionPanel extends JPanel {
                         && autoAIEnabled
                         && !gameEngine.getGameState().isGameOver()) {
 
-                    Timer autoTimer = new Timer(700, next -> jouerSiTourIA());
+                    Timer autoTimer = new Timer(autoAIDelayMs, next -> jouerSiTourIA());                    
                     autoTimer.setRepeats(false);
                     autoTimer.start();
                 }
@@ -1165,6 +1183,17 @@ public class ActionPanel extends JPanel {
 
         timer.setRepeats(false);
         timer.start();
+    }
+    private String getAutoSpeedText() {
+        if (autoAIDelayMs == 1000) {
+            return "Speed: Slow";
+        }
+
+        if (autoAIDelayMs == 300) {
+            return "Speed: Fast";
+        }
+
+        return "Speed: Normal";
     }
     private ImageIcon chargerImageAction(String actionName) {
         String nomFichier = getNomFichierAction(actionName);

@@ -8,7 +8,6 @@ public class AIFactory {
 
     public static AIPlayer create(AIDifficulty difficulty, EvaluationPerspective perspective) {
         switch (difficulty) {
-            case RANDOM:
             case EASY:
                 return new RandomAI();
 

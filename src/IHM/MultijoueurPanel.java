@@ -109,6 +109,7 @@ public class MultijoueurPanel extends JPanel {
                 boutonClickMusique.jouerClick();
                 dialog.dispose();
                 fenetre.demarrerReseauHost("Investigator");
+                afficherAttenteJoueur(); 
             }
         });
 
@@ -118,6 +119,7 @@ public class MultijoueurPanel extends JPanel {
                 boutonClickMusique.jouerClick();
                 dialog.dispose();
                 fenetre.demarrerReseauHost("Jack");
+                afficherAttenteJoueur(); 
             }
         });
 
@@ -207,6 +209,32 @@ public class MultijoueurPanel extends JPanel {
         return label;
     }
 
+    private String getLocalIP() {
+        try {
+            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                java.net.NetworkInterface iface = interfaces.nextElement();
+                
+                
+                if (iface.isLoopback() || !iface.isUp()) {
+                    continue;
+                }
+
+                java.util.Enumeration<java.net.InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    java.net.InetAddress addr = addresses.nextElement();
+                    
+                    
+                    if (addr instanceof java.net.Inet4Address) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Erreur IP: " + e.getMessage());
+        }
+        return "127.0.0.1";
+    }
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -214,4 +242,29 @@ public class MultijoueurPanel extends JPanel {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         }
     }
+private void afficherAttenteJoueur() {
+    JDialog waitDialog = new JDialog(fenetre, "Attente", false);
+    waitDialog.setSize(400, 200);
+    waitDialog.setLocationRelativeTo(fenetre);
+    
+    JPanel p = new JPanel(new GridLayout(3, 1));
+    p.setBackground(new Color(25, 25, 25));
+    
+    JLabel l1 = new JLabel("En attente d'un adversaire...", SwingConstants.CENTER);
+    l1.setForeground(Color.WHITE);
+    
+    JLabel l2 = new JLabel("Votre adresse IP : " + getLocalIP(), SwingConstants.CENTER);
+    l2.setForeground(new Color(212, 175, 55));
+    l2.setFont(new Font("Arial", Font.BOLD, 18));
+    
+    JLabel l3 = new JLabel("Port : 8080", SwingConstants.CENTER);
+    l3.setForeground(Color.GRAY);
+    
+    p.add(l1);
+    p.add(l2);
+    p.add(l3);
+    
+    waitDialog.add(p);
+    waitDialog.setVisible(true); 
+}
 }

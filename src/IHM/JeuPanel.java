@@ -418,4 +418,14 @@ public class JeuPanel extends JPanel {
 
         cardLayout.show(mainContainer, "TRANSITION");
     }
+    
+    public GameEngine getGameEngine() {
+        return this.gameEngine;
+    }
+
+    public void rafraichirToutesLesVues() {
+        // Ağdan yeni veri geldiğinde ekranı yeniler
+        this.revalidate();
+        this.repaint();
+    }
 }

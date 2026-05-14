@@ -1,5 +1,8 @@
 package IHM;
 
+import reseau.GameClient;
+import reseau.GameServer;
+import reseau.Message;
 import ai.AIDifficulty;
 import engine.GameEngine;
 import java.awt.*;
@@ -25,6 +28,7 @@ public class FenetrePrincipale extends JFrame {
 
         mainPanel.add(new MenuPrincipalPanel(this), "menu principale");
         mainPanel.add(new ChoixModePanel(this), "choixMode");
+        mainPanel.add(new MultijoueurPanel(this), "multijoueur");
         mainPanel.add(new ReglesPanel(this), "regles");
 
         add(mainPanel, BorderLayout.CENTER);
@@ -37,6 +41,10 @@ public class FenetrePrincipale extends JFrame {
 
     public void afficherChoixMode() {
         cardLayout.show(mainPanel, "choixMode");
+    }
+
+    public void afficherMultijoueur() {
+        cardLayout.show(mainPanel, "multijoueur");
     }
 
     public void afficherRegles() {
@@ -155,5 +163,34 @@ public class FenetrePrincipale extends JFrame {
             FenetrePrincipale fenetre = new FenetrePrincipale();
             fenetre.setVisible(true);
         });
+    }
+
+    public void demarrerReseauHost(String roleChoisi) {
+        System.out.println("Création du serveur en cours... Rôle choisi : " + roleChoisi);
+
+        new Thread(() -> {
+            GameServer gameServer = new GameServer(8080);
+            gameServer.start();
+        }).start();
+
+        Timer timer = new Timer(500, e -> {
+            demarrerReseauClient("localhost", roleChoisi);
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+    public void demarrerReseauClient(String ipAddress) {
+        demarrerReseauClient(ipAddress, "Client");
+    }
+
+    private void demarrerReseauClient(String ipAddress, String role) {
+        System.out.println("Connexion à l'adresse " + ipAddress + " en cours...");
+
+        new Thread(() -> {
+            GameClient gameClient = new GameClient(ipAddress, 8080, role, msg -> {
+                System.out.println("Message reçu du serveur : " + msg.getType());
+            });
+        }).start();
     }
 }

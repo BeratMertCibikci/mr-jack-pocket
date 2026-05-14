@@ -2,8 +2,11 @@ package IHM;
 
 import ai.AIDifficulty;
 import engine.GameEngine;
+
 import java.awt.*;
+
 import javax.swing.*;
+
 import model.GameState;
 
 public class JeuPanel extends JPanel {
@@ -17,27 +20,71 @@ public class JeuPanel extends JPanel {
     private JPanel mainContainer;
     private JPanel gameScreen;
     private JPanel transitionScreen;
+
     private JLabel transitionMessageLabel;
     private JLabel transitionTitleLabel;
+
+    private JackInfoPanel jackInfoPanel;
+    private JPanel rightGamePanel;
+
     private boolean premierAffichage = true;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
-        this(mode, player1Role, fenetre, AIDifficulty.HARD, null);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                AIDifficulty.HARD,
+                AIDifficulty.HARD,
+                null
+        );
     }
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, AIDifficulty difficulty) {
-        this(mode, player1Role, fenetre, difficulty, null);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                difficulty,
+                difficulty,
+                null
+        );
+    }
+
+    public JeuPanel(
+            GameMode mode,
+            String player1Role,
+            FenetrePrincipale fenetre,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty
+    ) {
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                investigatorDifficulty,
+                jackDifficulty,
+                null
+        );
     }
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, GameEngine loadedEngine) {
-        this(mode, player1Role, fenetre, AIDifficulty.HARD, loadedEngine);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                AIDifficulty.HARD,
+                AIDifficulty.HARD,
+                loadedEngine
+        );
     }
 
     private JeuPanel(
             GameMode mode,
             String player1Role,
             FenetrePrincipale fenetre,
-            AIDifficulty difficulty,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty,
             GameEngine loadedEngine
     ) {
         this.mode = mode;
@@ -73,6 +120,8 @@ public class JeuPanel extends JPanel {
         TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
         AlibiPanel alibiPanel = new AlibiPanel();
 
+        jackInfoPanel = new JackInfoPanel(gameEngine);
+
         ActionPanel actionPanel = new ActionPanel(
                 gameEngine,
                 infoJeuPanel,
@@ -81,7 +130,8 @@ public class JeuPanel extends JPanel {
                 alibiPanel,
                 this::afficherTransitionTour,
                 mode,
-                difficulty,
+                investigatorDifficulty,
+                jackDifficulty,
                 player1Role
         );
 
@@ -102,23 +152,29 @@ public class JeuPanel extends JPanel {
 
         topPanel.add(pauseButton, BorderLayout.EAST);
 
-        JPanel rightGamePanel = new JPanel();
+        rightGamePanel = new JPanel();
         rightGamePanel.setOpaque(false);
         rightGamePanel.setPreferredSize(new Dimension(240, 0));
         rightGamePanel.setLayout(new BoxLayout(rightGamePanel, BoxLayout.Y_AXIS));
 
         alibiPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        jackInfoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         alibiPanel.setPreferredSize(new Dimension(220, 250));
         alibiPanel.setMaximumSize(new Dimension(220, 250));
+
+        jackInfoPanel.setPreferredSize(new Dimension(220, 120));
+        jackInfoPanel.setMaximumSize(new Dimension(220, 120));
 
         actionPanel.setPreferredSize(new Dimension(220, 360));
         actionPanel.setMaximumSize(new Dimension(220, 360));
 
         rightGamePanel.add(Box.createVerticalStrut(30));
         rightGamePanel.add(alibiPanel);
-        rightGamePanel.add(Box.createVerticalStrut(20));
+        rightGamePanel.add(Box.createVerticalStrut(15));
+        rightGamePanel.add(jackInfoPanel);
+        rightGamePanel.add(Box.createVerticalStrut(15));
         rightGamePanel.add(actionPanel);
         rightGamePanel.add(Box.createVerticalGlue());
 
@@ -138,7 +194,7 @@ public class JeuPanel extends JPanel {
 
         add(mainContainer, BorderLayout.CENTER);
 
-        afficherTransitionTour();
+        afficherTransitionTour("Début de partie");
 
         installerRaccourciPause();
     }
@@ -313,6 +369,15 @@ public class JeuPanel extends JPanel {
         JButton commencerButton = creerBoutonPause("Commencer le tour");
 
         commencerButton.addActionListener(e -> {
+            if (jackInfoPanel != null) {
+                jackInfoPanel.rafraichir();
+            }
+
+            if (rightGamePanel != null) {
+                rightGamePanel.revalidate();
+                rightGamePanel.repaint();
+            }
+
             cardLayout.show(mainContainer, "GAME");
         });
 
@@ -327,7 +392,7 @@ public class JeuPanel extends JPanel {
         return panel;
     }
 
-    private void afficherTransitionTour() {
+    private void afficherTransitionTour(String titreTransition) {
         String joueurActuel = gameEngine.getCurrentPlayer();
 
         if (premierAffichage) {
@@ -335,7 +400,7 @@ public class JeuPanel extends JPanel {
             transitionMessageLabel.setText("Joueur actuel : " + joueurActuel);
             premierAffichage = false;
         } else {
-            transitionTitleLabel.setText("Changement de tour");
+            transitionTitleLabel.setText(titreTransition);
             transitionMessageLabel.setText("Passez l'ordinateur à : " + joueurActuel);
         }
 

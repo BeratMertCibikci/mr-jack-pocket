@@ -12,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -29,19 +30,18 @@ public class ActionPanel extends JPanel {
     private AlibiPanel alibiPanel;
     private BoutonClickMusique boutonClickMusique;
 
-    private JLabel jackIdentityLabel;
-    private JLabel jackAlibisLabel;
-    private JLabel jackHourglassLabel;
-
     private boolean actionEnCours = false;
-    private Runnable onTransitionTour;
+    private Consumer<String> onTransitionTour;
+    private String dernierJoueurAffiche;
 
     private GameMode mode;
+    private AIDifficulty investigatorDifficulty;
+    private AIDifficulty jackDifficulty;
+    private String humanRole;
+
     private AIPlayer investigatorAI;
     private AIPlayer jackAI;
     private boolean aiEnCours = false;
-    private AIDifficulty difficulty;
-    private String humanRole;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -57,6 +57,7 @@ public class ActionPanel extends JPanel {
                 null,
                 null,
                 GameMode.HUMAN_VS_HUMAN,
+                AIDifficulty.HARD,
                 AIDifficulty.HARD,
                 "Investigator"
         );
@@ -78,6 +79,7 @@ public class ActionPanel extends JPanel {
                 null,
                 GameMode.HUMAN_VS_HUMAN,
                 AIDifficulty.HARD,
+                AIDifficulty.HARD,
                 "Investigator"
         );
     }
@@ -88,7 +90,7 @@ public class ActionPanel extends JPanel {
             PlateauPanel plateauPanel,
             TimeTokensPanel timeTokensPanel,
             AlibiPanel alibiPanel,
-            Runnable onTransitionTour
+            Consumer<String> onTransitionTour
     ) {
         this(
                 gameEngine,
@@ -99,7 +101,33 @@ public class ActionPanel extends JPanel {
                 onTransitionTour,
                 GameMode.HUMAN_VS_HUMAN,
                 AIDifficulty.HARD,
+                AIDifficulty.HARD,
                 "Investigator"
+        );
+    }
+
+    public ActionPanel(
+            GameEngine gameEngine,
+            InfoJeuPanel infoJeuPanel,
+            PlateauPanel plateauPanel,
+            TimeTokensPanel timeTokensPanel,
+            AlibiPanel alibiPanel,
+            Consumer<String> onTransitionTour,
+            GameMode mode,
+            AIDifficulty difficulty,
+            String humanRole
+    ) {
+        this(
+                gameEngine,
+                infoJeuPanel,
+                plateauPanel,
+                timeTokensPanel,
+                alibiPanel,
+                onTransitionTour,
+                mode,
+                difficulty,
+                difficulty,
+                humanRole
         );
     }
 
@@ -122,6 +150,7 @@ public class ActionPanel extends JPanel {
                 null,
                 mode,
                 difficulty,
+                difficulty,
                 humanRole
         );
     }
@@ -132,9 +161,10 @@ public class ActionPanel extends JPanel {
             PlateauPanel plateauPanel,
             TimeTokensPanel timeTokensPanel,
             AlibiPanel alibiPanel,
-            Runnable onTransitionTour,
+            Consumer<String> onTransitionTour,
             GameMode mode,
-            AIDifficulty difficulty,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty,
             String humanRole
     ) {
         this.gameEngine = gameEngine;
@@ -144,7 +174,8 @@ public class ActionPanel extends JPanel {
         this.alibiPanel = alibiPanel;
         this.onTransitionTour = onTransitionTour;
         this.mode = mode;
-        this.difficulty = difficulty;
+        this.investigatorDifficulty = investigatorDifficulty;
+        this.jackDifficulty = jackDifficulty;
         this.humanRole = humanRole;
         this.boutonClickMusique = new BoutonClickMusique();
 
@@ -155,6 +186,8 @@ public class ActionPanel extends JPanel {
         setPreferredSize(new Dimension(220, 360));
         setMaximumSize(new Dimension(220, 360));
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
 
         afficherActions();
 
@@ -187,7 +220,6 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
-        rafraichirInfosJack();
 
         SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
@@ -248,9 +280,6 @@ public class ActionPanel extends JPanel {
         });
 
         add(redoButton);
-
-        JPanel jackInfoPanel = creerJackInfoPanel();
-        add(jackInfoPanel);
     }
 
     private JButton creerBoutonControle(String texte, Color couleur) {
@@ -288,17 +317,12 @@ public class ActionPanel extends JPanel {
         if (icon != null) {
             if (token.isUsed()) {
                 imageLabel.setIcon(griserIcone(icon));
-                imageLabel.setHorizontalTextPosition(SwingConstants.CENTER);
-                imageLabel.setVerticalTextPosition(SwingConstants.CENTER);
-                imageLabel.setForeground(new Color(220, 220, 220));
-                imageLabel.setFont(new Font("Arial", Font.BOLD, 28));
             } else {
                 imageLabel.setIcon(icon);
             }
         } else {
             imageLabel.setText(actionName);
             imageLabel.setFont(new Font("Arial", Font.BOLD, 13));
-            imageLabel.setForeground(new Color(245, 235, 210));
             imageLabel.setForeground(token.isUsed()
                     ? new Color(130, 130, 130)
                     : new Color(245, 235, 210));
@@ -340,6 +364,8 @@ public class ActionPanel extends JPanel {
 
                     boutonClickMusique.jouerClick();
 
+                    String joueurAvantAction = String.valueOf(gameEngine.getCurrentPlayer());
+
                     Token selectedToken = gameEngine.selectActionToken(index);
                     actionEnCours = true;
 
@@ -349,7 +375,7 @@ public class ActionPanel extends JPanel {
                     tokenPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
                     infoJeuPanel.rafraichir();
-                    traiterActionSelectionnee();
+                    traiterActionSelectionnee(joueurAvantAction);
 
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(
@@ -365,7 +391,7 @@ public class ActionPanel extends JPanel {
         return tokenPanel;
     }
 
-    private void traiterActionSelectionnee() {
+    private void traiterActionSelectionnee(String joueurAvantAction) {
         try {
             ActionType actionType = gameEngine.getSelectedActionType();
 
@@ -387,11 +413,11 @@ public class ActionPanel extends JPanel {
                     break;
 
                 case ROTATE:
-                    preparerRotate();
+                    preparerRotate(joueurAvantAction);
                     break;
 
                 case EXCHANGE:
-                    preparerExchange();
+                    preparerExchange(joueurAvantAction);
                     break;
 
                 case JOKER:
@@ -402,7 +428,12 @@ public class ActionPanel extends JPanel {
             if (actionType != ActionType.ROTATE && actionType != ActionType.EXCHANGE) {
                 actionEnCours = false;
                 rafraichirToutesLesVues();
-                verifierFinDeRoundEtTransition();
+
+                if (gameEngine.isRoundOver()) {
+                    verifierFinDeRoundEtTransition();
+                } else {
+                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                }
             } else {
                 plateauPanel.rafraichir();
                 infoJeuPanel.rafraichir();
@@ -438,7 +469,8 @@ public class ActionPanel extends JPanel {
             rafraichirToutesLesVues();
 
             if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
-                onTransitionTour.run();
+                dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
+                onTransitionTour.accept("Changement de tour");
             }
 
         } catch (Exception ex) {
@@ -448,6 +480,24 @@ public class ActionPanel extends JPanel {
                     "Erreur fin de round",
                     JOptionPane.ERROR_MESSAGE
             );
+        }
+    }
+
+    private void verifierChangementDeJoueurEtTransition(String joueurAvantAction) {
+        String joueurApresAction = String.valueOf(gameEngine.getCurrentPlayer());
+
+        if (joueurAvantAction == null) {
+            joueurAvantAction = "";
+        }
+
+        if (!joueurAvantAction.equals(joueurApresAction)) {
+            dernierJoueurAffiche = joueurApresAction;
+
+            if (onTransitionTour != null
+                    && mode != GameMode.IA_VS_IA
+                    && !gameEngine.getGameState().isGameOver()) {
+                onTransitionTour.accept("Joueur");
+            }
         }
     }
 
@@ -537,7 +587,7 @@ public class ActionPanel extends JPanel {
         }
     }
 
-    private void preparerRotate() {
+    private void preparerRotate(String joueurAvantAction) {
         JOptionPane.showMessageDialog(
                 this,
                 "Sélectionnez une carte à tourner sur le plateau.",
@@ -587,7 +637,12 @@ public class ActionPanel extends JPanel {
                 actionEnCours = false;
 
                 rafraichirToutesLesVues();
-                verifierFinDeRoundEtTransition();
+
+                if (gameEngine.isRoundOver()) {
+                    verifierFinDeRoundEtTransition();
+                } else {
+                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                }
 
             } catch (Exception ex) {
                 actionEnCours = false;
@@ -602,7 +657,7 @@ public class ActionPanel extends JPanel {
         });
     }
 
-    private void preparerExchange() {
+    private void preparerExchange(String joueurAvantAction) {
         JOptionPane.showMessageDialog(
                 this,
                 "Sélectionnez deux cartes à échanger sur le plateau.",
@@ -655,7 +710,12 @@ public class ActionPanel extends JPanel {
                     actionEnCours = false;
 
                     rafraichirToutesLesVues();
-                    verifierFinDeRoundEtTransition();
+
+                    if (gameEngine.isRoundOver()) {
+                        verifierFinDeRoundEtTransition();
+                    } else {
+                        verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                    }
                 }
 
             } catch (Exception ex) {
@@ -698,103 +758,38 @@ public class ActionPanel extends JPanel {
         }
     }
 
-    private JPanel creerJackInfoPanel() { // jack panel
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(new Color(35, 30, 25));
-        panel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
-
-        JLabel titre = new JLabel("Jack");
-        titre.setFont(new Font("Arial", Font.BOLD, 13));
-        titre.setForeground(new Color(245, 235, 210));
-        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        jackIdentityLabel = creerPetitLabelJack();
-        jackAlibisLabel = creerPetitLabelJack();
-        jackHourglassLabel = creerPetitLabelJack();
-
-        panel.add(titre);
-        panel.add(Box.createVerticalStrut(3));
-        panel.add(jackIdentityLabel);
-        panel.add(jackAlibisLabel);
-        panel.add(jackHourglassLabel);
-
-        rafraichirInfosJack();
-
-        return panel;
-    }
-
-    private JLabel creerPetitLabelJack() { // jack label
-        JLabel label = new JLabel();
-        label.setFont(new Font("Arial", Font.PLAIN, 10));
-        label.setForeground(new Color(245, 235, 210));
-        label.setAlignmentX(Component.CENTER_ALIGNMENT);
-        return label;
-    }
-    
-    private void rafraichirInfosJack() { // rafraichir fonction pour jack
-        if (jackIdentityLabel == null || jackAlibisLabel == null || jackHourglassLabel == null) {
-            return;
-        }
-    
-        String identiteJack = gameEngine.getGameState().getJackCharacter().getName();
-        jackIdentityLabel.setText("ID: " + identiteJack);
-    
-        jackAlibisLabel.setText("Alibis: " + getAlibisJackTexte());
-    
-        jackHourglassLabel.setText("Hourglass: " + getNombreSabliersJack());
-    }
-
-    private String getAlibisJackTexte() { // les alibis que jack a pioché
-        try {
-            StringBuilder sb = new StringBuilder();
-    
-            for (model.AlibiCards card : gameEngine.getGameState().getAlibiDeckManager().getCards()) {
-                if ("Jack".equals(card.getOwner())
-                        && !card.getCharacter().isJack()) {
-                    sb.append(card.getCharacter().getName())
-                            .append(" (")
-                            .append(card.getHourglassValue())
-                            .append("), ");
-                }
-            }
-    
-            if (sb.length() == 0) {
-                return "aucun";
-            }
-    
-            sb.setLength(sb.length() - 2);
-            return sb.toString();
-    
-        } catch (Exception e) {
-            return "indisponible";
-        }
-    }
-    
-    private int getNombreSabliersJack() { // jack hourglass count
-        try {
-            return gameEngine.getGameState().getAlibiDeckManager().getJackHourglassTotal();
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
     private void setupAIPlayers() {
-        AIDifficulty selectedDifficulty = difficulty;
+        AIDifficulty selectedInvestigatorDifficulty = investigatorDifficulty;
+        AIDifficulty selectedJackDifficulty = jackDifficulty;
 
-        if (selectedDifficulty == null) {
-            selectedDifficulty = AIDifficulty.HARD;
+        if (selectedInvestigatorDifficulty == null) {
+            selectedInvestigatorDifficulty = AIDifficulty.HARD;
+        }
+
+        if (selectedJackDifficulty == null) {
+            selectedJackDifficulty = AIDifficulty.HARD;
         }
 
         if (mode == GameMode.HUMAN_VS_IA) {
             if ("Investigator".equals(humanRole)) {
-                jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
+                jackAI = AIFactory.create(selectedJackDifficulty, EvaluationPerspective.JACK);
             } else {
-                investigatorAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.INVESTIGATOR);
+                investigatorAI = AIFactory.create(
+                        selectedInvestigatorDifficulty,
+                        EvaluationPerspective.INVESTIGATOR
+                );
             }
+
         } else if (mode == GameMode.IA_VS_IA) {
-            investigatorAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.INVESTIGATOR);
-            jackAI = AIFactory.create(selectedDifficulty, EvaluationPerspective.JACK);
+            investigatorAI = AIFactory.create(
+                    selectedInvestigatorDifficulty,
+                    EvaluationPerspective.INVESTIGATOR
+            );
+
+            jackAI = AIFactory.create(
+                    selectedJackDifficulty,
+                    EvaluationPerspective.JACK
+            );
         }
     }
 
@@ -860,6 +855,8 @@ public class ActionPanel extends JPanel {
 
         Timer timer = new Timer(500, e -> {
             try {
+                String joueurAvantAction = String.valueOf(gameEngine.getCurrentPlayer());
+
                 currentAI.play(gameEngine);
 
                 plateauPanel.setTileSelectionListener(null);
@@ -872,8 +869,11 @@ public class ActionPanel extends JPanel {
                     rafraichirToutesLesVues();
 
                     if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
-                        onTransitionTour.run();
+                        dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
+                        onTransitionTour.accept("Changement de tour");
                     }
+                } else {
+                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
                 }
 
                 aiEnCours = false;
@@ -1015,7 +1015,6 @@ public class ActionPanel extends JPanel {
         for (int y = 0; y < original.getHeight(); y++) {
             for (int x = 0; x < original.getWidth(); x++) {
                 int rgba = original.getRGB(x, y);
-
                 Color color = new Color(rgba, true);
 
                 int alpha = color.getAlpha();

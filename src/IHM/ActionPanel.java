@@ -40,6 +40,8 @@ public class ActionPanel extends JPanel {
     private AIPlayer investigatorAI;
     private AIPlayer jackAI;
     private boolean aiEnCours = false;
+    private boolean autoAIEnabled = false;
+    private JButton autoAIButton;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -298,6 +300,8 @@ public class ActionPanel extends JPanel {
             nextAIButton.addActionListener(e -> {
                 try {
                     boutonClickMusique.jouerClick();
+                    autoAIEnabled = false;
+                    updateAutoAIButtonText();
                     jouerSiTourIA();
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(
@@ -310,6 +314,34 @@ public class ActionPanel extends JPanel {
             });
 
             add(nextAIButton);
+
+            autoAIButton = creerBoutonControle("Auto IA", new Color(45, 85, 45));
+
+            autoAIButton.addActionListener(e -> {
+                boutonClickMusique.jouerClick();
+
+                autoAIEnabled = !autoAIEnabled;
+                updateAutoAIButtonText();
+
+                if (autoAIEnabled) {
+                    jouerSiTourIA();
+                }
+            });
+
+            add(autoAIButton);
+        }
+    }
+    private void updateAutoAIButtonText() {
+        if (autoAIButton == null) {
+            return;
+        }
+
+        if (autoAIEnabled) {
+            autoAIButton.setText("Pause IA");
+            autoAIButton.setBackground(new Color(95, 55, 45));
+        } else {
+            autoAIButton.setText("Auto IA");
+            autoAIButton.setBackground(new Color(45, 85, 45));
         }
     }
 
@@ -877,12 +909,16 @@ public class ActionPanel extends JPanel {
         }
 
         if (!isAITurn()) {
+            autoAIEnabled = false;
+            updateAutoAIButtonText();
             return;
         }
 
         AIPlayer currentAI = getCurrentAI();
 
         if (currentAI == null) {
+            autoAIEnabled = false;
+            updateAutoAIButtonText();
             return;
         }
 
@@ -911,16 +947,25 @@ public class ActionPanel extends JPanel {
                     verifierChangementDeJoueurEtTransition(joueurAvantAction);
                 }
 
+                if (gameEngine.getGameState().isGameOver()) {
+                    autoAIEnabled = false;
+                    updateAutoAIButtonText();
+                }
+
                 aiEnCours = false;
 
                 if (mode != GameMode.IA_VS_IA) {
-
                     SwingUtilities.invokeLater(this::jouerSiTourIA);
-
+                } else if (autoAIEnabled && !gameEngine.getGameState().isGameOver()) {
+                    Timer autoTimer = new Timer(700, next -> jouerSiTourIA());
+                    autoTimer.setRepeats(false);
+                    autoTimer.start();
                 }
 
             } catch (Exception ex) {
                 aiEnCours = false;
+                autoAIEnabled = false;
+                updateAutoAIButtonText();
 
                 JOptionPane.showMessageDialog(
                         this,
@@ -934,7 +979,6 @@ public class ActionPanel extends JPanel {
         timer.setRepeats(false);
         timer.start();
     }
-
     private ImageIcon chargerImageAction(String actionName) {
         String nomFichier = getNomFichierAction(actionName);
 

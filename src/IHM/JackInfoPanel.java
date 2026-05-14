@@ -1,9 +1,8 @@
 package IHM;
 
-import javax.swing.*;
-import java.awt.*;
-
 import engine.GameEngine;
+import java.awt.*;
+import javax.swing.*;
 
 public class JackInfoPanel extends JPanel {
 
@@ -119,8 +118,12 @@ public class JackInfoPanel extends JPanel {
     private int getNombreSabliersJack() {
         try {
             return gameEngine.getGameState()
-                    .getAlibiDeckManager()
-                    .getJackHourglassTotal();
+                    .getWinConditionChecker()
+                    .calculateJackHourglassTotal(
+                            gameEngine.getGameState().getAlibiDeckManager(),
+                            gameEngine.getGameState().getJackPlayerState()
+                    );
+
         } catch (Exception e) {
             return 0;
         }

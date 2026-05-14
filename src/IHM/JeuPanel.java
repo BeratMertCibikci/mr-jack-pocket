@@ -22,7 +22,9 @@ public class JeuPanel extends JPanel {
     private JLabel transitionTitleLabel;
 
     private JackInfoPanel jackInfoPanel;
-    private JPanel rightGamePanel;
+    private JackAlibiCardsPanel jackAlibiCardsPanel;
+    private JPanel rightGamePanel;  
+    private JPanel leftGamePanel;
 
     private boolean premierAffichage = true;
 
@@ -177,7 +179,18 @@ public class JeuPanel extends JPanel {
 
         JPanel plateauWrapper = new JPanel(new BorderLayout());
         plateauWrapper.setBackground(new Color(35, 35, 35));
-        plateauWrapper.add(timeTokensPanel, BorderLayout.WEST);
+
+        leftGamePanel = new JPanel(new BorderLayout());
+        leftGamePanel.setOpaque(false);
+        leftGamePanel.setPreferredSize(new Dimension(90, 0));
+
+        jackAlibiCardsPanel.setPreferredSize(new Dimension(90, 180));
+        jackAlibiCardsPanel.setMaximumSize(new Dimension(90, 180));
+
+        leftGamePanel.add(timeTokensPanel, BorderLayout.NORTH);
+        leftGamePanel.add(jackAlibiCardsPanel, BorderLayout.SOUTH);
+
+        plateauWrapper.add(leftGamePanel, BorderLayout.WEST);
         plateauWrapper.add(plateauPanel, BorderLayout.CENTER);
         plateauWrapper.add(rightGamePanel, BorderLayout.EAST);
 
@@ -197,6 +210,18 @@ public class JeuPanel extends JPanel {
         } else {
             afficherTransitionTour("Début de partie");
         }
+
+        Timer jackPanelRefreshTimer = new Timer(500, e -> {
+            if (jackInfoPanel != null) {
+                jackInfoPanel.rafraichir();
+            }
+
+            if (jackAlibiCardsPanel != null) {
+                jackAlibiCardsPanel.rafraichir();
+            }
+        });
+
+        jackPanelRefreshTimer.start();
 
         installerRaccourciPause();
     }

@@ -6,17 +6,14 @@ import ai.AIPlayer;
 import ai.EvaluationPerspective;
 import engine.ActionType;
 import engine.GameEngine;
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.function.Consumer;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
-
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
@@ -28,6 +25,7 @@ public class ActionPanel extends JPanel {
     private PlateauPanel plateauPanel;
     private TimeTokensPanel timeTokensPanel;
     private AlibiPanel alibiPanel;
+    private JackInfoPanel jackInfoPanel;
     private BoutonClickMusique boutonClickMusique;
 
     private boolean actionEnCours = false;
@@ -56,6 +54,7 @@ public class ActionPanel extends JPanel {
                 timeTokensPanel,
                 null,
                 null,
+                null,
                 GameMode.HUMAN_VS_HUMAN,
                 AIDifficulty.HARD,
                 AIDifficulty.HARD,
@@ -76,6 +75,7 @@ public class ActionPanel extends JPanel {
                 plateauPanel,
                 timeTokensPanel,
                 alibiPanel,
+                null,
                 null,
                 GameMode.HUMAN_VS_HUMAN,
                 AIDifficulty.HARD,
@@ -98,6 +98,7 @@ public class ActionPanel extends JPanel {
                 plateauPanel,
                 timeTokensPanel,
                 alibiPanel,
+                null,
                 onTransitionTour,
                 GameMode.HUMAN_VS_HUMAN,
                 AIDifficulty.HARD,
@@ -123,6 +124,7 @@ public class ActionPanel extends JPanel {
                 plateauPanel,
                 timeTokensPanel,
                 alibiPanel,
+                null,
                 onTransitionTour,
                 mode,
                 difficulty,
@@ -148,6 +150,7 @@ public class ActionPanel extends JPanel {
                 timeTokensPanel,
                 alibiPanel,
                 null,
+                null,
                 mode,
                 difficulty,
                 difficulty,
@@ -161,6 +164,7 @@ public class ActionPanel extends JPanel {
             PlateauPanel plateauPanel,
             TimeTokensPanel timeTokensPanel,
             AlibiPanel alibiPanel,
+            JackInfoPanel jackInfoPanel,
             Consumer<String> onTransitionTour,
             GameMode mode,
             AIDifficulty investigatorDifficulty,
@@ -172,6 +176,7 @@ public class ActionPanel extends JPanel {
         this.plateauPanel = plateauPanel;
         this.timeTokensPanel = timeTokensPanel;
         this.alibiPanel = alibiPanel;
+        this.jackInfoPanel = jackInfoPanel;
         this.onTransitionTour = onTransitionTour;
         this.mode = mode;
         this.investigatorDifficulty = investigatorDifficulty;
@@ -217,6 +222,10 @@ public class ActionPanel extends JPanel {
 
         if (timeTokensPanel != null) {
             timeTokensPanel.rafraichir();
+        }
+
+        if (jackInfoPanel != null) {
+            jackInfoPanel.rafraichir();
         }
 
         rafraichir();
@@ -440,6 +449,10 @@ public class ActionPanel extends JPanel {
 
                 if (timeTokensPanel != null) {
                     timeTokensPanel.rafraichir();
+                }
+
+                if (jackInfoPanel != null) {
+                    jackInfoPanel.rafraichir();
                 }
             }
 

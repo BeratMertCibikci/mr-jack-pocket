@@ -2,11 +2,8 @@ package IHM;
 
 import ai.AIDifficulty;
 import engine.GameEngine;
-
 import java.awt.*;
-
 import javax.swing.*;
-
 import model.GameState;
 
 public class JeuPanel extends JPanel {
@@ -128,6 +125,7 @@ public class JeuPanel extends JPanel {
                 plateauPanel,
                 timeTokensPanel,
                 alibiPanel,
+                jackInfoPanel,
                 this::afficherTransitionTour,
                 mode,
                 investigatorDifficulty,
@@ -194,7 +192,12 @@ public class JeuPanel extends JPanel {
 
         add(mainContainer, BorderLayout.CENTER);
 
-        afficherTransitionTour("Début de partie");
+        if (mode == GameMode.IA_VS_IA) {
+            premierAffichage = false;
+            cardLayout.show(mainContainer, "GAME");
+        } else {
+            afficherTransitionTour("Début de partie");
+        }
 
         installerRaccourciPause();
     }
@@ -369,15 +372,7 @@ public class JeuPanel extends JPanel {
         JButton commencerButton = creerBoutonPause("Commencer le tour");
 
         commencerButton.addActionListener(e -> {
-            if (jackInfoPanel != null) {
-                jackInfoPanel.rafraichir();
-            }
-
-            if (rightGamePanel != null) {
-                rightGamePanel.revalidate();
-                rightGamePanel.repaint();
-            }
-
+            rafraichirPanneauDroite();
             cardLayout.show(mainContainer, "GAME");
         });
 
@@ -392,7 +387,24 @@ public class JeuPanel extends JPanel {
         return panel;
     }
 
+    private void rafraichirPanneauDroite() {
+        if (jackInfoPanel != null) {
+            jackInfoPanel.rafraichir();
+        }
+
+        if (rightGamePanel != null) {
+            rightGamePanel.revalidate();
+            rightGamePanel.repaint();
+        }
+    }
+
     private void afficherTransitionTour(String titreTransition) {
+        if (mode == GameMode.IA_VS_IA) {
+            rafraichirPanneauDroite();
+            cardLayout.show(mainContainer, "GAME");
+            return;
+        }
+
         String joueurActuel = gameEngine.getCurrentPlayer();
 
         if (premierAffichage) {

@@ -7,6 +7,7 @@ import javax.swing.*;
 public class JackInfoPanel extends JPanel {
 
     private GameEngine gameEngine;
+    private GameMode mode;
 
     private JLabel titleLabel;
     private JLabel jackIdentityLabel;
@@ -14,7 +15,12 @@ public class JackInfoPanel extends JPanel {
     private JLabel jackHourglassLabel;
 
     public JackInfoPanel(GameEngine gameEngine) {
+        this(gameEngine, GameMode.HUMAN_VS_HUMAN);
+    }
+
+    public JackInfoPanel(GameEngine gameEngine, GameMode mode) {
         this.gameEngine = gameEngine;
+        this.mode = mode;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(new Color(35, 30, 25));
@@ -61,21 +67,12 @@ public class JackInfoPanel extends JPanel {
             return;
         }
 
-        boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
-            String currentPlayer = "";
-            try {
-                currentPlayer = String.valueOf(gameEngine.getCurrentPlayer());
-            } catch (Exception e) {
-                currentPlayer = "";
-            }
+        boolean doitAfficher = shouldShowJackInfo();
+        setVisible(doitAfficher);
 
-            boolean doitAfficher = jackTurn || currentPlayer.toLowerCase().contains("jack");
-
-            setVisible(doitAfficher);
-
-            if (!doitAfficher) {
-                return;
-            }
+        if (!doitAfficher) {
+            return;
+        }
 
         try {
             String identiteJack = gameEngine.getGameState().getJackCharacter().getName();
@@ -86,6 +83,25 @@ public class JackInfoPanel extends JPanel {
 
         jackAlibisLabel.setText("Alibis: " + getAlibisJackTexte());
         jackHourglassLabel.setText("Hourglass: " + getNombreSabliersJack());
+
+        revalidate();
+        repaint();
+    }
+
+    private boolean shouldShowJackInfo() {
+        if (mode == GameMode.IA_VS_IA) {
+            return true;
+        }
+
+        try {
+            boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
+            String currentPlayer = String.valueOf(gameEngine.getCurrentPlayer());
+
+            return jackTurn || currentPlayer.toLowerCase().contains("jack");
+
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private String getAlibisJackTexte() {

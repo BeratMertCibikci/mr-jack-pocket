@@ -196,7 +196,9 @@ public class ActionPanel extends JPanel {
 
         afficherActions();
 
-        SwingUtilities.invokeLater(this::jouerSiTourIA);
+        if (mode != GameMode.IA_VS_IA) {
+            SwingUtilities.invokeLater(this::jouerSiTourIA);
+        }
     }
 
     private void synchroniserGameStateDansVues() {
@@ -229,8 +231,9 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
-
-        SwingUtilities.invokeLater(this::jouerSiTourIA);
+        if (mode != GameMode.IA_VS_IA) {
+            SwingUtilities.invokeLater(this::jouerSiTourIA);
+        }
     }
 
     private void afficherActions() {
@@ -289,6 +292,25 @@ public class ActionPanel extends JPanel {
         });
 
         add(redoButton);
+        if (mode == GameMode.IA_VS_IA) {
+            JButton nextAIButton = creerBoutonControle("Next IA", new Color(80, 65, 35));
+
+            nextAIButton.addActionListener(e -> {
+                try {
+                    boutonClickMusique.jouerClick();
+                    jouerSiTourIA();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            ex.getMessage(),
+                            "Erreur IA",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            });
+
+            add(nextAIButton);
+        }
     }
 
     private JButton creerBoutonControle(String texte, Color couleur) {
@@ -891,7 +913,11 @@ public class ActionPanel extends JPanel {
 
                 aiEnCours = false;
 
-                SwingUtilities.invokeLater(this::jouerSiTourIA);
+                if (mode != GameMode.IA_VS_IA) {
+
+                    SwingUtilities.invokeLater(this::jouerSiTourIA);
+
+                }
 
             } catch (Exception ex) {
                 aiEnCours = false;

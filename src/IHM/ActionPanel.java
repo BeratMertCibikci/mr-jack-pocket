@@ -776,10 +776,14 @@ public class ActionPanel extends JPanel {
 
     private int getNombreSabliersJack() {
         try {
-            return gameEngine.getGameState().getAlibiDeckManager().getJackHourglassTotal();
+            int total = 0;
+            total += gameEngine.getGameState().getAlibiDeckManager().getJackHourglassTotal();
+            total += gameEngine.getGameState().getJackPlayerState().getOwnedTurnTokenCount();
+            return total;
         } catch (Exception e) {
             return 0;
         }
+
     }
 
     private void setupAIPlayers() {

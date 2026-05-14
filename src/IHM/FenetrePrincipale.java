@@ -196,19 +196,18 @@ public void demarrerReseauClient(String ipAddress, String role) {
 private void handleNetworkUpdate(model.GameState state, String role) {
     if (activeJeuPanel == null) {
         engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
+        proxyEngine.setGameState(state);
         
         activeJeuPanel = new JeuPanel(GameMode.HUMAN_VS_HUMAN, role, this, proxyEngine);
         mainPanel.add(activeJeuPanel, "jeu");
         cardLayout.show(mainPanel, "jeu");
     } else {
-        
         activeJeuPanel.getGameEngine().setGameState(state);
         activeJeuPanel.rafraichirToutesLesVues(); 
     }
+    
     revalidate();
     repaint();
-
-    
     
     for (Window window : Window.getWindows()) {
         if (window instanceof JDialog) {

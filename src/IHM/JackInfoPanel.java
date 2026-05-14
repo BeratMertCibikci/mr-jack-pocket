@@ -67,13 +67,25 @@ public class JackInfoPanel extends JPanel {
             return;
         }
 
+        if (mode == GameMode.IA_VS_IA) {
+            setVisible(true);
+            remplirInfosJack();
+            return;
+        }
+
         boolean doitAfficher = shouldShowJackInfo();
         setVisible(doitAfficher);
 
         if (!doitAfficher) {
+            revalidate();
+            repaint();
             return;
         }
 
+        remplirInfosJack();
+    }
+
+    private void remplirInfosJack() {
         try {
             String identiteJack = gameEngine.getGameState().getJackCharacter().getName();
             jackIdentityLabel.setText("Identity: " + identiteJack);
@@ -89,10 +101,6 @@ public class JackInfoPanel extends JPanel {
     }
 
     private boolean shouldShowJackInfo() {
-        if (mode == GameMode.IA_VS_IA) {
-            return true;
-        }
-
         try {
             boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
             String currentPlayer = String.valueOf(gameEngine.getCurrentPlayer());

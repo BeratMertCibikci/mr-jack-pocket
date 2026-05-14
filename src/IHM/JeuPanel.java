@@ -2,10 +2,8 @@ package IHM;
 
 import ai.AIDifficulty;
 import engine.GameEngine;
-
 import java.awt.*;
 import javax.swing.*;
-
 import model.GameState;
 
 public class JeuPanel extends JPanel {
@@ -121,15 +119,14 @@ public class JeuPanel extends JPanel {
         TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
         AlibiPanel alibiPanel = new AlibiPanel();
 
-        jackInfoPanel = new JackInfoPanel(gameEngine);
-        jackAlibiCardsPanel = new JackAlibiCardsPanel(gameEngine);
-
+        jackInfoPanel = new JackInfoPanel(gameEngine, mode, player1Role);
         ActionPanel actionPanel = new ActionPanel(
                 gameEngine,
                 infoJeuPanel,
                 plateauPanel,
                 timeTokensPanel,
                 alibiPanel,
+                jackInfoPanel,
                 this::afficherTransitionTour,
                 mode,
                 investigatorDifficulty,
@@ -207,7 +204,12 @@ public class JeuPanel extends JPanel {
 
         add(mainContainer, BorderLayout.CENTER);
 
-        afficherTransitionTour("Début de partie");
+        if (mode == GameMode.IA_VS_IA) {
+            premierAffichage = false;
+            cardLayout.show(mainContainer, "GAME");
+        } else {
+            afficherTransitionTour("Début de partie");
+        }
 
         Timer jackPanelRefreshTimer = new Timer(500, e -> {
             if (jackInfoPanel != null) {
@@ -394,24 +396,7 @@ public class JeuPanel extends JPanel {
         JButton commencerButton = creerBoutonPause("Commencer le tour");
 
         commencerButton.addActionListener(e -> {
-            if (jackInfoPanel != null) {
-                jackInfoPanel.rafraichir();
-            }
-
-            if (jackAlibiCardsPanel != null) {
-                jackAlibiCardsPanel.rafraichir();
-            }
-
-            if (rightGamePanel != null) {
-                rightGamePanel.revalidate();
-                rightGamePanel.repaint();
-            }
-
-            if (leftGamePanel != null) {
-                leftGamePanel.revalidate();
-                leftGamePanel.repaint();
-            }
-
+            rafraichirPanneauDroite();
             cardLayout.show(mainContainer, "GAME");
         });
 
@@ -426,7 +411,24 @@ public class JeuPanel extends JPanel {
         return panel;
     }
 
+    private void rafraichirPanneauDroite() {
+        if (jackInfoPanel != null) {
+            jackInfoPanel.rafraichir();
+        }
+
+        if (rightGamePanel != null) {
+            rightGamePanel.revalidate();
+            rightGamePanel.repaint();
+        }
+    }
+
     private void afficherTransitionTour(String titreTransition) {
+        if (mode == GameMode.IA_VS_IA) {
+            rafraichirPanneauDroite();
+            cardLayout.show(mainContainer, "GAME");
+            return;
+        }
+
         String joueurActuel = gameEngine.getCurrentPlayer();
 
         if (premierAffichage) {
@@ -439,5 +441,15 @@ public class JeuPanel extends JPanel {
         }
 
         cardLayout.show(mainContainer, "TRANSITION");
+    }
+    
+    public GameEngine getGameEngine() {
+        return this.gameEngine;
+    }
+
+    public void rafraichirToutesLesVues() {
+        // Ağdan yeni veri geldiğinde ekranı yeniler
+        this.revalidate();
+        this.repaint();
     }
 }

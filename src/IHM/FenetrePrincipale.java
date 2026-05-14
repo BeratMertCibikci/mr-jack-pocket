@@ -1,5 +1,8 @@
 package IHM;
 
+import reseau.GameClient;
+import reseau.GameServer;
+import reseau.Message;
 import ai.AIDifficulty;
 import engine.GameEngine;
 import java.awt.*;
@@ -11,6 +14,9 @@ public class FenetrePrincipale extends JFrame {
     private boolean musiqueActive = false;
     private CardLayout cardLayout;
     private JPanel mainPanel;
+
+    private JeuPanel activeJeuPanel;
+    private GameClient networkClient;
 
     public FenetrePrincipale() {
         setTitle("Mr Jack Pocket");
@@ -25,6 +31,7 @@ public class FenetrePrincipale extends JFrame {
 
         mainPanel.add(new MenuPrincipalPanel(this), "menu principale");
         mainPanel.add(new ChoixModePanel(this), "choixMode");
+        mainPanel.add(new MultijoueurPanel(this), "multijoueur");
         mainPanel.add(new ReglesPanel(this), "regles");
 
         add(mainPanel, BorderLayout.CENTER);
@@ -37,6 +44,10 @@ public class FenetrePrincipale extends JFrame {
 
     public void afficherChoixMode() {
         cardLayout.show(mainPanel, "choixMode");
+    }
+
+    public void afficherMultijoueur() {
+        cardLayout.show(mainPanel, "multijoueur");
     }
 
     public void afficherRegles() {
@@ -156,4 +167,53 @@ public class FenetrePrincipale extends JFrame {
             fenetre.setVisible(true);
         });
     }
+
+    public void demarrerReseauHost(String roleChoisi) {
+    new Thread(() -> {
+        GameServer gameServer = new GameServer(8080);
+        gameServer.start();
+    }).start();
+
+    Timer timer = new Timer(800, e -> demarrerReseauClient("localhost", roleChoisi));
+    timer.setRepeats(false);
+    timer.start();
+}
+public void demarrerReseauClient(String ipAddress) {
+        demarrerReseauClient(ipAddress, "Client");
+    }
+
+public void demarrerReseauClient(String ipAddress, String role) {
+    new Thread(() -> {
+        this.networkClient = new GameClient(ipAddress, 8080, role, msg -> {
+            if (msg.getType() == Message.MessageType.UPDATE_STATE) {
+                model.GameState state = (model.GameState) msg.getGameStatePayload();
+                handleNetworkUpdate(state, role);
+            }
+        });
+    }).start();
+}
+
+private void handleNetworkUpdate(model.GameState state, String role) {
+    if (activeJeuPanel == null) {
+        engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
+        
+        activeJeuPanel = new JeuPanel(GameMode.HUMAN_VS_HUMAN, role, this, proxyEngine);
+        mainPanel.add(activeJeuPanel, "jeu");
+        cardLayout.show(mainPanel, "jeu");
+    } else {
+        
+        activeJeuPanel.getGameEngine().setGameState(state);
+        activeJeuPanel.rafraichirToutesLesVues(); 
+    }
+    revalidate();
+    repaint();
+
+    
+    
+    for (Window window : Window.getWindows()) {
+        if (window instanceof JDialog) {
+            window.dispose();
+        }
+    }
+}
 }

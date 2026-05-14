@@ -7,14 +7,24 @@ import javax.swing.*;
 public class JackInfoPanel extends JPanel {
 
     private GameEngine gameEngine;
-
+    private GameMode mode;
+    private String humanRole;
     private JLabel titleLabel;
     private JLabel jackIdentityLabel;
     private JLabel jackAlibisLabel;
     private JLabel jackHourglassLabel;
 
     public JackInfoPanel(GameEngine gameEngine) {
+        this(gameEngine, GameMode.HUMAN_VS_HUMAN, "Investigator");
+    }
+    public JackInfoPanel(GameEngine gameEngine, GameMode mode) {
+        this(gameEngine, mode, "Investigator");
+    }
+
+    public JackInfoPanel(GameEngine gameEngine, GameMode mode,String humanRole) {
         this.gameEngine = gameEngine;
+        this.mode = mode;
+        this.humanRole = humanRole;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(new Color(35, 30, 25));
@@ -61,22 +71,25 @@ public class JackInfoPanel extends JPanel {
             return;
         }
 
-        boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
-            String currentPlayer = "";
-            try {
-                currentPlayer = String.valueOf(gameEngine.getCurrentPlayer());
-            } catch (Exception e) {
-                currentPlayer = "";
-            }
+        if (mode == GameMode.IA_VS_IA) {
+            setVisible(true);
+            remplirInfosJack();
+            return;
+        }
 
-            boolean doitAfficher = jackTurn || currentPlayer.toLowerCase().contains("jack");
+        boolean doitAfficher = shouldShowJackInfo();
+        setVisible(doitAfficher);
 
-            setVisible(doitAfficher);
+        if (!doitAfficher) {
+            revalidate();
+            repaint();
+            return;
+        }
 
-            if (!doitAfficher) {
-                return;
-            }
+        remplirInfosJack();
+    }
 
+    private void remplirInfosJack() {
         try {
             String identiteJack = gameEngine.getGameState().getJackCharacter().getName();
             jackIdentityLabel.setText("Identity: " + identiteJack);
@@ -86,6 +99,29 @@ public class JackInfoPanel extends JPanel {
 
         jackAlibisLabel.setText("Alibis: " + getAlibisJackTexte());
         jackHourglassLabel.setText("Hourglass: " + getNombreSabliersJack());
+
+        revalidate();
+        repaint();
+    }
+
+    private boolean shouldShowJackInfo() {
+        if (mode == GameMode.IA_VS_IA) {
+            return true;
+        }
+
+        if (mode == GameMode.HUMAN_VS_IA) {
+            return "Jack".equals(humanRole);
+        }
+
+        try {
+            boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
+            String currentPlayer = String.valueOf(gameEngine.getCurrentPlayer());
+
+            return jackTurn || currentPlayer.toLowerCase().contains("jack");
+
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private String getAlibisJackTexte() {

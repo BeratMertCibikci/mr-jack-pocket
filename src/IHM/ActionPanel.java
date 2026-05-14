@@ -2,8 +2,10 @@ package IHM;
 
 import ai.AIDifficulty;
 import ai.AIFactory;
+import ai.AIMove;
 import ai.AIPlayer;
 import ai.EvaluationPerspective;
+import ai.MinimaxAI;
 import engine.ActionType;
 import engine.GameEngine;
 import java.awt.*;
@@ -17,6 +19,7 @@ import javax.swing.*;
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
+
 
 public class ActionPanel extends JPanel {
 
@@ -42,6 +45,7 @@ public class ActionPanel extends JPanel {
     private boolean aiEnCours = false;
     private boolean autoAIEnabled = false;
     private JButton autoAIButton;
+    private boolean gameOverDialogShown = false;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -229,9 +233,9 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
+        verifierGameOverEtAfficher();
 
     }
-
     private void afficherActions() {
         Token[] actionTokens = gameEngine.getGameState()
                 .getActionTokens()
@@ -288,6 +292,27 @@ public class ActionPanel extends JPanel {
         });
 
         add(redoButton);
+
+        if (mode == GameMode.HUMAN_VS_HUMAN || mode == GameMode.HUMAN_VS_IA) {
+            JButton hintButton = creerBoutonControle("Conseil IA", new Color(70, 55, 90));
+
+            hintButton.addActionListener(e -> {
+                try {
+                    boutonClickMusique.jouerClick();
+                    afficherConseilIA();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            ex.getMessage(),
+                            "Erreur conseil IA",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            });
+
+            add(hintButton);
+        }
+
         if (mode == GameMode.IA_VS_IA || mode == GameMode.HUMAN_VS_IA) {
             JButton nextAIButton = creerBoutonControle("Next IA", new Color(80, 65, 35));
 
@@ -339,6 +364,154 @@ public class ActionPanel extends JPanel {
             add(autoAIButton);
         }
     }
+
+    private void afficherConseilIA() {
+        if (gameEngine.getGameState().isGameOver()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "La partie est terminée.",
+                    "Conseil IA",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        if (gameEngine.isRoundOver()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "La manche est terminée. Passez à la manche suivante avant de demander un conseil.",
+                    "Conseil IA",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        if (mode == GameMode.HUMAN_VS_IA && isAITurn()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "C'est le tour de l'IA. Utilisez Next IA pour jouer son coup.",
+                    "Conseil IA",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        EvaluationPerspective perspective;
+
+        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
+            perspective = EvaluationPerspective.INVESTIGATOR;
+        } else {
+            perspective = EvaluationPerspective.JACK;
+        }
+
+        MinimaxAI expertAI = new MinimaxAI(4, perspective);
+        AIMove suggestedMove = expertAI.chooseBestMove(gameEngine);
+
+        String message = formatConseilIA(suggestedMove);
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Suggestion IA Expert pour " + gameEngine.getCurrentPlayer() + " :\n\n" + message,
+                "Conseil IA",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    private String formatConseilIA(AIMove move) {
+        if (move == null) {
+            return "Aucun coup disponible.";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Choisir le token numéro ")
+                .append(move.getActionTokenIndex())
+                .append("\n\n");
+
+        switch (move.getActionType()) {
+            case HOLMES:
+                sb.append("Déplacer Holmes de ")
+                        .append(move.getSteps())
+                        .append(" case(s).");
+                break;
+
+            case WATSON:
+                sb.append("Déplacer Watson de ")
+                        .append(move.getSteps())
+                        .append(" case(s).");
+                break;
+
+            case TOBY:
+                sb.append("Déplacer Toby de ")
+                        .append(move.getSteps())
+                        .append(" case(s).");
+                break;
+
+            case JOKER:
+                if (move.isJokerSkip()) {
+                    sb.append("Ne pas déplacer de détective avec le Joker.");
+                } else {
+                    sb.append("Utiliser le Joker pour déplacer ")
+                            .append(move.getDetectiveName())
+                            .append(".");
+                }
+                break;
+
+            case ALIBI:
+                sb.append("Piocher une carte Alibi.");
+                break;
+
+            case ROTATE:
+                sb.append("Tourner la tuile ")
+                        .append(getNomTuile(move.getRow(), move.getCol()))
+                        .append(" en position (")
+                        .append(move.getRow())
+                        .append(",")
+                        .append(move.getCol())
+                        .append(") de ")
+                        .append(move.getRotations())
+                        .append(" rotation(s).");
+                break;
+
+            case EXCHANGE:
+                sb.append("Échanger la tuile ")
+                        .append(getNomTuile(move.getRowA(), move.getColA()))
+                        .append(" en position (")
+                        .append(move.getRowA())
+                        .append(",")
+                        .append(move.getColA())
+                        .append(") avec la tuile ")
+                        .append(getNomTuile(move.getRowB(), move.getColB()))
+                        .append(" en position (")
+                        .append(move.getRowB())
+                        .append(",")
+                        .append(move.getColB())
+                        .append(").");
+                break;
+
+            default:
+                sb.append(move.toString());
+                break;
+        }
+
+        return sb.toString();
+    }
+    private String getNomTuile(int row, int col){
+        try {
+            
+            Tile tile = gameEngine.getGameState().getBoard().getTile(row, col);
+            if (tile == null){
+                return "vide";
+            }
+            if (tile.getCharacter() == null){
+                return "vide";
+            }
+            return tile.getCharacter().getName();
+        } catch (Exception e){
+            return "inconnue";
+        }
+    }
+    
     private void updateAutoAIButtonText() {
         if (autoAIButton == null) {
             return;
@@ -543,10 +716,13 @@ public class ActionPanel extends JPanel {
 
             rafraichirToutesLesVues();
 
-            if (onTransitionTour != null && mode == GameMode.HUMAN_VS_HUMAN) {
-                dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
-                onTransitionTour.accept("Changement de tour");
-            }
+        if (onTransitionTour != null
+                && mode == GameMode.HUMAN_VS_HUMAN
+                && !gameEngine.getGameState().isGameOver()) {
+            dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
+            onTransitionTour.accept("Changement de tour");
+
+        }
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
@@ -1126,5 +1302,37 @@ public class ActionPanel extends JPanel {
         }
 
         return new ImageIcon(grisee);
+    }
+    private void verifierGameOverEtAfficher() {
+        if (gameOverDialogShown) {
+            return;
+        }
+
+        if (!gameEngine.getGameState().isGameOver()) {
+            return;
+        }
+
+        gameOverDialogShown = true;
+        autoAIEnabled = false;
+        updateAutoAIButtonText();
+
+        String winner = gameEngine.getGameState().getWinner();
+
+        String message;
+
+        if ("Investigator".equals(winner)) {
+            message = "L'Investigator gagne la partie.";
+        } else if ("Jack".equals(winner)) {
+            message = "Jack gagne la partie.";
+        } else {
+            message = "La partie est terminée.";
+        }
+
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Game Over",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 }

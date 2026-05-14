@@ -117,8 +117,7 @@ public class JeuPanel extends JPanel {
         TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
         AlibiPanel alibiPanel = new AlibiPanel();
 
-        jackInfoPanel = new JackInfoPanel(gameEngine,mode);
-
+        jackInfoPanel = new JackInfoPanel(gameEngine, mode, player1Role);
         ActionPanel actionPanel = new ActionPanel(
                 gameEngine,
                 infoJeuPanel,

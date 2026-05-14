@@ -496,7 +496,6 @@ public class ActionPanel extends JPanel {
             if (onTransitionTour != null
                     && mode != GameMode.IA_VS_IA
                     && !gameEngine.getGameState().isGameOver()) {
-
                 onTransitionTour.accept("Joueur");
             }
         }

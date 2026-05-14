@@ -29,6 +29,10 @@ public class ActionPanel extends JPanel {
     private AlibiPanel alibiPanel;
     private BoutonClickMusique boutonClickMusique;
 
+    private JLabel jackIdentityLabel;
+    private JLabel jackAlibisLabel;
+    private JLabel jackHourglassLabel;
+
     private boolean actionEnCours = false;
     private Runnable onTransitionTour;
 
@@ -183,6 +187,7 @@ public class ActionPanel extends JPanel {
         }
 
         rafraichir();
+        rafraichirInfosJack();
 
         SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
@@ -243,6 +248,9 @@ public class ActionPanel extends JPanel {
         });
 
         add(redoButton);
+
+        JPanel jackInfoPanel = creerJackInfoPanel();
+        add(jackInfoPanel);
     }
 
     private JButton creerBoutonControle(String texte, Color couleur) {
@@ -278,11 +286,22 @@ public class ActionPanel extends JPanel {
         ImageIcon icon = chargerImageAction(actionName);
 
         if (icon != null) {
-            imageLabel.setIcon(icon);
+            if (token.isUsed()) {
+                imageLabel.setIcon(griserIcone(icon));
+                imageLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+                imageLabel.setVerticalTextPosition(SwingConstants.CENTER);
+                imageLabel.setForeground(new Color(220, 220, 220));
+                imageLabel.setFont(new Font("Arial", Font.BOLD, 28));
+            } else {
+                imageLabel.setIcon(icon);
+            }
         } else {
             imageLabel.setText(actionName);
             imageLabel.setFont(new Font("Arial", Font.BOLD, 13));
             imageLabel.setForeground(new Color(245, 235, 210));
+            imageLabel.setForeground(token.isUsed()
+                    ? new Color(130, 130, 130)
+                    : new Color(245, 235, 210));
         }
 
         if (token.isUsed()) {
@@ -679,6 +698,87 @@ public class ActionPanel extends JPanel {
         }
     }
 
+    private JPanel creerJackInfoPanel() { // jack panel
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(35, 30, 25));
+        panel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+
+        JLabel titre = new JLabel("Jack");
+        titre.setFont(new Font("Arial", Font.BOLD, 13));
+        titre.setForeground(new Color(245, 235, 210));
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        jackIdentityLabel = creerPetitLabelJack();
+        jackAlibisLabel = creerPetitLabelJack();
+        jackHourglassLabel = creerPetitLabelJack();
+
+        panel.add(titre);
+        panel.add(Box.createVerticalStrut(3));
+        panel.add(jackIdentityLabel);
+        panel.add(jackAlibisLabel);
+        panel.add(jackHourglassLabel);
+
+        rafraichirInfosJack();
+
+        return panel;
+    }
+
+    private JLabel creerPetitLabelJack() { // jack label
+        JLabel label = new JLabel();
+        label.setFont(new Font("Arial", Font.PLAIN, 10));
+        label.setForeground(new Color(245, 235, 210));
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        return label;
+    }
+    
+    private void rafraichirInfosJack() { // rafraichir fonction pour jack
+        if (jackIdentityLabel == null || jackAlibisLabel == null || jackHourglassLabel == null) {
+            return;
+        }
+    
+        String identiteJack = gameEngine.getGameState().getJackCharacter().getName();
+        jackIdentityLabel.setText("ID: " + identiteJack);
+    
+        jackAlibisLabel.setText("Alibis: " + getAlibisJackTexte());
+    
+        jackHourglassLabel.setText("Hourglass: " + getNombreSabliersJack());
+    }
+
+    private String getAlibisJackTexte() { // les alibis que jack a pioché
+        try {
+            StringBuilder sb = new StringBuilder();
+    
+            for (model.AlibiCards card : gameEngine.getGameState().getAlibiDeckManager().getCards()) {
+                if ("Jack".equals(card.getOwner())
+                        && !card.getCharacter().isJack()) {
+                    sb.append(card.getCharacter().getName())
+                            .append(" (")
+                            .append(card.getHourglassValue())
+                            .append("), ");
+                }
+            }
+    
+            if (sb.length() == 0) {
+                return "aucun";
+            }
+    
+            sb.setLength(sb.length() - 2);
+            return sb.toString();
+    
+        } catch (Exception e) {
+            return "indisponible";
+        }
+    }
+    
+    private int getNombreSabliersJack() { // jack hourglass count
+        try {
+            return gameEngine.getGameState().getAlibiDeckManager().getJackHourglassTotal();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     private void setupAIPlayers() {
         AIDifficulty selectedDifficulty = difficulty;
 
@@ -891,5 +991,47 @@ public class ActionPanel extends JPanel {
         g.dispose();
 
         return imageRedimensionnee;
+    }
+
+    private ImageIcon griserIcone(ImageIcon icon) {
+        Image image = icon.getImage();
+
+        BufferedImage original = new BufferedImage(
+                icon.getIconWidth(),
+                icon.getIconHeight(),
+                BufferedImage.TYPE_INT_ARGB
+        );
+
+        Graphics2D g = original.createGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+
+        BufferedImage grisee = new BufferedImage(
+                original.getWidth(),
+                original.getHeight(),
+                BufferedImage.TYPE_INT_ARGB
+        );
+
+        for (int y = 0; y < original.getHeight(); y++) {
+            for (int x = 0; x < original.getWidth(); x++) {
+                int rgba = original.getRGB(x, y);
+
+                Color color = new Color(rgba, true);
+
+                int alpha = color.getAlpha();
+                int gris = (color.getRed() + color.getGreen() + color.getBlue()) / 3;
+
+                Color nouvelleCouleur = new Color(
+                        gris,
+                        gris,
+                        gris,
+                        alpha / 2
+                );
+
+                grisee.setRGB(x, y, nouvelleCouleur.getRGB());
+            }
+        }
+
+        return new ImageIcon(grisee);
     }
 }

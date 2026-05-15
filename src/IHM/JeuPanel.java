@@ -22,9 +22,7 @@ public class JeuPanel extends JPanel {
     private JLabel transitionTitleLabel;
 
     private JackInfoPanel jackInfoPanel;
-    private JackAlibiCardsPanel jackAlibiCardsPanel;
-    private JPanel rightGamePanel;  
-    private JPanel leftGamePanel;
+    private JPanel rightGamePanel;
 
     private boolean premierAffichage = true;
 
@@ -179,18 +177,7 @@ public class JeuPanel extends JPanel {
 
         JPanel plateauWrapper = new JPanel(new BorderLayout());
         plateauWrapper.setBackground(new Color(35, 35, 35));
-
-        leftGamePanel = new JPanel(new BorderLayout());
-        leftGamePanel.setOpaque(false);
-        leftGamePanel.setPreferredSize(new Dimension(90, 0));
-
-        jackAlibiCardsPanel.setPreferredSize(new Dimension(90, 180));
-        jackAlibiCardsPanel.setMaximumSize(new Dimension(90, 180));
-
-        leftGamePanel.add(timeTokensPanel, BorderLayout.NORTH);
-        leftGamePanel.add(jackAlibiCardsPanel, BorderLayout.SOUTH);
-
-        plateauWrapper.add(leftGamePanel, BorderLayout.WEST);
+        plateauWrapper.add(timeTokensPanel, BorderLayout.WEST);
         plateauWrapper.add(plateauPanel, BorderLayout.CENTER);
         plateauWrapper.add(rightGamePanel, BorderLayout.EAST);
 
@@ -210,18 +197,6 @@ public class JeuPanel extends JPanel {
         } else {
             afficherTransitionTour("Début de partie");
         }
-
-        Timer jackPanelRefreshTimer = new Timer(500, e -> {
-            if (jackInfoPanel != null) {
-                jackInfoPanel.rafraichir();
-            }
-
-            if (jackAlibiCardsPanel != null) {
-                jackAlibiCardsPanel.rafraichir();
-            }
-        });
-
-        jackPanelRefreshTimer.start();
 
         installerRaccourciPause();
     }
@@ -284,12 +259,7 @@ public class JeuPanel extends JPanel {
         });
 
         settingsButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    pauseDialog,
-                    "Settings à ajouter plus tard.",
-                    "Settings",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+            afficherSettingsDialog(pauseDialog);
         });
 
         reglesButton.addActionListener(e -> {
@@ -322,6 +292,72 @@ public class JeuPanel extends JPanel {
 
         pauseDialog.setContentPane(pausePanel);
         pauseDialog.setVisible(true);
+    }
+
+    private void afficherSettingsDialog(JDialog parentDialog) {
+        JDialog settingsDialog = new JDialog(
+                parentDialog,
+                "Settings",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+    
+        settingsDialog.setSize(360, 260);
+        settingsDialog.setLocationRelativeTo(parentDialog);
+        settingsDialog.setResizable(false);
+    
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(25, 25, 25));
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 35, 25, 35));
+    
+        JLabel titre = new JLabel("Settings");
+        titre.setFont(new Font("Arial", Font.BOLD, 24));
+        titre.setForeground(new Color(245, 235, 210));
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+        JCheckBox musiqueCheckBox = new JCheckBox("Musique activée");
+        musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
+        musiqueCheckBox.setFont(new Font("Arial", Font.BOLD, 15));
+        musiqueCheckBox.setForeground(new Color(245, 235, 210));
+        musiqueCheckBox.setBackground(new Color(25, 25, 25));
+        musiqueCheckBox.setFocusPainted(false);
+        musiqueCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+        JLabel volumeLabel = new JLabel("Volume");
+        volumeLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        volumeLabel.setForeground(new Color(245, 235, 210));
+        volumeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+        JSlider volumeSlider = new JSlider(0, 100, 40);
+        volumeSlider.setMaximumSize(new Dimension(230, 45));
+        volumeSlider.setOpaque(false);
+        volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        volumeSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+        JButton fermerButton = creerBoutonPause("Fermer");
+    
+        musiqueCheckBox.addActionListener(e -> {
+            fenetre.toggleMusique();
+            musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
+        });
+    
+        volumeSlider.addChangeListener(e -> {
+            fenetre.changerVolumeMusique(volumeSlider.getValue());
+        });
+    
+        fermerButton.addActionListener(e -> settingsDialog.dispose());
+    
+        panel.add(titre);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(musiqueCheckBox);
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(volumeLabel);
+        panel.add(volumeSlider);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(fermerButton);
+    
+        settingsDialog.setContentPane(panel);
+        settingsDialog.setVisible(true);
     }
 
     private JButton creerBoutonPause(String texte) {

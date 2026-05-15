@@ -69,7 +69,7 @@ public class TimeTokensPanel extends JPanel {
             panel.setToolTipText("Tour actuel");
         } else if (proprietaire.equals("INVESTIGATOR")) {
             panel.setBackground(new Color(35, 60, 90));
-            label.setText(numeroTour + "I");
+            label.setText(numeroTour + "🔎");
             panel.setToolTipText("Pris par l'Investigateur");
         } else if (proprietaire.equals("JACK")) {
             panel.setBackground(new Color(90, 35, 35));

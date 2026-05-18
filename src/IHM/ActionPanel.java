@@ -1145,10 +1145,23 @@ public class ActionPanel extends JPanel {
 
                     if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
                         dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
-                        onTransitionTour.accept("Changement de tour");
+                        Timer transitionTimer = new Timer(1000, evt -> onTransitionTour.accept("Changement de tour"));
+                        transitionTimer.setRepeats(false);
+                        transitionTimer.start();
                     }
                 } else {
-                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                    String jouerApresAction = String.valueOf(gameEngine.getCurrentPlayer());
+                    
+                    if (!joueurAvantAction.equals(jouerApresAction)
+                        && onTransitionTour != null
+                        && mode == GameMode.HUMAN_VS_IA
+                        && !gameEngine.getGameState().isGameOver()) {
+                            Timer transitionTimer = new Timer(1000, evt -> onTransitionTour.accept("Joueur"));
+                            transitionTimer.setRepeats(false);
+                            transitionTimer.start();
+                        } else {
+                            verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                        }
                 }
 
                 if (gameEngine.getGameState().isGameOver()) {

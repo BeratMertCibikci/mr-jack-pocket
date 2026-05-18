@@ -1,6 +1,8 @@
 package IHM;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -15,6 +17,10 @@ public class PlateauPanel extends JPanel {
 
     private GameState gameState;
     private TileSelectionListener tileSelectionListener;
+
+    private java.util.List<Integer> highlightedDetectivePositions = new java.util.ArrayList<>();
+    private java.util.function.Consumer<Integer> detectivePositionSelectionListener;
+    private String selectionMessage;
 
     private static final int PANEL_W = 920;
     private static final int PANEL_H = 760;
@@ -34,6 +40,26 @@ public class PlateauPanel extends JPanel {
 
     public void setTileSelectionListener(TileSelectionListener tileSelectionListener) {
         this.tileSelectionListener = tileSelectionListener;
+    }
+
+    public void setDetectiveMoveSelection(java.util.List<Integer> positions, String message, java.util.function.Consumer<Integer> listener) {
+        highlightedDetectivePositions.clear();
+        if (positions != null) highlightedDetectivePositions.addAll(positions);
+
+        selectionMessage = message;
+        detectivePositionSelectionListener = listener;
+
+        removeAll();
+        afficherPlateau();
+        revalidate();
+        repaint();
+    }
+
+    public void clearDetectiveMoveSelection() {
+        highlightedDetectivePositions.clear();
+        selectionMessage = null;
+        detectivePositionSelectionListener = null;
+        rafraichir();
     }
 
     public PlateauPanel(GameState gameState) {
@@ -146,7 +172,23 @@ public class PlateauPanel extends JPanel {
         }
 
         add(boardPanel);
+        if (selectionMessage != null) ajouterMessageSelection();
         ajouterDetectiveTokensAutourPlateau();
+    }
+
+    private void ajouterMessageSelection() {
+        JLabel messageLabel = new JLabel(selectionMessage, SwingConstants.CENTER);
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        messageLabel.setForeground(new Color(255, 215, 0));
+        messageLabel.setOpaque(true);
+        messageLabel.setBackground(new Color(25, 25, 25, 220));
+        messageLabel.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 2));
+
+        int largeur = 360, hauteur = 45;
+        int x = BOARD_X + (BOARD_W - largeur) / 2, y = BOARD_Y - 65;
+
+        messageLabel.setBounds(x, y, largeur, hauteur);
+        add(messageLabel);
     }
 
     private ImageIcon chargerImagePersonnage(String nom, Orientation orientation) {
@@ -315,29 +357,58 @@ public class PlateauPanel extends JPanel {
                     DETECTIVE_SIZE
             );
 
+            boolean highlighted = highlightedDetectivePositions.contains(position);
             boolean contientDetective = false;
 
-            if (holmesPos == position) {
-                panel.add(creerBadgeDetective("H"));
+            if (highlighted) {
+                panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                panel.setOpaque(false);
+                panel.add(creerBoutonPositionDetective(position));
                 contientDetective = true;
+            } else {
+                if (holmesPos == position) {
+                    panel.add(creerBadgeDetective("H"));
+                    contientDetective = true;
+                }
+
+                if (watsonPos == position) {
+                    panel.add(creerBadgeDetective("W"));
+                    contientDetective = true;
+                }
+
+                if (tobyPos == position) {
+                    panel.add(creerBadgeDetective("T"));
+                    contientDetective = true;
+                }
             }
 
-            if (watsonPos == position) {
-                panel.add(creerBadgeDetective("W"));
-                contientDetective = true;
-            }
-
-            if (tobyPos == position) {
-                panel.add(creerBadgeDetective("T"));
-                contientDetective = true;
-            }
-
-            if (!contientDetective) {
-                panel.add(creerPointVide());
-            }
-
-            add(panel);
+            if (!contientDetective) panel.add(creerPointVide());
+            add(panel, 0);
         }
+    }
+
+    private JButton creerBoutonPositionDetective(int position) {
+        JButton bouton = new JButton("●");
+        bouton.setOpaque(true);
+        bouton.setContentAreaFilled(true);
+        bouton.setBorderPainted(true);
+        bouton.setPreferredSize(new Dimension(48, 48));
+        bouton.setMaximumSize(new Dimension(48, 48));
+        bouton.setMinimumSize(new Dimension(48, 48));
+        bouton.setFont(new Font("Arial", Font.BOLD, 24));
+        bouton.setForeground(new Color(25, 25, 25));
+        bouton.setBackground(new Color(255, 215, 0));
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        bouton.setBorder(BorderFactory.createLineBorder(new Color(255, 245, 160), 3));
+
+        bouton.addActionListener(e ->{
+            if (detectivePositionSelectionListener != null) {
+                detectivePositionSelectionListener.accept(position);
+            }
+        });
+
+        return bouton;
     }
 
     private int getXDetective(int position) {

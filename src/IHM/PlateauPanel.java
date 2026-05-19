@@ -1,32 +1,23 @@
 package IHM;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
-
-import model.GameState;
-import model.Tile;
+import javax.swing.*;
 import model.GameCharacter;
+import model.GameState;
 import model.Orientation;
+import model.Tile;
 
 public class PlateauPanel extends JPanel {
 
     private GameState gameState;
     private TileSelectionListener tileSelectionListener;
+    private java.util.Map<String, BufferedImage> cacheImages = new java.util.HashMap<>();
 
-    private static final int PANEL_W = 920;
-    private static final int PANEL_H = 760;
-
-    private static final int BOARD_X = 300;
-    private static final int BOARD_Y = 95;
-    private static final int BOARD_W = 574;
-    private static final int BOARD_H = 574;
-    private static final int CARD_SIZE = 190;
-
-    private static final int DETECTIVE_SIZE = 70;
-    private static final int DETECTIVE_MARGIN = 25;
+    //private static final int DETECTIVE_SIZE = 70;
+    //private static final int DETECTIVE_MARGIN = 25;
 
     public interface TileSelectionListener {
         void onTileSelected(Tile tile);
@@ -39,11 +30,11 @@ public class PlateauPanel extends JPanel {
     public PlateauPanel(GameState gameState) {
         this.gameState = gameState;
 
-        setLayout(null);
-        setPreferredSize(new Dimension(PANEL_W, PANEL_H));
-        setMaximumSize(new Dimension(PANEL_W, PANEL_H));
+        setLayout(new GridBagLayout());
+        setPreferredSize(new Dimension(700, 700));
+        setMinimumSize(new Dimension(500, 500));
         setBackground(couleurFondTourActuel());
-        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
         afficherPlateau();
     }
@@ -75,11 +66,20 @@ public class PlateauPanel extends JPanel {
     }
 
     private void afficherPlateau() {
+
+        int taillePlateau = Math.min(getWidth() - 180, getHeight() - 120);
+        if (taillePlateau <= 0){
+            taillePlateau = 570;
+        }
+
+        int tailleCarte = taillePlateau / 3;
+
         Tile[][] board = gameState.getBoard().getBoardForUI();
 
-        JPanel boardPanel = new JPanel(new GridLayout(3, 3, 2, 2));
+        JPanel boardPanel = new JPanel(new GridLayout(3, 3, 4, 4));
         boardPanel.setOpaque(false);
-        boardPanel.setBounds(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
+        boardPanel.setPreferredSize(new Dimension(taillePlateau, taillePlateau));
+        //boardPanel.setBounds(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
 
         for (int li = 0; li < 3; li++) {
             for (int ci = 0; ci < 3; ci++) {
@@ -97,7 +97,7 @@ public class PlateauPanel extends JPanel {
                 imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
                 if (tile.isEliminated() || tile.isEmptySide()) {
-                    ImageIcon dosIcon = chargerImageDos("derriere.png", tile.getOrientation());
+                    ImageIcon dosIcon = chargerImageDos("derriere.png", tile.getOrientation(), tailleCarte);
 
                     if (dosIcon != null) {
                         imageLabel.setIcon(dosIcon);
@@ -108,7 +108,7 @@ public class PlateauPanel extends JPanel {
                     }
 
                 } else {
-                    ImageIcon icon = chargerImagePersonnage(nom, tile.getOrientation());
+                    ImageIcon icon = chargerImagePersonnage(nom, tile.getOrientation(), tailleCarte);
 
                     if (icon != null) {
                         imageLabel.setIcon(icon);
@@ -145,11 +145,117 @@ public class PlateauPanel extends JPanel {
             }
         }
 
-        add(boardPanel);
-        ajouterDetectiveTokensAutourPlateau();
+        //add(boardPanel);
+        JPanel plateauContainer = new JPanel(new BorderLayout());
+        plateauContainer.setOpaque(false);
+        plateauContainer.add(boardPanel, BorderLayout.CENTER);
+
+        plateauContainer.add(creerDetectivesTop(), BorderLayout.NORTH);
+        plateauContainer.add(creerDetectivesBottom(), BorderLayout.SOUTH);
+        plateauContainer.add(creerDetectivesLeft(), BorderLayout.WEST);
+        plateauContainer.add(creerDetectivesRight(), BorderLayout.EAST);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(plateauContainer, gbc);
+        
+        //ajouterDetectiveTokensAutourPlateau();
     }
 
-    private ImageIcon chargerImagePersonnage(String nom, Orientation orientation) {
+    private JPanel creerDetectivesTop(){
+        int gap = Math.max(8, getWidth() / 30);
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, gap, 0));
+        panel.setOpaque(false);
+
+        panel.add(creerCaseDetective(0));
+        panel.add(creerCaseDetective(1));
+        panel.add(creerCaseDetective(2));
+        return panel;
+    }
+
+    private JPanel creerDetectivesBottom(){
+        int gap = Math.max(8, getWidth() / 30);
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, gap, 0));
+        panel.setOpaque(false);
+
+        panel.add(creerCaseDetective(8));
+        panel.add(creerCaseDetective(7));
+        panel.add(creerCaseDetective(6));
+        return panel;
+    }
+
+    private JPanel creerDetectivesLeft(){
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setOpaque(false);
+
+        int espace = Math.max(10, getHeight() / 18);
+
+        panel.add(Box.createVerticalStrut(espace));
+        panel.add(creerCaseDetective(11));
+
+        panel.add(Box.createVerticalStrut(espace));
+        panel.add(creerCaseDetective(10));
+
+        panel.add(Box.createVerticalStrut(espace));
+        panel.add(creerCaseDetective(9));
+        return panel;
+    }
+
+    private JPanel creerDetectivesRight(){
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setOpaque(false);
+
+        int espace = Math.max(10, getHeight() / 18);
+
+        panel.add(Box.createVerticalStrut(espace));
+        panel.add(creerCaseDetective(3));
+
+        panel.add(Box.createVerticalStrut(espace));
+        panel.add(creerCaseDetective(4));
+
+        panel.add(Box.createVerticalStrut(espace));
+        panel.add(creerCaseDetective(5));
+        return panel;
+    }
+
+    private JPanel creerCaseDetective(int position){
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        panel.setPreferredSize(new Dimension(64, 64));
+        panel.setOpaque(false);
+
+        int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
+        int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
+        int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
+
+        boolean contientDetective = false;
+
+        if (holmesPos == position){
+            panel.add(creerBadgeDetective("H"));
+            contientDetective = true;
+        }
+
+        if (watsonPos == position){
+            panel.add(creerBadgeDetective("W"));
+            contientDetective = true;
+        }
+
+        if (tobyPos == position){
+            panel.add(creerBadgeDetective("T"));
+            contientDetective = true;
+        }
+
+        if (!contientDetective){
+            panel.add(creerPointVide());
+        }
+
+        return panel;
+    }
+
+    private ImageIcon chargerImagePersonnage(String nom, Orientation orientation, int tailleCarte) {
         String nomFichier = nom.toLowerCase()
                 .replace(".", "")
                 .replace(" ", "_");
@@ -166,14 +272,19 @@ public class PlateauPanel extends JPanel {
         }
 
         try {
-            BufferedImage imageOriginale = ImageIO.read(fichierImage);
+            BufferedImage imageOriginale = cacheImages.get(fichierImage.getAbsolutePath());
+
+            if (imageOriginale == null) {
+                imageOriginale = ImageIO.read(fichierImage);
+                cacheImages.put(fichierImage.getAbsolutePath(), imageOriginale);
+            }
 
             if (imageOriginale == null) {
                 System.out.println("Image illisible : " + fichierImage.getAbsolutePath());
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_SIZE, CARD_SIZE);
+            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, tailleCarte, tailleCarte);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -184,7 +295,7 @@ public class PlateauPanel extends JPanel {
         }
     }
 
-    private ImageIcon chargerImageDos(String nomFichier, Orientation orientation) {
+    private ImageIcon chargerImageDos(String nomFichier, Orientation orientation, int tailleCarte) {
         String chemin = System.getProperty("user.dir")
                 + "/assets/images/characters/"
                 + nomFichier;
@@ -197,14 +308,19 @@ public class PlateauPanel extends JPanel {
         }
 
         try {
-            BufferedImage imageOriginale = ImageIO.read(fichierImage);
+            BufferedImage imageOriginale = cacheImages.get(fichierImage.getAbsolutePath());
+
+            if (imageOriginale == null) {
+                imageOriginale = ImageIO.read(fichierImage);
+                cacheImages.put(fichierImage.getAbsolutePath(), imageOriginale);
+            }
 
             if (imageOriginale == null) {
                 System.out.println("Image dos illisible : " + fichierImage.getAbsolutePath());
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_SIZE, CARD_SIZE);
+            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, tailleCarte, tailleCarte);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -298,130 +414,6 @@ public class PlateauPanel extends JPanel {
         }
 
         return 0;
-    }
-
-    private void ajouterDetectiveTokensAutourPlateau() {
-        int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
-        int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
-        int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
-
-        for (int position = 0; position < 12; position++) {
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-            panel.setOpaque(false);
-            panel.setBounds(
-                    getXDetective(position),
-                    getYDetective(position),
-                    DETECTIVE_SIZE,
-                    DETECTIVE_SIZE
-            );
-
-            boolean contientDetective = false;
-
-            if (holmesPos == position) {
-                panel.add(creerBadgeDetective("H"));
-                contientDetective = true;
-            }
-
-            if (watsonPos == position) {
-                panel.add(creerBadgeDetective("W"));
-                contientDetective = true;
-            }
-
-            if (tobyPos == position) {
-                panel.add(creerBadgeDetective("T"));
-                contientDetective = true;
-            }
-
-            if (!contientDetective) {
-                panel.add(creerPointVide());
-            }
-
-            add(panel);
-        }
-    }
-
-    private int getXDetective(int position) {
-        int left = BOARD_X - DETECTIVE_SIZE - DETECTIVE_MARGIN;
-        int right = BOARD_X + BOARD_W + DETECTIVE_MARGIN;
-
-        int x0 = BOARD_X + BOARD_W / 6 - DETECTIVE_SIZE / 2;
-        int x1 = BOARD_X + BOARD_W / 2 - DETECTIVE_SIZE / 2;
-        int x2 = BOARD_X + (5 * BOARD_W) / 6 - DETECTIVE_SIZE / 2;
-
-        switch (position) {
-            case 0:
-                return x0;
-
-            case 1:
-                return x1;
-
-            case 2:
-                return x2;
-
-            case 3:
-            case 4:
-            case 5:
-                return right;
-
-            case 6:
-                return x2;
-
-            case 7:
-                return x1;
-
-            case 8:
-                return x0;
-
-            case 9:
-            case 10:
-            case 11:
-                return left;
-
-            default:
-                return 0;
-        }
-    }
-
-    private int getYDetective(int position) {
-        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN;
-        int bottom = BOARD_Y + BOARD_H + DETECTIVE_MARGIN;
-
-        int y0 = BOARD_Y + BOARD_H / 6 - DETECTIVE_SIZE / 2;
-        int y1 = BOARD_Y + BOARD_H / 2 - DETECTIVE_SIZE / 2;
-        int y2 = BOARD_Y + (5 * BOARD_H) / 6 - DETECTIVE_SIZE / 2;
-
-        switch (position) {
-            case 0:
-            case 1:
-            case 2:
-                return top;
-
-            case 3:
-                return y0;
-
-            case 4:
-                return y1;
-
-            case 5:
-                return y2;
-
-            case 6:
-            case 7:
-            case 8:
-                return bottom;
-
-            case 9:
-                return y2;
-
-            case 10:
-                return y1;
-
-            case 11:
-                return y0;
-
-            default:
-                return 0;
-        }
     }
 
     private JComponent creerBadgeDetective(String texte) {

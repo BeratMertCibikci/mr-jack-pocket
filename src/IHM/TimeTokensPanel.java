@@ -1,9 +1,7 @@
 package IHM;
 
-import javax.swing.*;
-import javax.swing.border.Border;
-
 import java.awt.*;
+import javax.swing.*;
 import model.GameState;
 import model.Token;
 
@@ -13,7 +11,7 @@ public class TimeTokensPanel extends JPanel {
     public TimeTokensPanel(GameState gameState) {
         this.gameState = gameState;
 
-        setPreferredSize(new Dimension(90, 0));
+        //setPreferredSize(new Dimension(90, 0));
         setBackground(new Color(30, 30, 30));
         setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -33,8 +31,11 @@ public class TimeTokensPanel extends JPanel {
     }
 
     private void afficherTimeTokens() {
-        JLabel titre = new JLabel("Tours");
-        titre.setFont(new Font("Arial", Font.BOLD, 18));
+        JLabel titre = new JLabel("Tours", SwingConstants.CENTER);
+        titre.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        int tailleTitre = Math.max(14, getHeight() / 28);
+        titre.setFont(new Font("Arial", Font.BOLD, tailleTitre));
         titre.setForeground(new Color(245, 235, 210));
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -51,13 +52,19 @@ public class TimeTokensPanel extends JPanel {
 
     private JPanel creerTimeTokenPanel(int numeroTour) {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setPreferredSize(new Dimension(55, 42));
-        panel.setMaximumSize(new Dimension(55, 42));
+
+        int largeur = Math.max(80, getWidth() - 20);
+        int hauteur = Math.max(42, getHeight() / 12);
+
+        panel.setPreferredSize(new Dimension(largeur, hauteur));
+        panel.setMaximumSize(new Dimension(largeur, hauteur));
         panel.setBackground(new Color(45, 40, 35));
         panel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
 
         JLabel label = new JLabel(String.valueOf(numeroTour), SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 16));
+
+        int tailleFont = Math.max(12, getHeight() / 35);
+        label.setFont(new Font("Arial", Font.BOLD, tailleFont));
         label.setForeground(new Color(245, 235, 210));
 
         String proprietaire = getProprietaireToken(numeroTour);
@@ -121,5 +128,10 @@ public class TimeTokensPanel extends JPanel {
             default:
                 return 0;
         }
+    }
+
+    @Override
+    public Dimension getPreferredSize(){
+        return new Dimension(120, 500);
     }
 }

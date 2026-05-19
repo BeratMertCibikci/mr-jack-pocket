@@ -9,6 +9,16 @@ public class ChoixModePanel extends JPanel {
     private Image backgroundImage;
     private BoutonClickMusique boutonClickMusique;
 
+    private JPanel contenuPanel;
+    private JPanel panel;
+
+    private JLabel titre;
+
+    private JButton humainVsHumainButton;
+    private JButton humainVsIAButton;
+    private JButton iaVsIAButton;
+    private JButton retourButton;
+
     public ChoixModePanel(FenetrePrincipale fenetre) {
         boutonClickMusique = new BoutonClickMusique();
 
@@ -19,21 +29,21 @@ public class ChoixModePanel extends JPanel {
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        JLabel titre = new JLabel("Choix du mode de jeu", SwingConstants.LEFT);
-        titre.setFont(new Font("Arial", Font.BOLD, 32));
+        titre = new JLabel("Choix du mode de jeu", SwingConstants.LEFT);
+        //titre.setFont(new Font("Arial", Font.BOLD, 32));
         titre.setForeground(new Color(245, 235, 210));
         titre.setOpaque(false);
         titre.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        JPanel panel = new JPanel();
+        panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        JButton humainVsHumainButton = new JButton("Humain vs Humain");
-        JButton humainVsIAButton = new JButton("Humain vs IA");
-        JButton iaVsIAButton = new JButton("IA vs IA");
-        JButton retourButton = new JButton("Retour");
+        humainVsHumainButton = new JButton("Humain vs Humain");
+        humainVsIAButton = new JButton("Humain vs IA");
+        iaVsIAButton = new JButton("IA vs IA");
+        retourButton = new JButton("Retour");
 
         BoutonTexte(humainVsHumainButton);
         BoutonTexte(humainVsIAButton);
@@ -53,7 +63,7 @@ public class ChoixModePanel extends JPanel {
         panel.add(Box.createVerticalStrut(18));
         panel.add(retourButton);
 
-        JPanel contenuPanel = new JPanel();
+        contenuPanel = new JPanel();
         contenuPanel.setOpaque(false);
         contenuPanel.setLayout(new BoxLayout(contenuPanel, BoxLayout.Y_AXIS));
         contenuPanel.setBorder(BorderFactory.createEmptyBorder(280, 90, 40, 0));
@@ -85,10 +95,21 @@ public class ChoixModePanel extends JPanel {
             boutonClickMusique.jouerClick();
             fenetre.afficherMenu();
         });
+
+        mettreAJourResponsiveLayout();
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                });
+            }
+        });
     }
 
     private void BoutonTexte(JButton bouton) {
-        bouton.setFont(new Font("Arial", Font.BOLD, 20));
+        //bouton.setFont(new Font("Arial", Font.BOLD, 20));
         bouton.setForeground(new Color(245, 235, 210));
         bouton.setContentAreaFilled(false);
         bouton.setOpaque(false);
@@ -238,6 +259,43 @@ public class ChoixModePanel extends JPanel {
         label.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         return label;
+    }
+
+    private void mettreAJourResponsiveLayout(){
+        int top = Math.min(350, Math.max(120, getHeight() / 3));
+        int left = Math.min(180, Math.max(30, getWidth() / 10));
+
+        contenuPanel.setBorder(BorderFactory.createEmptyBorder(top, left, 40, 0));
+
+        int tailleTitre = Math.max(20, getHeight() / 25);
+        int tailleBouton = Math.max(16, getHeight() / 35);
+
+        titre.setFont(new Font("Arial", Font.BOLD, tailleTitre));
+
+        Font boutonFont = new Font("Arial", Font.BOLD, tailleBouton);
+
+        humainVsHumainButton.setFont(boutonFont);
+        humainVsIAButton.setFont(boutonFont);
+        iaVsIAButton.setFont(boutonFont);
+        retourButton.setFont(boutonFont);
+
+        int espace = Math.max(8, getHeight() / 70);
+
+        panel.removeAll();
+        
+        panel.add(humainVsHumainButton);
+        panel.add(Box.createVerticalStrut(espace));
+
+        panel.add(humainVsIAButton);
+        panel.add(Box.createVerticalStrut(espace));
+
+        panel.add(iaVsIAButton);
+        panel.add(Box.createVerticalStrut(espace));
+
+        panel.add(retourButton);
+
+        revalidate();
+        repaint();
     }
 
     @Override

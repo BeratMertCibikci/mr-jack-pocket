@@ -6,16 +6,13 @@ import ai.AIPlayer;
 import ai.EvaluationPerspective;
 import engine.ActionType;
 import engine.GameEngine;
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
-
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
@@ -38,6 +35,8 @@ public class ActionPanel extends JPanel {
     private boolean aiEnCours = false;
     private AIDifficulty difficulty;
     private String humanRole;
+
+    private java.util.Map<String, BufferedImage> cacheImages = new java.util.HashMap<>();
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -148,11 +147,13 @@ public class ActionPanel extends JPanel {
 
         setLayout(new GridLayout(0, 2, 8, 8));
         setOpaque(false);
-        setPreferredSize(new Dimension(220, 360));
-        setMaximumSize(new Dimension(220, 360));
+        //setPreferredSize(new Dimension(220, 360));
+        //setMaximumSize(new Dimension(220, 360));
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         afficherActions();
+
+        mettreAJourResponsiveLayout();
 
         SwingUtilities.invokeLater(this::jouerSiTourIA);
     }
@@ -182,9 +183,23 @@ public class ActionPanel extends JPanel {
             timeTokensPanel.rafraichir();
         }
 
+        if (alibiPanel != null){
+            alibiPanel.rafraichir();
+        }
+
         rafraichir();
 
         SwingUtilities.invokeLater(this::jouerSiTourIA);
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                    rafraichir();
+                });
+            }
+        });
     }
 
     private void afficherActions() {
@@ -248,7 +263,9 @@ public class ActionPanel extends JPanel {
     private JButton creerBoutonControle(String texte, Color couleur) {
         JButton bouton = new JButton(texte);
 
-        bouton.setFont(new Font("Arial", Font.BOLD, 13));
+        int tailleFont = Math.max(11, getHeight() / 28);
+
+        bouton.setFont(new Font("Arial", Font.BOLD, tailleFont));
         bouton.setBackground(couleur);
         bouton.setForeground(new Color(245, 235, 210));
         bouton.setFocusPainted(false);
@@ -259,7 +276,7 @@ public class ActionPanel extends JPanel {
 
     private JPanel creerActionTokenPanel(Token token, int index) {
         JPanel tokenPanel = new JPanel(new BorderLayout());
-        tokenPanel.setPreferredSize(new Dimension(90, 90));
+        //tokenPanel.setPreferredSize(new Dimension(90, 90));
         tokenPanel.setOpaque(false);
         tokenPanel.setBorder(null);
 
@@ -275,7 +292,16 @@ public class ActionPanel extends JPanel {
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-        ImageIcon icon = chargerImageAction(actionName);
+        int taille = Math.min(getWidth(), getHeight()) / 4;
+
+        taille = Math.max(75, taille);
+        taille = Math.min(160, taille);
+
+        if (taille <= 0){
+            taille = 85;
+        }
+
+        ImageIcon icon = chargerImageAction(actionName, taille);
 
         if (icon != null) {
             imageLabel.setIcon(icon);
@@ -796,7 +822,7 @@ public class ActionPanel extends JPanel {
         timer.start();
     }
 
-    private ImageIcon chargerImageAction(String actionName) {
+    private ImageIcon chargerImageAction(String actionName, int taille) {
         String nomFichier = getNomFichierAction(actionName);
 
         String chemin = System.getProperty("user.dir")
@@ -812,14 +838,19 @@ public class ActionPanel extends JPanel {
         }
 
         try {
-            BufferedImage imageOriginale = ImageIO.read(fichierImage);
+            BufferedImage imageOriginale = cacheImages.get(nomFichier);
+
+            if (imageOriginale == null){
+                imageOriginale = ImageIO.read(fichierImage);
+                cacheImages.put(nomFichier, imageOriginale);
+            }
 
             if (imageOriginale == null) {
                 System.out.println("Image action illisible : " + fichierImage.getAbsolutePath());
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImageAction(imageOriginale, 85, 85);
+            BufferedImage imageRedimensionnee = redimensionnerImageAction(imageOriginale, taille, taille);
             return new ImageIcon(imageRedimensionnee);
 
         } catch (Exception e) {
@@ -891,5 +922,19 @@ public class ActionPanel extends JPanel {
         g.dispose();
 
         return imageRedimensionnee;
+    }
+
+    private void mettreAJourResponsiveLayout(){
+        int gap = Math.max(4, getWidth() / 40);
+
+        setLayout(new GridLayout(0, 2, gap, gap));
+
+        revalidate();
+        repaint();
+    }
+
+    @Override
+    public Dimension getPreferredSize(){
+        return new Dimension(220, 360);
     }
 }

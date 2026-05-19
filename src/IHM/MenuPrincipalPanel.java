@@ -8,6 +8,15 @@ public class MenuPrincipalPanel extends JPanel {
     private Image backgroundImage;
     private BoutonClickMusique boutonClickMusique;
 
+    private JPanel boutonsPanel;
+    
+    private JButton jouerButton;
+    private JButton loadButton;
+    private JButton reglesButton;
+    private JButton quitterButton;
+    private JButton muteButton;
+    private JSlider volumeSlider;
+
     public MenuPrincipalPanel(FenetrePrincipale fenetre) {
 
         String cheminImage = System.getProperty("user.dir") + "/assets/images/deneme2.png"; // chemin absolu de l'image
@@ -19,21 +28,26 @@ public class MenuPrincipalPanel extends JPanel {
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        JPanel boutonsPanel = new JPanel();
+        boutonsPanel = new JPanel();
         boutonsPanel.setOpaque(false); // pour qu'on ne bloque pas l'arriere-plan
         //boutonsPanel.setLayout(new GridLayout(3, 1, 15, 15)); // 3 lignes, 1 colonne, 15 pixels entre les boutons
         boutonsPanel.setLayout(new BoxLayout(boutonsPanel, BoxLayout.Y_AXIS));
-        boutonsPanel.setBorder(BorderFactory.createEmptyBorder(330, 90, 40, 0)); // le comptour des boutons sont vides
 
-        JButton jouerButton = new JButton("Jouer");
-        JButton loadButton = new JButton("Load Game");
-        JButton reglesButton = new JButton("Règles");
-        JButton quitterButton = new JButton("Quitter");
-        JButton muteButton = new JButton("Unmute");
+        int top = Math.max(280, getHeight()/2);
+        int left = Math.max(110, getWidth() / 10);
+        boutonsPanel.setBorder(BorderFactory.createEmptyBorder(top, left, 40, 0)); // le comptour des boutons sont vides
 
-        JSlider volumeSlider = new JSlider(0, 100, 40);
+        jouerButton = new JButton("Jouer");
+        loadButton = new JButton("Load Game");
+        reglesButton = new JButton("Règles");
+        quitterButton = new JButton("Quitter");
+        muteButton = new JButton("Unmute");
+
+        volumeSlider = new JSlider(0, 100, 40);
         volumeSlider.setOpaque(false);
-        volumeSlider.setMaximumSize(new Dimension(180, 40));
+
+        int largeurSlider = Math.max(140, getWidth() / 5);
+        volumeSlider.setMaximumSize(new Dimension(largeurSlider, 40));
         volumeSlider.setAlignmentX(Component.LEFT_ALIGNMENT);
         volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -49,16 +63,18 @@ public class MenuPrincipalPanel extends JPanel {
         quitterButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         muteButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        int espace = Math.max(8, getHeight() / 70);
+
         boutonsPanel.add(jouerButton);
-        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(Box.createVerticalStrut(espace));
         boutonsPanel.add(loadButton);
-        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(Box.createVerticalStrut(espace));
         boutonsPanel.add(reglesButton);
-        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(Box.createVerticalStrut(espace));
         boutonsPanel.add(muteButton);
-        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(Box.createVerticalStrut(espace));
         boutonsPanel.add(volumeSlider);
-        boutonsPanel.add(Box.createVerticalStrut(10));
+        boutonsPanel.add(Box.createVerticalStrut(espace));
         boutonsPanel.add(quitterButton);
 
         //add(titreLabel, BorderLayout.NORTH);
@@ -107,19 +123,77 @@ public class MenuPrincipalPanel extends JPanel {
             int volume = volumeSlider.getValue();
             fenetre.changerVolumeMusique(volume);
         });
+
+        mettreAJourResponsiveLayout();
+
+        addComponentListener(new java.awt.event.ComponentAdapter(){
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e){
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                });
+            }
+        });
     }
 
     private void BoutonTexte(JButton bouton) {
+        //int tailleFont = Math.max(16, getHeight()/35);
+        //bouton.setFont(new Font("Arial", Font.BOLD, tailleFont));
+        bouton.setForeground(new Color(245, 235, 210));
+        bouton.setContentAreaFilled(false);
+        bouton.setOpaque(false);
+        bouton.setBorderPainted(false);
+        bouton.setFocusPainted(false);
+        bouton.setMargin(new Insets(4, 8, 4, 8));
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    }
 
-            bouton.setFont(new Font("Arial", Font.BOLD, 20));
-            bouton.setForeground(new Color(245, 235, 210));
-            bouton.setContentAreaFilled(false);
-            bouton.setOpaque(false);
-            bouton.setBorderPainted(false);
-            bouton.setFocusPainted(false);
-            bouton.setMargin(new Insets(4, 8, 4, 8));
-            bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        }
+    private void mettreAJourResponsiveLayout(){
+        int top = Math.min(350, Math.max(120, getHeight() / 3));
+        int left = Math.min(180, Math.max(30, getWidth() / 10));
+
+        boutonsPanel.setBorder(BorderFactory.createEmptyBorder(top, left, 40, 0));
+        int espace = Math.max(8, getHeight() / 70);
+
+        boutonsPanel.removeAll();
+        
+        boutonsPanel.add(jouerButton);
+        boutonsPanel.add(Box.createVerticalStrut(espace));
+
+        boutonsPanel.add(loadButton);
+        boutonsPanel.add(Box.createVerticalStrut(espace));
+
+        boutonsPanel.add(reglesButton);
+        boutonsPanel.add(Box.createVerticalStrut(espace));
+
+        boutonsPanel.add(muteButton);
+        boutonsPanel.add(Box.createVerticalStrut(espace));
+
+        boutonsPanel.add(volumeSlider);
+        boutonsPanel.add(Box.createVerticalStrut(espace));
+
+        boutonsPanel.add(quitterButton);
+
+        int largeurSlider = Math.max(140, getWidth() / 5);
+        int hauteurSlider = Math.max(30, getHeight()/20);
+
+        volumeSlider.setMaximumSize(new Dimension(largeurSlider, hauteurSlider));
+        volumeSlider.setPreferredSize(new Dimension(largeurSlider, hauteurSlider));
+
+        int tailleFont = Math.max(16, getHeight() / 35);
+
+        Font font = new Font("Arial", Font.BOLD, tailleFont);
+
+        jouerButton.setFont(font);
+        loadButton.setFont(font);
+        reglesButton.setFont(font);
+        quitterButton.setFont(font);
+        muteButton.setFont(font);
+
+        revalidate();
+        repaint();
+
+    }
 
     @Override
     protected void paintComponent(Graphics g) {

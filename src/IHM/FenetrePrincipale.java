@@ -1,9 +1,9 @@
 package IHM;
 
 import ai.AIDifficulty;
+import engine.GameEngine;
 import java.awt.*;
 import javax.swing.*;
-import engine.GameEngine;
 
 public class FenetrePrincipale extends JFrame {
 
@@ -15,8 +15,7 @@ public class FenetrePrincipale extends JFrame {
     public FenetrePrincipale() {
         setTitle("Mr Jack Pocket");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 600);
-        setLocationRelativeTo(null);
+        //setSize(900, 600);
 
         musique = new MainMusique();
 
@@ -28,6 +27,11 @@ public class FenetrePrincipale extends JFrame {
         mainPanel.add(new ReglesPanel(this), "regles");
 
         add(mainPanel, BorderLayout.CENTER);
+
+        pack();
+        setMinimumSize(new Dimension(900, 700));
+        setLocationRelativeTo(null);
+
         afficherMenu();
     }
 

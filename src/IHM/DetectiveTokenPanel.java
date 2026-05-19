@@ -1,10 +1,10 @@
 package IHM;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class DetectiveTokenPanel extends JPanel {
 
@@ -15,9 +15,9 @@ public class DetectiveTokenPanel extends JPanel {
         this.nom = nom;
         this.image = chargerImageDetective(nom);
 
-        setPreferredSize(new Dimension(60, 60));
-        setMinimumSize(new Dimension(60, 60));
-        setMaximumSize(new Dimension(60, 60));
+        //setPreferredSize(new Dimension(60, 60));
+        //setMinimumSize(new Dimension(60, 60));
+        //setMaximumSize(new Dimension(60, 60));
 
         setOpaque(false);
         setLayout(new BorderLayout());
@@ -33,7 +33,7 @@ public class DetectiveTokenPanel extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int size = Math.min(getWidth(), getHeight()) - 6;
+        int size = (int)(Math.min(getWidth(), getHeight()) * 0.85);
         int x = (getWidth() - size) / 2;
         int y = (getHeight() - size) / 2;
 
@@ -48,7 +48,9 @@ public class DetectiveTokenPanel extends JPanel {
             g2.fillOval(x, y, size, size);
 
             g2.setColor(new Color(245, 235, 210));
-            g2.setFont(new Font("Arial", Font.BOLD, 16));
+
+            int tailleFont = Math.max(12, size/3);
+            g2.setFont(new Font("Arial", Font.BOLD, tailleFont));
 
             String lettre = getLettreDetective(nom);
             FontMetrics fm = g2.getFontMetrics();
@@ -60,7 +62,9 @@ public class DetectiveTokenPanel extends JPanel {
         }
 
         g2.setColor(new Color(212, 175, 55));
-        g2.setStroke(new BasicStroke(3));
+
+        float epaisseur = Math.max(2f, size / 20f);
+        g2.setStroke(new BasicStroke(epaisseur));
         g2.drawOval(x, y, size, size);
 
         g2.dispose();
@@ -131,5 +135,12 @@ public class DetectiveTokenPanel extends JPanel {
         }
 
         return "?";
+    }
+
+    @Override
+    public Dimension getPreferredSize(){
+        int size = Math.max(52, Math.min(getWidth(), getHeight()) - 8);
+
+        return new Dimension(size, size);
     }
 }

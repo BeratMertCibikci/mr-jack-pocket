@@ -1,9 +1,8 @@
 package IHM;
 
-import javax.swing.*;
-import java.awt.*;
-
 import engine.GameEngine;
+import java.awt.*;
+import javax.swing.*;
 
 public class InfoJeuPanel extends JPanel {
 
@@ -31,7 +30,7 @@ public class InfoJeuPanel extends JPanel {
         this.joueur1Role = joueur1Role;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));// alt alta yazma 
-        setPreferredSize(new Dimension(260, 0)); //boyut
+        //setPreferredSize(new Dimension(260, 0)); //boyut
         setBackground(new Color(25, 25, 25));//arka plan koyu
         setBorder(BorderFactory.createEmptyBorder(30, 20, 30, 20));//iç boşluk veriyor
 
@@ -141,7 +140,8 @@ public class InfoJeuPanel extends JPanel {
     private JPanel creerLignePersonnage(model.GameCharacter character) {
         JPanel ligne = new JPanel(new BorderLayout(8, 0));
         ligne.setOpaque(false);
-        ligne.setMaximumSize(new Dimension(220, 24));
+        //ligne.setMaximumSize(new Dimension(220, 24));
+        ligne.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
         ligne.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel nomLabel = new JLabel(character.getName());
@@ -203,5 +203,10 @@ public class InfoJeuPanel extends JPanel {
         }
 
         return new Color(160, 160, 160);
+    }
+
+    @Override
+    public Dimension getPreferredSize(){
+        return new Dimension(260, 600);
     }
 }

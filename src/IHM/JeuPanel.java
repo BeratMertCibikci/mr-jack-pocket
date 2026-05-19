@@ -71,7 +71,12 @@ public class JeuPanel extends JPanel {
         PlateauPanel plateauPanel = new PlateauPanel(gameState);
         InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
         TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
+        timeTokensPanel.setMinimumSize(new Dimension(110, 0));
+        timeTokensPanel.setPreferredSize(new Dimension(110, 0));
+
         AlibiPanel alibiPanel = new AlibiPanel();
+        alibiPanel.setMinimumSize(new Dimension(260, 0));
+        alibiPanel.setPreferredSize(new Dimension(260, 0));
 
         ActionPanel actionPanel = new ActionPanel(
                 gameEngine,
@@ -104,17 +109,20 @@ public class JeuPanel extends JPanel {
 
         JPanel rightGamePanel = new JPanel();
         rightGamePanel.setOpaque(false);
-        rightGamePanel.setPreferredSize(new Dimension(240, 0));
+        //rightGamePanel.setPreferredSize(new Dimension(240, 0));
+        rightGamePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         rightGamePanel.setLayout(new BoxLayout(rightGamePanel, BoxLayout.Y_AXIS));
 
         alibiPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        /*
         alibiPanel.setPreferredSize(new Dimension(220, 250));
         alibiPanel.setMaximumSize(new Dimension(220, 250));
 
         actionPanel.setPreferredSize(new Dimension(220, 360));
         actionPanel.setMaximumSize(new Dimension(220, 360));
+        */
 
         rightGamePanel.add(Box.createVerticalStrut(30));
         rightGamePanel.add(alibiPanel);
@@ -238,6 +246,9 @@ public class JeuPanel extends JPanel {
         pausePanel.add(retourMenuButton);
 
         pauseDialog.setContentPane(pausePanel);
+
+        pauseDialog.pack();
+        pauseDialog.setLocationRelativeTo(this);
         pauseDialog.setVisible(true);
     }
 

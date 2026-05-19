@@ -1,36 +1,47 @@
 package IHM;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class AlibiPanel extends JPanel {
+    private JLabel imageLabel;
+    private BufferedImage imageOriginale;
 
     public AlibiPanel() {
-        setPreferredSize(new Dimension(250, 0));
+        //setPreferredSize(new Dimension(250, 0));
         setBackground(new Color(35, 35, 35));
         setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         setLayout(new BorderLayout());
 
-        JLabel imageLabel = new JLabel();
+        imageLabel = new JLabel();
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         imageLabel.setVerticalAlignment(SwingConstants.TOP);
 
-        ImageIcon icon = chargerImage("alibi_card.png");
+        imageOriginale = chargerImageOriginale("alibi_card.png");
 
-        if (icon != null) {
-            imageLabel.setIcon(icon);
-        } else {
+        if (imageOriginale == null){
             imageLabel.setText("Image Alibi");
             imageLabel.setForeground(new Color(245, 235, 210));
+        }else{
+            rafraichir();
         }
 
         add(imageLabel, BorderLayout.CENTER);
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    rafraichir();
+                });
+            }
+        });
     }
 
-    private ImageIcon chargerImage(String nomFichier) {
+    private BufferedImage chargerImageOriginale(String nomFichier) {
         String chemin = System.getProperty("user.dir")
                 + "/assets/images/characters/"
                 + nomFichier;
@@ -43,15 +54,14 @@ public class AlibiPanel extends JPanel {
         }
 
         try {
-            BufferedImage imageOriginale = ImageIO.read(fichierImage);
+            BufferedImage image = ImageIO.read(fichierImage);
 
-            if (imageOriginale == null) {
+            if (image == null) {
                 System.out.println("Image alibi illisible : " + fichierImage.getAbsolutePath());
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImage(imageOriginale, 240, 175);
-            return new ImageIcon(imageRedimensionnee);
+            return image;
 
         } catch (Exception e) {
             System.out.println("Erreur chargement image alibi : " + e.getMessage());
@@ -88,5 +98,26 @@ public class AlibiPanel extends JPanel {
         g.dispose();
 
         return imageRedimensionnee;
+    }
+
+    public void rafraichir(){
+        if (imageOriginale == null){
+            return;
+        }
+
+        int largeur = Math.max(120, (int)(getWidth() * 0.9));
+        int hauteur = Math.max(120, (int)(getHeight() * 0.9));
+
+        BufferedImage imageRedimensionnee = redimensionnerImage(imageOriginale, largeur, hauteur);
+
+        imageLabel.setIcon(new ImageIcon(imageRedimensionnee));
+
+        revalidate();
+        repaint();
+    }
+
+    @Override
+    public Dimension getPreferredSize(){
+        return new Dimension(240, 280);
     }
 }

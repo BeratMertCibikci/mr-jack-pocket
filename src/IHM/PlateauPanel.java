@@ -178,17 +178,17 @@ public class PlateauPanel extends JPanel {
 
     private void ajouterMessageSelection() {
         JLabel messageLabel = new JLabel(selectionMessage, SwingConstants.CENTER);
-        messageLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 18));
         messageLabel.setForeground(new Color(255, 215, 0));
         messageLabel.setOpaque(true);
-        messageLabel.setBackground(new Color(25, 25, 25, 220));
+        messageLabel.setBackground(new Color(25, 25, 25, 210));
         messageLabel.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 2));
 
-        int largeur = 360, hauteur = 45;
-        int x = BOARD_X + (BOARD_W - largeur) / 2, y = BOARD_Y - 65;
+        int largeur = 300, hauteur = 42;
+        int x = 15, y = 20;
 
         messageLabel.setBounds(x, y, largeur, hauteur);
-        add(messageLabel);
+        add(messageLabel, 0);
     }
 
     private ImageIcon chargerImagePersonnage(String nom, Orientation orientation) {
@@ -389,20 +389,55 @@ public class PlateauPanel extends JPanel {
 
     private JButton creerBoutonPositionDetective(int position) {
         JButton bouton = new JButton("●");
-        bouton.setOpaque(true);
-        bouton.setContentAreaFilled(true);
-        bouton.setBorderPainted(true);
-        bouton.setPreferredSize(new Dimension(48, 48));
-        bouton.setMaximumSize(new Dimension(48, 48));
-        bouton.setMinimumSize(new Dimension(48, 48));
-        bouton.setFont(new Font("Arial", Font.BOLD, 24));
-        bouton.setForeground(new Color(25, 25, 25));
-        bouton.setBackground(new Color(255, 215, 0));
+        bouton.setPreferredSize(new Dimension(46, 46));
+        bouton.setMaximumSize(new Dimension(46, 46));
+        bouton.setMinimumSize(new Dimension(46, 46));
+        bouton.setFont(new Font("Arial", Font.BOLD, 26));
+        bouton.setForeground(new Color(40, 40, 40));
+        bouton.setOpaque(false);
+        bouton.setContentAreaFilled(false);
+        bouton.setBorderPainted(false);
         bouton.setFocusPainted(false);
         bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        bouton.setBorder(BorderFactory.createLineBorder(new Color(255, 245, 160), 3));
 
-        bouton.addActionListener(e ->{
+        bouton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+
+        bouton.addActionListener(e -> {
+            if (detectivePositionSelectionListener != null) {
+                detectivePositionSelectionListener.accept(position);
+            }
+        });
+
+        bouton = new JButton("●") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.setColor(new Color(255, 215, 0, 150));
+                g2.fillOval(4, 4, getWidth() - 8, getHeight() - 8);
+
+                g2.setColor(new Color(255, 245, 160, 210));
+                g2.setStroke(new BasicStroke(3));
+                g2.drawOval(4, 4, getWidth() - 8, getHeight() - 8);
+
+                g2.setColor(new Color(25, 25, 25, 220));
+                g2.fillOval(getWidth() / 2 - 4, getHeight() / 2 - 4, 8, 8);
+
+                g2.dispose();
+            }
+        };
+
+            bouton.setPreferredSize(new Dimension(46, 46));
+        bouton.setMaximumSize(new Dimension(46, 46));
+        bouton.setMinimumSize(new Dimension(46, 46));
+        bouton.setOpaque(false);
+        bouton.setContentAreaFilled(false);
+        bouton.setBorderPainted(false);
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        bouton.addActionListener(e -> {
             if (detectivePositionSelectionListener != null) {
                 detectivePositionSelectionListener.accept(position);
             }

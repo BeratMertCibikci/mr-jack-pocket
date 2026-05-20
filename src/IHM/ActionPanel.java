@@ -254,6 +254,7 @@ public class ActionPanel extends JPanel {
                 boutonClickMusique.jouerClick();
 
                 actionEnCours = false;
+                plateauPanel.clearDetectiveMoveSelection();
                 plateauPanel.setTileSelectionListener(null);
 
                 gameEngine.undo();
@@ -277,6 +278,7 @@ public class ActionPanel extends JPanel {
                 boutonClickMusique.jouerClick();
 
                 actionEnCours = false;
+                plateauPanel.clearDetectiveMoveSelection();
                 plateauPanel.setTileSelectionListener(null);
 
                 gameEngine.redo();
@@ -659,16 +661,16 @@ public class ActionPanel extends JPanel {
 
             switch (actionType) {
                 case HOLMES:
-                    gameEngine.moveHolmes(demanderNombrePas("Holmes"));
-                    break;
+                    preparerDeplacementDetective("Holmes", joueurAvantAction);
+                    return;
 
                 case WATSON:
-                    gameEngine.moveWatson(demanderNombrePas("Watson"));
-                    break;
+                    preparerDeplacementDetective("Watson", joueurAvantAction);
+                    return;
 
                 case TOBY:
-                    gameEngine.moveToby(demanderNombrePas("Toby"));
-                    break;
+                    preparerDeplacementDetective("Toby", joueurAvantAction);
+                    return;
 
                 case ALIBI:
                     traiterAlibi();
@@ -809,59 +811,119 @@ public class ActionPanel extends JPanel {
 
     private void traiterJoker() {
         boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
-        String[] choix;
+        JDialog jokerDialog = new JDialog(
+            SwingUtilities.getWindowAncestor(this),
+            "Joker",
+            Dialog.ModalityType.APPLICATION_MODAL
+        );
+
+        jokerDialog.setSize(360, jackTurn ? 260 : 210);
+        jokerDialog.setLocationRelativeTo(this);
+        jokerDialog.setResizable(false);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(25, 25, 25));
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+
+        JLabel label = new JLabel("Choisissez un détective");
+        label.setFont(new Font("Arial", Font.BOLD, 18));
+        label.setForeground(new Color(245, 235, 210));
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel boutonsDetectives = new JPanel(new GridLayout(1, 3, 10, 0));
+        boutonsDetectives.setOpaque(false);
+        boutonsDetectives.setMaximumSize(new Dimension(280, 55));
+
+        JButton holmesButton = creerBoutonControle("Holmes", new Color(55, 45, 35));
+        JButton watsonButton = creerBoutonControle("Watson", new Color(55, 45, 35));
+        JButton tobyButton = creerBoutonControle("Toby", new Color(55, 45, 35));
+        boutonsDetectives.add(holmesButton);
+        boutonsDetectives.add(watsonButton);
+        boutonsDetectives.add(tobyButton);
+
+        holmesButton.addActionListener(e ->{
+            jokerDialog.dispose();
+            resoudreJokerAvecDetective("Holmes");
+        });
+        
+        watsonButton.addActionListener(e ->{
+            jokerDialog.dispose();
+            resoudreJokerAvecDetective("Watson");
+        });
+
+        tobyButton.addActionListener(e ->{
+            jokerDialog.dispose();
+            resoudreJokerAvecDetective("Toby");
+        });
+
+        panel.add(label);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(boutonsDetectives);
 
         if (jackTurn) {
-            choix = new String[] {"Holmes", "Watson", "Toby", "Ne pas bouger"};
-        } else {
-            choix = new String[] {"Holmes", "Watson", "Toby"};
-        }
+            JButton skipButton = creerBoutonControle("Ne pas bouger", new Color(80, 45, 45));
+            skipButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            skipButton.setMaximumSize(new Dimension(220, 45));
 
-        String reponse = null;
+            skipButton.addActionListener(e -> {
+                try {
+                    jokerDialog.dispose();
+                    gameEngine.skipJokerMove();
+                    actionEnCours = false;
+                    plateauPanel.clearDetectiveMoveSelection();
+                    rafraichirToutesLesVues();
 
-        while (reponse == null) {
-            reponse = (String) JOptionPane.showInputDialog(
-                    this,
-                    "Choisissez un détective pour l'action Joker:",
-                    "Joker",
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    choix,
-                    choix[0]
-            );
-
-            if (reponse == null) {
-                JOptionPane.showMessageDialog(
+                    if (gameEngine.isRoundOver()) {
+                        verifierFinDeRoundEtTransition();
+                    } else {
+                        verifierChangementDeJoueurEtTransition(dernierJoueurAffiche);
+                    }
+                } catch (Exception ex) {
+                    actionEnCours = false;
+                    JOptionPane.showMessageDialog(
                         this,
-                        "L'action Joker est déjà choisie. Vous devez la résoudre.",
-                        "Action obligatoire",
-                        JOptionPane.WARNING_MESSAGE
-                );
-            }
+                        ex.getMessage(),
+                        "Erreur Joker",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            });
+            
+            panel.add(Box.createVerticalStrut(18));
+            panel.add(skipButton);
         }
 
-        if (reponse.equals("Ne pas bouger")) {
-            gameEngine.skipJokerMove();
+        jokerDialog.setContentPane(panel);
+        jokerDialog.setVisible(true);
+    }
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Jack ne déplace aucun détective",
-                    "Joker",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-        } else {
-            gameEngine.moveDetectiveWithJoker(reponse);
+    private void resoudreJokerAvecDetective(String detectiveName) {
+        try {
+            gameEngine.moveDetectiveWithJoker(detectiveName);
+            actionEnCours = false;
+            plateauPanel.clearDetectiveMoveSelection();
+            rafraichirToutesLesVues();
 
+            if (gameEngine.isRoundOver()) {
+                verifierFinDeRoundEtTransition();
+            } else {
+                verifierChangementDeJoueurEtTransition(dernierJoueurAffiche);
+            }
+        } catch (Exception ex) {
+            actionEnCours = false;
             JOptionPane.showMessageDialog(
-                    this,
-                    reponse + " avance d'une case",
-                    "Joker",
-                    JOptionPane.INFORMATION_MESSAGE
+                this,
+                ex.getMessage(),
+                "Erreur Joker",
+                JOptionPane.ERROR_MESSAGE
             );
         }
     }
 
     private void preparerRotate(String joueurAvantAction) {
+        plateauPanel.clearDetectiveMoveSelection();
+        
         JOptionPane.showMessageDialog(
                 this,
                 "Sélectionnez une carte à tourner sur le plateau.",
@@ -932,6 +994,8 @@ public class ActionPanel extends JPanel {
     }
 
     private void preparerExchange(String joueurAvantAction) {
+        plateauPanel.clearDetectiveMoveSelection();
+        
         JOptionPane.showMessageDialog(
                 this,
                 "Sélectionnez deux cartes à échanger sur le plateau.",
@@ -1005,31 +1069,57 @@ public class ActionPanel extends JPanel {
         });
     }
 
-    private int demanderNombrePas(String detectiveName) {
-        String[] choix = {"1", "2"};
+    private void preparerDeplacementDetective(String detectiveName, String joueurAvantAction) {
+        int currentPosition;
 
-        while (true) {
-            String reponse = (String) JOptionPane.showInputDialog(
-                    this,
-                    detectiveName + " doit avancer de combien de pas ?",
-                    "Déplacement",
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    choix,
-                    choix[0]
-            );
-
-            if (reponse != null) {
-                return Integer.parseInt(reponse);
-            }
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "L'action est déjà choisie. Vous devez sélectionner 1 ou 2.",
-                    "Action obligatoire",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if ("Holmes".equals(detectiveName)) {
+            currentPosition = gameEngine.getGameState().getDetectiveTokens().getHolmes().getPosition();
+        } else if ("Watson".equals(detectiveName)) {
+            currentPosition = gameEngine.getGameState().getDetectiveTokens().getWatson().getPosition();
+        } else {
+            currentPosition = gameEngine.getGameState().getDetectiveTokens().getToby().getPosition();
         }
+
+        java.util.List<Integer> positions = new java.util.ArrayList<>();
+        positions.add((currentPosition + 1) % 12); positions.add((currentPosition + 2) % 12);
+
+        plateauPanel.setDetectiveMoveSelection(
+            positions, 
+            "Choisissez votre déplacement",
+            selectedPosition -> {
+                
+                try {
+                    int steps = (selectedPosition - currentPosition + 12) % 12;
+                    if (steps == 0) steps = 12;
+
+                    if ("Holmes".equals(detectiveName)) {
+                        gameEngine.moveHolmes(steps);
+                    } else if ("Watson".equals(detectiveName)) {
+                        gameEngine.moveWatson(steps);
+                    } else {
+                        gameEngine.moveToby(steps);
+                    }
+
+                    plateauPanel.clearDetectiveMoveSelection();
+                    actionEnCours = false;
+                    rafraichirToutesLesVues();
+
+                    if (gameEngine.isRoundOver()) {
+                        verifierFinDeRoundEtTransition();
+                    } else {
+                        verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                    }
+                } catch (Exception ex) {
+                    plateauPanel.clearDetectiveMoveSelection();
+                    actionEnCours = false;
+                    JOptionPane.showMessageDialog(
+                        this,
+                        ex.getMessage(),
+                        "Erreur déplacement",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            });
     }
 
     private void setupAIPlayers() {

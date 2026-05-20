@@ -26,7 +26,7 @@ public class PlateauPanel extends JPanel {
     private static final int PANEL_H = 760;
 
     private static final int BOARD_X = 300;
-    private static final int BOARD_Y = 95;
+    private static final int BOARD_Y = 135;
     private static final int BOARD_W = 574;
     private static final int BOARD_H = 574;
     private static final int CARD_SIZE = 190;
@@ -343,49 +343,51 @@ public class PlateauPanel extends JPanel {
     }
 
     private void ajouterDetectiveTokensAutourPlateau() {
-        int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
-        int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
-        int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
+    int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
+    int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
+    int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
 
-        for (int position = 0; position < 12; position++) {
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    for (int position = 0; position < 12; position++) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        panel.setOpaque(false);
+        
+        panel.setBounds(
+        getXDetective(position),
+        getYDetective(position),
+        DETECTIVE_SIZE,
+        DETECTIVE_SIZE * 2
+);
+
+        boolean highlighted = highlightedDetectivePositions.contains(position);
+        boolean contientDetective = false;
+
+        if (highlighted) {
+            panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
             panel.setOpaque(false);
-            panel.setBounds(
-                    getXDetective(position),
-                    getYDetective(position),
-                    DETECTIVE_SIZE,
-                    DETECTIVE_SIZE
-            );
-
-            boolean highlighted = highlightedDetectivePositions.contains(position);
-            boolean contientDetective = false;
-
-            if (highlighted) {
-                panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                panel.setOpaque(false);
-                panel.add(creerBoutonPositionDetective(position));
+            panel.add(creerBoutonPositionDetective(position));
+            contientDetective = true;
+        } else {
+            if (holmesPos == position) {
+                panel.add(creerBadgeDetective("H"));
                 contientDetective = true;
-            } else {
-                if (holmesPos == position) {
-                    panel.add(creerBadgeDetective("H"));
-                    contientDetective = true;
-                }
-
-                if (watsonPos == position) {
-                    panel.add(creerBadgeDetective("W"));
-                    contientDetective = true;
-                }
-
-                if (tobyPos == position) {
-                    panel.add(creerBadgeDetective("T"));
-                    contientDetective = true;
-                }
             }
-
-            if (!contientDetective) panel.add(creerPointVide());
-            add(panel, 0);
+            if (watsonPos == position) {
+                panel.add(creerBadgeDetective("W"));
+                contientDetective = true;
+            }
+            if (tobyPos == position) {
+                panel.add(creerBadgeDetective("T"));
+                contientDetective = true;
+            }
         }
+
+        if (!contientDetective) {
+            panel.add(creerPointVide());
+        }
+        
+        add(panel); 
     }
+}
 
     private JButton creerBoutonPositionDetective(int position) {
         JButton bouton = new JButton("●");
@@ -489,7 +491,7 @@ public class PlateauPanel extends JPanel {
     }
 
     private int getYDetective(int position) {
-        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN;
+        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN + 2;
         int bottom = BOARD_Y + BOARD_H + DETECTIVE_MARGIN;
 
         int y0 = BOARD_Y + BOARD_H / 6 - DETECTIVE_SIZE / 2;
@@ -500,7 +502,7 @@ public class PlateauPanel extends JPanel {
             case 0:
             case 1:
             case 2:
-                return top;
+                return top-25;
 
             case 3:
                 return y0;

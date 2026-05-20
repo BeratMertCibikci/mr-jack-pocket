@@ -727,6 +727,10 @@ public class ActionPanel extends JPanel {
         }
 
         try {
+            if (mode != GameMode.IA_VS_IA || !autoAIEnabled) {
+                afficherWitnessPhaseDialog();
+            }
+
             gameEngine.endRound();
 
             plateauPanel.setTileSelectionListener(null);
@@ -734,13 +738,12 @@ public class ActionPanel extends JPanel {
 
             rafraichirToutesLesVues();
 
-        if (onTransitionTour != null
-                && mode == GameMode.HUMAN_VS_HUMAN
-                && !gameEngine.getGameState().isGameOver()) {
-            dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
-            onTransitionTour.accept("Changement de tour");
-
-        }
+            if (onTransitionTour != null
+                    && mode == GameMode.HUMAN_VS_HUMAN
+                    && !gameEngine.getGameState().isGameOver()) {
+                dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
+                onTransitionTour.accept("Changement de tour");
+            }
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
@@ -1139,30 +1142,29 @@ public class ActionPanel extends JPanel {
 
                 rafraichirToutesLesVues();
 
-                if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
-                    gameEngine.endRound();
-                    rafraichirToutesLesVues();
-
-                    if (onTransitionTour != null && mode != GameMode.IA_VS_IA) {
-                        dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
-                        Timer transitionTimer = new Timer(1000, evt -> onTransitionTour.accept("Changement de tour"));
-                        transitionTimer.setRepeats(false);
-                        transitionTimer.start();
-                    }
-                } else {
-                    String jouerApresAction = String.valueOf(gameEngine.getCurrentPlayer());
-                    
-                    if (!joueurAvantAction.equals(jouerApresAction)
-                        && onTransitionTour != null
-                        && mode == GameMode.HUMAN_VS_IA
-                        && !gameEngine.getGameState().isGameOver()) {
-                            Timer transitionTimer = new Timer(1000, evt -> onTransitionTour.accept("Joueur"));
-                            transitionTimer.setRepeats(false);
-                            transitionTimer.start();
-                        } else {
-                            verifierChangementDeJoueurEtTransition(joueurAvantAction);
-                        }
+            if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
+                if (mode != GameMode.IA_VS_IA || !autoAIEnabled) {
+                    afficherWitnessPhaseDialog();
                 }
+
+                gameEngine.endRound();
+                rafraichirToutesLesVues();
+
+                if (onTransitionTour != null
+                        && mode == GameMode.HUMAN_VS_HUMAN
+                        && !gameEngine.getGameState().isGameOver()) {
+                    dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
+
+                    Timer transitionTimer = new Timer(
+                            1000,
+                            evt -> onTransitionTour.accept("Changement de tour")
+                    );
+                    transitionTimer.setRepeats(false);
+                    transitionTimer.start();
+                }
+            } else {   
+                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                    }
 
                 if (gameEngine.getGameState().isGameOver()) {
                     autoAIEnabled = false;
@@ -1374,6 +1376,62 @@ public class ActionPanel extends JPanel {
                 this,
                 message,
                 "Game Over",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+    private boolean isJackVisibleForWitnessPhase() {
+        try {
+            GameCharacter jack = gameEngine.getGameState().getJackCharacter();
+
+            if (jack == null) {
+                return false;
+            }
+
+            java.util.List<GameCharacter> visibleCharacters =
+                    gameEngine.getGameState()
+                            .getLineOfSightService()
+                            .getVisibleCharacters(
+                                    gameEngine.getGameState().getBoard(),
+                                    gameEngine.getGameState().getDetectiveTokens(),
+                                    gameEngine.getGameState().getCharacters()
+                            );
+
+            for (GameCharacter character : visibleCharacters) {
+                if (character.getId() == jack.getId()) {
+                    return true;
+                }
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void afficherWitnessPhaseDialog() {
+        boolean jackVisible = isJackVisibleForWitnessPhase();
+
+        String message;
+
+        if (jackVisible) {
+            message =
+                    "Witness Phase\n\n" +
+                    "Jack est-il visible ?\n\n" +
+                    "OUI\n\n" +
+                    "Jack est visible par au moins un détective.";
+        } else {
+            message =
+                    "Witness Phase\n\n" +
+                    "Jack est-il visible ?\n\n" +
+                    "NON\n\n" +
+                    "Jack n'est visible par aucun détective.";
+        }
+
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Witness Phase",
                 JOptionPane.INFORMATION_MESSAGE
         );
     }

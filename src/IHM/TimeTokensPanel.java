@@ -12,7 +12,8 @@ public class TimeTokensPanel extends JPanel {
 
     private GameState gameState;
 
-    private static final int TOKEN_SIZE = 58;
+    //private static final int TOKEN_SIZE = 58;
+    private int tokenSize = 58;
 
     public TimeTokensPanel(GameState gameState) {
         this.gameState = gameState;
@@ -23,6 +24,16 @@ public class TimeTokensPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         afficherTimeTokens();
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+
+                SwingUtilities.invokeLater(() -> {
+                    rafraichir();
+                });
+            }
+        });
     }
 
     public void setGameState(GameState gameState) {
@@ -37,6 +48,12 @@ public class TimeTokensPanel extends JPanel {
     }
 
     private void afficherTimeTokens() {
+        int largeurDisponible = Math.max(70, getWidth() - 20);
+        int hauteurDisponible = Math.max(40, getHeight() / 10);
+
+        tokenSize = Math.min(largeurDisponible - 8, hauteurDisponible);
+        tokenSize = Math.max(30, Math.min(tokenSize, 50));
+
         JLabel titre = new JLabel("Tours", SwingConstants.CENTER);
         titre.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
@@ -53,20 +70,26 @@ public class TimeTokensPanel extends JPanel {
             tokenPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
             add(tokenPanel);
-            add(Box.createVerticalStrut(8));
+            int espace = Math.max(2, getHeight() / 120);
+            add(Box.createVerticalStrut(espace));
         }
     }
 
     private JPanel creerTimeTokenPanel(int numeroTour) {
         JPanel panel = new JPanel(new BorderLayout());
 
-        int largeur = Math.max(80, getWidth() - 20);
-        int hauteur = Math.max(42, getHeight() / 12);
+        //int largeur = Math.max(85, getWidth() - 14);
+        //int hauteur = Math.max(55, getHeight() / 10);
 
-        panel.setPreferredSize(new Dimension(largeur, hauteur));
-        panel.setMaximumSize(new Dimension(largeur, hauteur));
-        panel.setBackground(new Color(45, 40, 35));
-        panel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        Dimension taille = new Dimension(tokenSize + 2, tokenSize + 2);
+
+        panel.setPreferredSize(taille);
+        panel.setMinimumSize(taille);
+        panel.setMaximumSize(taille);
+        //panel.setBackground(new Color(45, 40, 35));
+        //panel.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        panel.setOpaque(false);
+        panel.setBorder(null);
 
         JLabel label = new JLabel(String.valueOf(numeroTour), SwingConstants.CENTER);
 
@@ -129,8 +152,8 @@ public class TimeTokensPanel extends JPanel {
 
             BufferedImage imageRedimensionnee = redimensionnerImage(
                     imageOriginale,
-                    TOKEN_SIZE,
-                    TOKEN_SIZE
+                    tokenSize,
+                    tokenSize
             );
 
             BufferedImage imageFinale = appliquerEtat(imageRedimensionnee, proprietaire);
@@ -267,7 +290,14 @@ public class TimeTokensPanel extends JPanel {
     }
 
     @Override
-    public Dimension getPreferredSize(){
-        return new Dimension(120, 500);
+    public Dimension getPreferredSize() {
+
+        int largeur = Math.max(78, getParent() != null
+                ? getParent().getWidth() / 13
+                : 90);
+
+        largeur = Math.min(largeur, 105);
+
+        return new Dimension(largeur, 0);
     }
 }

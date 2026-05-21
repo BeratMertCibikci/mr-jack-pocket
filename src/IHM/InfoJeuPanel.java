@@ -22,6 +22,8 @@ public class InfoJeuPanel extends JPanel {
     private JLabel watsonLabel;
     private JLabel tobyLabel;
     private JPanel personnagesPanel;
+    private JLabel titre;
+    private JLabel personnagesTitre;
 
     //bu constructor 3 tane bilgi kaynağı alıyor biz de bunları yazıyoruz
     public InfoJeuPanel(GameEngine gameEngine, GameMode mode, String joueur1Role) {
@@ -34,7 +36,7 @@ public class InfoJeuPanel extends JPanel {
         setBackground(new Color(25, 25, 25));//arka plan koyu
         setBorder(BorderFactory.createEmptyBorder(30, 20, 30, 20));//iç boşluk veriyor
 
-        JLabel titre = new JLabel("Info jeu");
+        titre = new JLabel("Info jeu");
         titre.setFont(new Font("Arial", Font.BOLD, 22));
         titre.setForeground(new Color(245, 235, 210));
         titre.setAlignmentX(Component.LEFT_ALIGNMENT);//sola hizalı
@@ -82,7 +84,7 @@ public class InfoJeuPanel extends JPanel {
         add(tobyLabel);
         add(Box.createVerticalStrut(15));
         
-        JLabel personnagesTitre = new JLabel("Personnages");
+        personnagesTitre = new JLabel("Personnages");
         personnagesTitre.setFont(new Font("Arial", Font.BOLD, 15));
         personnagesTitre.setForeground(new Color(245, 235, 210));
         personnagesTitre.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -90,6 +92,17 @@ public class InfoJeuPanel extends JPanel {
         add(personnagesTitre);
         add(Box.createVerticalStrut(12));
         add(personnagesPanel);
+
+        mettreAJourResponsiveLayout();
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                });
+            }
+        });
 
         rafraichir();
     }
@@ -141,7 +154,8 @@ public class InfoJeuPanel extends JPanel {
         JPanel ligne = new JPanel(new BorderLayout(8, 0));
         ligne.setOpaque(false);
         //ligne.setMaximumSize(new Dimension(220, 24));
-        ligne.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
+        int hauteur = Math.max(24, getHeight() / 25);
+        ligne.setMaximumSize(new Dimension(Integer.MAX_VALUE, hauteur));
         ligne.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel nomLabel = new JLabel(character.getName());
@@ -205,8 +219,34 @@ public class InfoJeuPanel extends JPanel {
         return new Color(160, 160, 160);
     }
 
-    @Override
-    public Dimension getPreferredSize(){
-        return new Dimension(260, 600);
+    private void mettreAJourResponsiveLayout() {
+        int tailleTitre = Math.max(18, getHeight() / 28);
+        int tailleTexte = Math.max(12, getHeight() / 45);
+        int taillePersonnages = Math.max(13, getHeight() / 40);
+
+        titre.setFont(new Font("Arial", Font.BOLD, tailleTitre));
+
+        personnagesTitre.setFont(
+            new Font("Arial", Font.BOLD, taillePersonnages)
+        );
+
+        Font texteFont =
+            new Font("Arial", Font.BOLD, tailleTexte);
+
+        modeLabel.setFont(texteFont);
+        joueur1RoleLabel.setFont(texteFont);
+        joueur2RoleLabel.setFont(texteFont);
+        joueurActuelLabel.setFont(texteFont);
+        roundLabel.setFont(texteFont);
+        actionLabel.setFont(texteFont);
+        selectedActionLabel.setFont(texteFont);
+        roundOverLabel.setFont(texteFont);
+        holmesLabel.setFont(texteFont);
+        watsonLabel.setFont(texteFont);
+        tobyLabel.setFont(texteFont);
+
+        revalidate();
+        repaint();
     }
+
 }

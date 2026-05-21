@@ -81,8 +81,8 @@ public class AlibiPanel extends JPanel {
         int nouvelleHauteur = (int) (hauteurOriginale * ratio);
 
         BufferedImage imageRedimensionnee = new BufferedImage(
-                largeurMax,
-                hauteurMax,
+                nouvelleLargeur,
+                nouvelleHauteur,
                 BufferedImage.TYPE_INT_ARGB
         );
 
@@ -116,8 +116,5 @@ public class AlibiPanel extends JPanel {
         repaint();
     }
 
-    @Override
-    public Dimension getPreferredSize(){
-        return new Dimension(240, 280);
-    }
+    
 }

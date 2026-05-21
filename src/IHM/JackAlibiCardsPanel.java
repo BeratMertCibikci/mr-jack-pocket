@@ -1,12 +1,11 @@
 package IHM;
 
 import engine.GameEngine;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class JackAlibiCardsPanel extends JPanel {
 
@@ -18,17 +17,26 @@ public class JackAlibiCardsPanel extends JPanel {
 
         setLayout(new BorderLayout());
         setOpaque(false);
-        setPreferredSize(new Dimension(170, 230));
-        setMaximumSize(new Dimension(170, 230));
+        //setPreferredSize(new Dimension(170, 230));
+        //setMaximumSize(new Dimension(170, 230));
+        int largeur = 145;
+        int hauteur = 200;
+
+        setPreferredSize(new Dimension(largeur, hauteur));
+        setMaximumSize(new Dimension(largeur, hauteur));
 
         JLabel title = new JLabel("Jack Alibis", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 13));
+
+        int tailleTitre = Math.max(12, getHeight() / 18);
+        title.setFont(new Font("Arial", Font.BOLD, tailleTitre));
         title.setForeground(new Color(245, 235, 210));
         title.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
         cardsContainer = new JPanel();
         cardsContainer.setOpaque(false);
-        cardsContainer.setLayout(new FlowLayout(FlowLayout.CENTER, 4, 4));
+
+        int gap = Math.max(4, getWidth() / 40);
+        cardsContainer.setLayout(new FlowLayout(FlowLayout.CENTER, gap, gap));
 
         JScrollPane scrollPane = new JScrollPane(cardsContainer);
         scrollPane.setOpaque(false);
@@ -41,6 +49,14 @@ public class JackAlibiCardsPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         rafraichir();
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                });
+            }
+        });
     }
 
     public void rafraichir() {
@@ -78,14 +94,16 @@ public class JackAlibiCardsPanel extends JPanel {
 
             if (!hasCard) {
                 JLabel emptyLabel = new JLabel("Aucune carte");
-                emptyLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+                int tailleTexte = Math.max(10, getHeight() / 24);
+                emptyLabel.setFont(new Font("Arial", Font.PLAIN, tailleTexte));
                 emptyLabel.setForeground(new Color(180, 180, 180));
                 cardsContainer.add(emptyLabel);
             }
 
         } catch (Exception e) {
             JLabel errorLabel = new JLabel("Indisponible");
-            errorLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+            int tailleTexte = Math.max(10, getHeight() / 24);
+            errorLabel.setFont(new Font("Arial", Font.PLAIN, tailleTexte));
             errorLabel.setForeground(new Color(180, 180, 180));
             cardsContainer.add(errorLabel);
         }
@@ -97,12 +115,18 @@ public class JackAlibiCardsPanel extends JPanel {
     private JPanel creerCarteAlibi(String characterName, int hourglassValue) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.setPreferredSize(new Dimension(72, 92));
+
+        int largeurCarte = Math.max(42, getWidth() / 5);
+        largeurCarte = Math.min(largeurCarte, 62);
+        int hauteurCarte = (int)(largeurCarte * 1.3);
+        panel.setPreferredSize(new Dimension(largeurCarte, hauteurCarte));
 
         JLabel imageLabel = new JLabel("", SwingConstants.CENTER);
-        imageLabel.setPreferredSize(new Dimension(68, 68));
 
-        ImageIcon icon = chargerImagePersonnage(characterName, 64, 64);
+        int tailleImage = (int)(largeurCarte * 0.72);
+        imageLabel.setPreferredSize(new Dimension(tailleImage, tailleImage));
+
+        ImageIcon icon = chargerImagePersonnage(characterName,tailleImage, tailleImage);
 
         if (icon != null) {
             imageLabel.setIcon(icon);
@@ -113,7 +137,8 @@ public class JackAlibiCardsPanel extends JPanel {
         }
 
         JLabel infoLabel = new JLabel("⌛ " + hourglassValue, SwingConstants.CENTER);
-        infoLabel.setFont(new Font("Arial", Font.BOLD, 11));
+        int tailleTexte = Math.max(10, getHeight() / 24);
+        infoLabel.setFont(new Font("Arial", Font.BOLD, tailleTexte));
         infoLabel.setForeground(new Color(212, 175, 55));
 
         panel.add(imageLabel, BorderLayout.CENTER);
@@ -184,5 +209,29 @@ public class JackAlibiCardsPanel extends JPanel {
         g.dispose();
 
         return imageRedimensionnee;
+    }
+
+    private void mettreAJourResponsiveLayout() {
+        if (getParent() == null) {
+            return;
+        }
+
+        int largeur = Math.max(110, getParent().getWidth() / 8);
+        largeur = Math.min(largeur, 170);
+
+        int hauteur = (int)(largeur * 1.15);
+
+        setPreferredSize(new Dimension(largeur, hauteur));
+        setMaximumSize(new Dimension(largeur, hauteur));
+
+        int gap = Math.max(3, largeur / 28);
+
+        if (cardsContainer.getLayout() instanceof FlowLayout layout) {
+            layout.setHgap(gap);
+            layout.setVgap(gap);
+        }
+
+        revalidate();
+        repaint();
     }
 }

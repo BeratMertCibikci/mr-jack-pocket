@@ -121,7 +121,10 @@ public class ChoixModePanel extends JPanel {
 
     private void afficherChoixRoleIcones(FenetrePrincipale fenetre, GameMode mode) {
         JDialog dialog = new JDialog(fenetre, "Choix du rôle", true);
-        dialog.setSize(420, 260);
+        dialog.setSize(
+            Math.max(420, fenetre.getWidth() / 3),
+            Math.max(260, fenetre.getHeight() / 3)
+        );
         dialog.setLocationRelativeTo(fenetre);
         dialog.setLayout(new BorderLayout());
 
@@ -356,7 +359,9 @@ public class ChoixModePanel extends JPanel {
 
     private JLabel creerRoleIcone(String texte, String cheminImage) {
         ImageIcon icon = new ImageIcon(cheminImage);
-        Image image = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+
+        int taille = Math.max(70, getWidth() / 10);
+        Image image = icon.getImage().getScaledInstance(taille, taille, Image.SCALE_SMOOTH);
 
         JLabel label = new JLabel(texte, new ImageIcon(image), SwingConstants.CENTER);
         label.setHorizontalTextPosition(SwingConstants.CENTER);

@@ -24,6 +24,12 @@ public class JeuPanel extends JPanel {
     private JackInfoPanel jackInfoPanel;
     private JPanel rightGamePanel;
 
+    private JButton pauseButton;
+    private JLabel titre;
+
+    private AlibiPanel alibiPanel;
+    private ActionPanel actionPanel;
+
     private boolean premierAffichage = true;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
@@ -107,7 +113,7 @@ public class JeuPanel extends JPanel {
         gameScreen = new JPanel(new BorderLayout());
         gameScreen.setBackground(new Color(25, 25, 25));
 
-        JLabel titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
+        titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 26));
         titre.setForeground(new Color(245, 235, 210));
         titre.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
@@ -115,15 +121,15 @@ public class JeuPanel extends JPanel {
         PlateauPanel plateauPanel = new PlateauPanel(gameState);
         InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
         TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
-        timeTokensPanel.setMinimumSize(new Dimension(110, 0));
-        timeTokensPanel.setPreferredSize(new Dimension(110, 0));
+        timeTokensPanel.setMinimumSize(new Dimension(70, 0));
+        //timeTokensPanel.setPreferredSize(new Dimension(110, 0));
 
-        AlibiPanel alibiPanel = new AlibiPanel();
-        alibiPanel.setMinimumSize(new Dimension(260, 0));
-        alibiPanel.setPreferredSize(new Dimension(260, 0));
+        alibiPanel = new AlibiPanel();
+        //alibiPanel.setMinimumSize(new Dimension(260, 0));
+        //alibiPanel.setPreferredSize(new Dimension(260, 0));
 
         jackInfoPanel = new JackInfoPanel(gameEngine, mode, player1Role);
-        ActionPanel actionPanel = new ActionPanel(
+        actionPanel = new ActionPanel(
                 gameEngine,
                 infoJeuPanel,
                 plateauPanel,
@@ -142,14 +148,17 @@ public class JeuPanel extends JPanel {
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         topPanel.add(titre, BorderLayout.CENTER);
 
-        JButton pauseButton = new JButton("⏸");
+        pauseButton = new JButton("⏸");
         pauseButton.setFont(new Font("Arial", Font.BOLD, 26));
         pauseButton.setForeground(new Color(245, 235, 210));
         pauseButton.setBackground(new Color(55, 45, 35));
         pauseButton.setFocusPainted(false);
         pauseButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
-        pauseButton.setPreferredSize(new Dimension(75, 45));
+        
+        int largeurBouton = Math.max(60, getWidth() / 14);
+        int hauteurBouton = Math.max(35, getHeight() / 18);
+        pauseButton.setPreferredSize(new Dimension(largeurBouton, hauteurBouton));
         pauseButton.addActionListener(e -> afficherPauseMenu());
 
         topPanel.add(pauseButton, BorderLayout.EAST);
@@ -157,12 +166,28 @@ public class JeuPanel extends JPanel {
         rightGamePanel = new JPanel();
         rightGamePanel.setOpaque(false);
         //rightGamePanel.setPreferredSize(new Dimension(240, 0));
-        rightGamePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        rightGamePanel.setMinimumSize(new Dimension(150, 0));
+        rightGamePanel.setPreferredSize(new Dimension(180, 0));
+        rightGamePanel.setMaximumSize(new Dimension(190, Integer.MAX_VALUE));
+        rightGamePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         rightGamePanel.setLayout(new BoxLayout(rightGamePanel, BoxLayout.Y_AXIS));
+
+        rightGamePanel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    rightGamePanel.revalidate();
+                    rightGamePanel.repaint();
+                });
+            }
+        });
 
         alibiPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         jackInfoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        actionPanel.setMaximumSize(new Dimension(240, 360));
+        actionPanel.setPreferredSize(new Dimension(240, 360));
 
         /*
         alibiPanel.setPreferredSize(new Dimension(220, 250));
@@ -175,16 +200,31 @@ public class JeuPanel extends JPanel {
         actionPanel.setMaximumSize(new Dimension(220, 360));
         */
 
-        rightGamePanel.add(Box.createVerticalStrut(30));
+        int espace = Math.max(4, getHeight() / 70);
+
+        rightGamePanel.add(Box.createVerticalStrut(espace));
         rightGamePanel.add(alibiPanel);
-        rightGamePanel.add(Box.createVerticalStrut(15));
+        rightGamePanel.add(Box.createVerticalStrut(espace));
         rightGamePanel.add(jackInfoPanel);
-        rightGamePanel.add(Box.createVerticalStrut(15));
+        rightGamePanel.add(Box.createVerticalStrut(espace));
         rightGamePanel.add(actionPanel);
-        rightGamePanel.add(Box.createVerticalGlue());
 
         JPanel plateauWrapper = new JPanel(new BorderLayout());
         plateauWrapper.setBackground(new Color(35, 35, 35));
+        plateauWrapper.setBorder(
+            BorderFactory.createEmptyBorder(
+                Math.max(5, getHeight() / 80),
+                Math.max(5, getWidth() / 80),
+                Math.max(5, getHeight() / 80),
+                Math.max(5, getWidth() / 80)
+            )
+        );
+        plateauPanel.setBorder(BorderFactory.createEmptyBorder(
+                8,
+                8,
+                8,
+                8
+        ));
         plateauWrapper.add(timeTokensPanel, BorderLayout.WEST);
         plateauWrapper.add(plateauPanel, BorderLayout.CENTER);
         plateauWrapper.add(rightGamePanel, BorderLayout.EAST);
@@ -207,6 +247,17 @@ public class JeuPanel extends JPanel {
         }
 
         installerRaccourciPause();
+
+        mettreAJourResponsiveLayout();
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                });
+            }
+        });
     }
 
     private void installerRaccourciPause() {
@@ -498,5 +549,35 @@ public class JeuPanel extends JPanel {
         // Ağdan yeni veri geldiğinde ekranı yeniler
         this.revalidate();
         this.repaint();
+    }
+
+    private void mettreAJourResponsiveLayout() {
+        int titreSize = Math.max(18, getHeight() / 28);
+
+        titre.setFont(new Font("Arial", Font.BOLD, titreSize));
+
+        int largeurBouton = Math.max(48, getWidth() / 22);
+        int hauteurBouton = Math.max(30, getHeight() / 24);
+
+        pauseButton.setPreferredSize(
+            new Dimension(largeurBouton, hauteurBouton)
+        );
+
+        int espace = 2;
+
+        rightGamePanel.removeAll();
+
+        rightGamePanel.add(Box.createVerticalStrut(espace));
+        rightGamePanel.add(alibiPanel);
+        rightGamePanel.add(Box.createVerticalStrut(espace));
+        rightGamePanel.add(jackInfoPanel);
+        rightGamePanel.add(Box.createVerticalStrut(espace));
+        rightGamePanel.add(actionPanel);
+
+        rightGamePanel.revalidate();
+        rightGamePanel.repaint();
+
+        revalidate();
+        repaint();
     }
 }

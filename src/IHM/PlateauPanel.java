@@ -31,12 +31,21 @@ public class PlateauPanel extends JPanel {
         this.gameState = gameState;
 
         setLayout(new GridBagLayout());
-        setPreferredSize(new Dimension(700, 700));
+        setPreferredSize(new Dimension(620, 620));
         setMinimumSize(new Dimension(500, 500));
         setBackground(couleurFondTourActuel());
         setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
         afficherPlateau();
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    rafraichir();
+                });
+            }
+        });
     }
 
     public void setGameState(GameState gameState) {
@@ -45,7 +54,9 @@ public class PlateauPanel extends JPanel {
 
     public void rafraichir() {
         setBackground(couleurFondTourActuel());
+
         removeAll();
+
         afficherPlateau();
         revalidate();
         repaint();
@@ -67,9 +78,14 @@ public class PlateauPanel extends JPanel {
 
     private void afficherPlateau() {
 
-        int taillePlateau = Math.min(getWidth() - 180, getHeight() - 120);
+        removeAll();
+
+        int margeX = getWidth() / 10;
+        int margeY = getHeight() / 12;
+
+        int taillePlateau = Math.min(getWidth() - margeX, getHeight() - margeY);
         if (taillePlateau <= 0){
-            taillePlateau = 570;
+            taillePlateau = 300;
         }
 
         int tailleCarte = taillePlateau / 3;
@@ -224,7 +240,10 @@ public class PlateauPanel extends JPanel {
 
     private JPanel creerCaseDetective(int position){
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        panel.setPreferredSize(new Dimension(64, 64));
+
+        int tailleDetective = Math.max(58, getWidth() / 14);
+        tailleDetective = Math.min(tailleDetective, 92);
+        panel.setPreferredSize(new Dimension(tailleDetective, tailleDetective));
         panel.setOpaque(false);
 
         int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
@@ -442,7 +461,9 @@ public class PlateauPanel extends JPanel {
 
     private JLabel creerPointVide() {
         JLabel point = new JLabel("•", SwingConstants.CENTER);
-        point.setPreferredSize(new Dimension(16, 16));
+        
+        int taille = Math.max(18, getWidth() / 35);
+        point.setPreferredSize(new Dimension(taille, taille));
         point.setForeground(new Color(180, 180, 180));
         point.setFont(new Font("Arial", Font.BOLD, 16));
 

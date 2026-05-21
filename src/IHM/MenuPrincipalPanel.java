@@ -15,6 +15,7 @@ public class MenuPrincipalPanel extends JPanel {
     private JButton reglesButton;
     private JButton quitterButton;
     private JButton muteButton;
+    private JButton  multijoueurButton;
     private JSlider volumeSlider;
 
     public MenuPrincipalPanel(FenetrePrincipale fenetre) {
@@ -38,11 +39,11 @@ public class MenuPrincipalPanel extends JPanel {
         boutonsPanel.setBorder(BorderFactory.createEmptyBorder(top, left, 40, 0)); // le comptour des boutons sont vides
 
         jouerButton = new JButton("Jouer");
-        JButton multijoueurButton = new JButton("Multijoueur");
+        multijoueurButton = new JButton("Multijoueur");
         loadButton = new JButton("Load Game");
         reglesButton = new JButton("Règles");
         quitterButton = new JButton("Quitter");
-        muteButton = new JButton("Unmute");
+        muteButton = new JButton("Mute");
 
         volumeSlider = new JSlider(0, 100, 40);
         volumeSlider.setOpaque(false);
@@ -163,26 +164,6 @@ public class MenuPrincipalPanel extends JPanel {
         int left = Math.min(180, Math.max(30, getWidth() / 10));
 
         boutonsPanel.setBorder(BorderFactory.createEmptyBorder(top, left, 40, 0));
-        int espace = Math.max(8, getHeight() / 70);
-
-        boutonsPanel.removeAll();
-        
-        boutonsPanel.add(jouerButton);
-        boutonsPanel.add(Box.createVerticalStrut(espace));
-
-        boutonsPanel.add(loadButton);
-        boutonsPanel.add(Box.createVerticalStrut(espace));
-
-        boutonsPanel.add(reglesButton);
-        boutonsPanel.add(Box.createVerticalStrut(espace));
-
-        boutonsPanel.add(muteButton);
-        boutonsPanel.add(Box.createVerticalStrut(espace));
-
-        boutonsPanel.add(volumeSlider);
-        boutonsPanel.add(Box.createVerticalStrut(espace));
-
-        boutonsPanel.add(quitterButton);
 
         int largeurSlider = Math.max(140, getWidth() / 5);
         int hauteurSlider = Math.max(30, getHeight()/20);
@@ -195,6 +176,7 @@ public class MenuPrincipalPanel extends JPanel {
         Font font = new Font("Arial", Font.BOLD, tailleFont);
 
         jouerButton.setFont(font);
+        multijoueurButton.setFont(font);
         loadButton.setFont(font);
         reglesButton.setFont(font);
         quitterButton.setFont(font);

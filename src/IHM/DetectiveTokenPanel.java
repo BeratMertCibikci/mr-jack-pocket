@@ -33,7 +33,7 @@ public class DetectiveTokenPanel extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int size = (int)(Math.min(getWidth(), getHeight()) * 0.85);
+        int size = (int)(Math.min(getWidth(), getHeight()) * 0.92);
         int x = (getWidth() - size) / 2;
         int y = (getHeight() - size) / 2;
 
@@ -138,9 +138,19 @@ public class DetectiveTokenPanel extends JPanel {
     }
 
     @Override
-    public Dimension getPreferredSize(){
-        int size = Math.max(52, Math.min(getWidth(), getHeight()) - 8);
+    public Dimension getPreferredSize() {
+        int taille = 70;
 
-        return new Dimension(size, size);
+        if (getParent() != null) {
+            taille = Math.min(
+                getParent().getWidth(),
+                getParent().getHeight()
+            ) - 8;
+        }
+
+        taille = Math.max(54, taille);
+        taille = Math.min(84, taille);
+
+        return new Dimension(taille, taille);
     }
 }

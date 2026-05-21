@@ -33,8 +33,8 @@ public class JackInfoPanel extends JPanel {
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
 
-        setPreferredSize(new Dimension(220, 120));
-        setMaximumSize(new Dimension(220, 120));
+        //setPreferredSize(new Dimension(220, 120));
+        //setMaximumSize(new Dimension(220, 120));
         setAlignmentX(Component.CENTER_ALIGNMENT);
 
         titleLabel = new JLabel("Jack Information");
@@ -54,7 +54,18 @@ public class JackInfoPanel extends JPanel {
         add(Box.createVerticalStrut(4));
         add(jackHourglassLabel);
 
+        mettreAJourResponsiveLayout();
+
         rafraichir();
+        
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                });
+            }
+        });
     }
 
     private JLabel creerPetitLabelJack() {
@@ -163,5 +174,26 @@ public class JackInfoPanel extends JPanel {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private void mettreAJourResponsiveLayout() {
+        int padding = Math.max(8, getWidth() / 25);
+        setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder( new Color(212, 175, 55), 2),
+            BorderFactory.createEmptyBorder(padding, padding, padding, padding)
+        ));
+
+        int titreSize = Math.max(13, getHeight() / 10);
+        int texteSize = Math.max(10, getHeight() / 14);
+
+        titleLabel.setFont(new Font("Arial", Font.BOLD, titreSize));
+
+        Font infoFont = new Font("Arial", Font.PLAIN, texteSize);
+        jackIdentityLabel.setFont(infoFont);
+        jackAlibisLabel.setFont(infoFont);
+        jackHourglassLabel.setFont(infoFont);
+
+        revalidate();
+        repaint();
     }
 }

@@ -195,15 +195,27 @@ public class ActionPanel extends JPanel {
 
         setupAIPlayers();
 
-        setLayout(new GridLayout(0, 2, 8, 8));
+        setLayout(new GridLayout(0, 2, 2, 2));
         setOpaque(false);
         //setPreferredSize(new Dimension(220, 360));
         //setMaximumSize(new Dimension(220, 360));
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        setMinimumSize(new Dimension(120, 180));
 
         dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
 
         mettreAJourResponsiveLayout();
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                    revalidate();
+                    repaint();
+                });
+            }
+        });
 
         afficherActions();
     }
@@ -244,16 +256,6 @@ public class ActionPanel extends JPanel {
         rafraichir();
         verifierGameOverEtAfficher();
 
-
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent e) {
-                SwingUtilities.invokeLater(() -> {
-                    mettreAJourResponsiveLayout();
-                    rafraichir();
-                });
-            }
-        });
     }
     private void afficherActions() {
         Token[] actionTokens = gameEngine.getGameState()
@@ -421,7 +423,7 @@ public class ActionPanel extends JPanel {
             );
             return;
         }
-
+ 
         if (mode == GameMode.HUMAN_VS_IA && isAITurn()) {
             JOptionPane.showMessageDialog(
                     this,
@@ -565,7 +567,7 @@ public class ActionPanel extends JPanel {
     private JButton creerBoutonControle(String texte, Color couleur) {
         JButton bouton = new JButton(texte);
 
-        int tailleFont = Math.max(11, getHeight() / 28);
+        int tailleFont = Math.max(10, getHeight() / 36);
 
         bouton.setFont(new Font("Arial", Font.BOLD, tailleFont));
         bouton.setBackground(couleur);
@@ -573,12 +575,21 @@ public class ActionPanel extends JPanel {
         bouton.setFocusPainted(false);
         bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        bouton.setMargin(new Insets(0,0,0,0));
+
         return bouton;
     }
 
     private JPanel creerActionTokenPanel(Token token, int index) {
         JPanel tokenPanel = new JPanel(new BorderLayout());
-        //tokenPanel.setPreferredSize(new Dimension(90, 90));
+
+        int taillePanel = Math.max(80, getWidth() / 2 - 8);
+        taillePanel = Math.min(taillePanel, 125);
+
+        tokenPanel.setPreferredSize(new Dimension(taillePanel, taillePanel));
+
+        tokenPanel.setMaximumSize(new Dimension(taillePanel, taillePanel));
+        
         tokenPanel.setOpaque(false);
         tokenPanel.setBorder(null);
 
@@ -594,13 +605,13 @@ public class ActionPanel extends JPanel {
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-        int taille = Math.min(getWidth(), getHeight()) / 4;
+        int taille = Math.min(getWidth(), getHeight()) / 5;
 
-        taille = Math.max(75, taille);
-        taille = Math.min(160, taille);
+        taille = Math.max(65, taille);
+        taille = Math.min(110, taille);
 
         if (taille <= 0){
-            taille = 85;
+            taille = 100;
         }
 
         ImageIcon icon = chargerImageAction(actionName, taille);
@@ -1237,7 +1248,7 @@ public class ActionPanel extends JPanel {
 
         return "Speed: Normal";
     }
-    private ImageIcon chargerImageAction(String actionName) {
+    private ImageIcon chargerImageAction(String actionName, int taille) {
         String nomFichier = getNomFichierAction(actionName);
 
         String chemin = System.getProperty("user.dir")
@@ -1320,8 +1331,8 @@ public class ActionPanel extends JPanel {
         int nouvelleHauteur = (int) (hauteurOriginale * ratio);
 
         BufferedImage imageRedimensionnee = new BufferedImage(
-                largeurMax,
-                hauteurMax,
+                nouvelleLargeur,
+                nouvelleHauteur,
                 BufferedImage.TYPE_INT_ARGB
         );
 
@@ -1413,16 +1424,50 @@ public class ActionPanel extends JPanel {
     }
 
     private void mettreAJourResponsiveLayout(){
-        int gap = Math.max(4, getWidth() / 40);
+        int gap = 2;
 
-        setLayout(new GridLayout(0, 2, gap, gap));
+        GridLayout layout = (GridLayout) getLayout();
+
+        layout.setHgap(gap);
+        layout.setVgap(gap);
+
+        int largeurPanel = Math.max(140, getWidth());
+        int hauteurPanel = Math.max(220, getHeight());
+
+        int largeurBouton = Math.max(60, largeurPanel / 2 - 12);
+        int hauteurBouton = Math.max(32, hauteurPanel / 9);
+
+        largeurBouton = Math.min(largeurBouton, 140);
+        hauteurBouton = Math.min(hauteurBouton, 60);
+
+        for (Component c : getComponents()) {
+
+            c.setPreferredSize(new Dimension(
+                    largeurBouton,
+                    hauteurBouton
+            ));
+
+            c.setMaximumSize(new Dimension(
+                    largeurBouton,
+                    hauteurBouton
+            ));
+
+            if (c instanceof JButton) {
+
+                JButton b = (JButton)c;
+
+                int tailleFont = Math.max(10, hauteurBouton / 4);
+                tailleFont = Math.min(tailleFont, 15);
+
+                b.setFont(new Font(
+                        "Arial",
+                        Font.BOLD,
+                        tailleFont
+                ));
+            }
+        }
 
         revalidate();
         repaint();
-    }
-
-    @Override
-    public Dimension getPreferredSize(){
-        return new Dimension(220, 360);
     }
 }

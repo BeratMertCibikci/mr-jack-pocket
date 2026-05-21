@@ -11,6 +11,15 @@ public class MultijoueurPanel extends JPanel {
     private FenetrePrincipale fenetre;
     private Preferences prefs;
 
+    private JPanel contenuPanel;
+    private JPanel panelBoutons;
+
+    private JLabel titre;
+
+    private JButton creerButton;
+    private JButton rejoindreButton;
+    private JButton retourButton;
+
     public MultijoueurPanel(FenetrePrincipale fenetre) {
         this.fenetre = fenetre;
         this.boutonClickMusique = new BoutonClickMusique();
@@ -23,18 +32,18 @@ public class MultijoueurPanel extends JPanel {
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        JLabel titre = new JLabel("Mode Multijoueur", SwingConstants.LEFT);
+        titre = new JLabel("Mode Multijoueur", SwingConstants.LEFT);
         titre.setFont(new Font("Arial", Font.BOLD, 32));
         titre.setForeground(new Color(245, 235, 210));
         titre.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        JPanel panelBoutons = new JPanel();
+        panelBoutons = new JPanel();
         panelBoutons.setOpaque(false);
         panelBoutons.setLayout(new BoxLayout(panelBoutons, BoxLayout.Y_AXIS));
 
-        JButton creerButton = new JButton("Créer une partie (Host)");
-        JButton rejoindreButton = new JButton("Rejoindre une partie (Client)");
-        JButton retourButton = new JButton("Retour");
+        creerButton = new JButton("Créer une partie (Host)");
+        rejoindreButton = new JButton("Rejoindre une partie (Client)");
+        retourButton = new JButton("Retour");
 
         BoutonTexte(creerButton);
         BoutonTexte(rejoindreButton);
@@ -50,7 +59,7 @@ public class MultijoueurPanel extends JPanel {
         panelBoutons.add(Box.createVerticalStrut(18));
         panelBoutons.add(retourButton);
 
-        JPanel contenuPanel = new JPanel();
+        contenuPanel = new JPanel();
         contenuPanel.setOpaque(false);
         contenuPanel.setLayout(new BoxLayout(contenuPanel, BoxLayout.Y_AXIS));
         contenuPanel.setBorder(BorderFactory.createEmptyBorder(280, 90, 40, 0));
@@ -75,6 +84,20 @@ public class MultijoueurPanel extends JPanel {
         rejoindreButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
             afficherDialogConnexion();
+        });
+
+        mettreAJourResponsiveLayout();
+        
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(
+                    java.awt.event.ComponentEvent e
+            ) {
+
+                SwingUtilities.invokeLater(() -> {
+                    mettreAJourResponsiveLayout();
+                });
+            }
         });
     }
 
@@ -242,29 +265,63 @@ public class MultijoueurPanel extends JPanel {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         }
     }
-private void afficherAttenteJoueur() {
-    JDialog waitDialog = new JDialog(fenetre, "Attente", false);
-    waitDialog.setSize(400, 200);
-    waitDialog.setLocationRelativeTo(fenetre);
-    
-    JPanel p = new JPanel(new GridLayout(3, 1));
-    p.setBackground(new Color(25, 25, 25));
-    
-    JLabel l1 = new JLabel("En attente d'un adversaire...", SwingConstants.CENTER);
-    l1.setForeground(Color.WHITE);
-    
-    JLabel l2 = new JLabel("Votre adresse IP : " + getLocalIP(), SwingConstants.CENTER);
-    l2.setForeground(new Color(212, 175, 55));
-    l2.setFont(new Font("Arial", Font.BOLD, 18));
-    
-    JLabel l3 = new JLabel("Port : 8080", SwingConstants.CENTER);
-    l3.setForeground(Color.GRAY);
-    
-    p.add(l1);
-    p.add(l2);
-    p.add(l3);
-    
-    waitDialog.add(p);
-    waitDialog.setVisible(true); 
-}
+    private void afficherAttenteJoueur() {
+        JDialog waitDialog = new JDialog(fenetre, "Attente", false);
+        waitDialog.setSize(400, 200);
+        waitDialog.setLocationRelativeTo(fenetre);
+        
+        JPanel p = new JPanel(new GridLayout(3, 1));
+        p.setBackground(new Color(25, 25, 25));
+        
+        JLabel l1 = new JLabel("En attente d'un adversaire...", SwingConstants.CENTER);
+        l1.setForeground(Color.WHITE);
+        
+        JLabel l2 = new JLabel("Votre adresse IP : " + getLocalIP(), SwingConstants.CENTER);
+        l2.setForeground(new Color(212, 175, 55));
+        l2.setFont(new Font("Arial", Font.BOLD, 18));
+        
+        JLabel l3 = new JLabel("Port : 8080", SwingConstants.CENTER);
+        l3.setForeground(Color.GRAY);
+        
+        p.add(l1);
+        p.add(l2);
+        p.add(l3);
+        
+        waitDialog.add(p);
+        waitDialog.setVisible(true); 
+    }
+
+    private void mettreAJourResponsiveLayout() {
+        int top = Math.min(350,
+                Math.max(120, getHeight() / 3));
+
+        int left = Math.min(180,
+                Math.max(30, getWidth() / 10));
+
+        contenuPanel.setBorder(
+                BorderFactory.createEmptyBorder(
+                        top,
+                        left,
+                        40,
+                        0
+                )
+        );
+
+        int tailleTitre = Math.max(20, getHeight() / 25);
+        int tailleBouton = Math.max(16, getHeight() / 35);
+
+        titre.setFont(
+                new Font("Arial", Font.BOLD, tailleTitre)
+        );
+
+        Font boutonFont =
+                new Font("Arial", Font.BOLD, tailleBouton);
+
+        creerButton.setFont(boutonFont);
+        rejoindreButton.setFont(boutonFont);
+        retourButton.setFont(boutonFont);
+
+        revalidate();
+        repaint();
+    }
 }

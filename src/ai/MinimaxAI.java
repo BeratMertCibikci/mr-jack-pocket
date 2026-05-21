@@ -121,9 +121,18 @@ public class MinimaxAI implements AIPlayer {
         }
 
         if (engine.isRoundOver()) {
+            int currentRound = engine.getRoundNumber();
+
             engine.endRound();
 
             if (engine.getGameState().isGameOver()) {
+                leafEvaluations++;
+                return Evaluator.evaluate(engine.getGameState(), perspective);
+            }
+
+            int nextRound = engine.getRoundNumber();
+
+            if (nextRound % 2 == 1 && nextRound > currentRound) {
                 leafEvaluations++;
                 return Evaluator.evaluate(engine.getGameState(), perspective);
             }

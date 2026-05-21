@@ -17,27 +17,71 @@ public class JeuPanel extends JPanel {
     private JPanel mainContainer;
     private JPanel gameScreen;
     private JPanel transitionScreen;
+
     private JLabel transitionMessageLabel;
     private JLabel transitionTitleLabel;
+
+    private JackInfoPanel jackInfoPanel;
+    private JPanel rightGamePanel;
+
     private boolean premierAffichage = true;
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre) {
-        this(mode, player1Role, fenetre, AIDifficulty.HARD, null);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                AIDifficulty.HARD,
+                AIDifficulty.HARD,
+                null
+        );
     }
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, AIDifficulty difficulty) {
-        this(mode, player1Role, fenetre, difficulty, null);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                difficulty,
+                difficulty,
+                null
+        );
+    }
+
+    public JeuPanel(
+            GameMode mode,
+            String player1Role,
+            FenetrePrincipale fenetre,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty
+    ) {
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                investigatorDifficulty,
+                jackDifficulty,
+                null
+        );
     }
 
     public JeuPanel(GameMode mode, String player1Role, FenetrePrincipale fenetre, GameEngine loadedEngine) {
-        this(mode, player1Role, fenetre, AIDifficulty.HARD, loadedEngine);
+        this(
+                mode,
+                player1Role,
+                fenetre,
+                AIDifficulty.HARD,
+                AIDifficulty.HARD,
+                loadedEngine
+        );
     }
 
     private JeuPanel(
             GameMode mode,
             String player1Role,
             FenetrePrincipale fenetre,
-            AIDifficulty difficulty,
+            AIDifficulty investigatorDifficulty,
+            AIDifficulty jackDifficulty,
             GameEngine loadedEngine
     ) {
         this.mode = mode;
@@ -78,15 +122,18 @@ public class JeuPanel extends JPanel {
         alibiPanel.setMinimumSize(new Dimension(260, 0));
         alibiPanel.setPreferredSize(new Dimension(260, 0));
 
+        jackInfoPanel = new JackInfoPanel(gameEngine, mode, player1Role);
         ActionPanel actionPanel = new ActionPanel(
                 gameEngine,
                 infoJeuPanel,
                 plateauPanel,
                 timeTokensPanel,
                 alibiPanel,
+                jackInfoPanel,
                 this::afficherTransitionTour,
                 mode,
-                difficulty,
+                investigatorDifficulty,
+                jackDifficulty,
                 player1Role
         );
 
@@ -107,18 +154,22 @@ public class JeuPanel extends JPanel {
 
         topPanel.add(pauseButton, BorderLayout.EAST);
 
-        JPanel rightGamePanel = new JPanel();
+        rightGamePanel = new JPanel();
         rightGamePanel.setOpaque(false);
         //rightGamePanel.setPreferredSize(new Dimension(240, 0));
         rightGamePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         rightGamePanel.setLayout(new BoxLayout(rightGamePanel, BoxLayout.Y_AXIS));
 
         alibiPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        jackInfoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         /*
         alibiPanel.setPreferredSize(new Dimension(220, 250));
         alibiPanel.setMaximumSize(new Dimension(220, 250));
+
+        jackInfoPanel.setPreferredSize(new Dimension(220, 120));
+        jackInfoPanel.setMaximumSize(new Dimension(220, 120));
 
         actionPanel.setPreferredSize(new Dimension(220, 360));
         actionPanel.setMaximumSize(new Dimension(220, 360));
@@ -126,7 +177,9 @@ public class JeuPanel extends JPanel {
 
         rightGamePanel.add(Box.createVerticalStrut(30));
         rightGamePanel.add(alibiPanel);
-        rightGamePanel.add(Box.createVerticalStrut(20));
+        rightGamePanel.add(Box.createVerticalStrut(15));
+        rightGamePanel.add(jackInfoPanel);
+        rightGamePanel.add(Box.createVerticalStrut(15));
         rightGamePanel.add(actionPanel);
         rightGamePanel.add(Box.createVerticalGlue());
 
@@ -146,7 +199,12 @@ public class JeuPanel extends JPanel {
 
         add(mainContainer, BorderLayout.CENTER);
 
-        afficherTransitionTour();
+        if (mode == GameMode.IA_VS_IA) {
+            premierAffichage = false;
+            cardLayout.show(mainContainer, "GAME");
+        } else {
+            afficherTransitionTour("Début de partie");
+        }
 
         installerRaccourciPause();
     }
@@ -209,12 +267,7 @@ public class JeuPanel extends JPanel {
         });
 
         settingsButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    pauseDialog,
-                    "Settings à ajouter plus tard.",
-                    "Settings",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+            afficherSettingsDialog(pauseDialog);
         });
 
         reglesButton.addActionListener(e -> {
@@ -250,6 +303,72 @@ public class JeuPanel extends JPanel {
         pauseDialog.pack();
         pauseDialog.setLocationRelativeTo(this);
         pauseDialog.setVisible(true);
+    }
+
+    private void afficherSettingsDialog(JDialog parentDialog) {
+        JDialog settingsDialog = new JDialog(
+                parentDialog,
+                "Settings",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+    
+        settingsDialog.setSize(360, 260);
+        settingsDialog.setLocationRelativeTo(parentDialog);
+        settingsDialog.setResizable(false);
+    
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(25, 25, 25));
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 35, 25, 35));
+    
+        JLabel titre = new JLabel("Settings");
+        titre.setFont(new Font("Arial", Font.BOLD, 24));
+        titre.setForeground(new Color(245, 235, 210));
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+        JCheckBox musiqueCheckBox = new JCheckBox("Musique activée");
+        musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
+        musiqueCheckBox.setFont(new Font("Arial", Font.BOLD, 15));
+        musiqueCheckBox.setForeground(new Color(245, 235, 210));
+        musiqueCheckBox.setBackground(new Color(25, 25, 25));
+        musiqueCheckBox.setFocusPainted(false);
+        musiqueCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+        JLabel volumeLabel = new JLabel("Volume");
+        volumeLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        volumeLabel.setForeground(new Color(245, 235, 210));
+        volumeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+        JSlider volumeSlider = new JSlider(0, 100, 40);
+        volumeSlider.setMaximumSize(new Dimension(230, 45));
+        volumeSlider.setOpaque(false);
+        volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        volumeSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+        JButton fermerButton = creerBoutonPause("Fermer");
+    
+        musiqueCheckBox.addActionListener(e -> {
+            fenetre.toggleMusique();
+            musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
+        });
+    
+        volumeSlider.addChangeListener(e -> {
+            fenetre.changerVolumeMusique(volumeSlider.getValue());
+        });
+    
+        fermerButton.addActionListener(e -> settingsDialog.dispose());
+    
+        panel.add(titre);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(musiqueCheckBox);
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(volumeLabel);
+        panel.add(volumeSlider);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(fermerButton);
+    
+        settingsDialog.setContentPane(panel);
+        settingsDialog.setVisible(true);
     }
 
     private JButton creerBoutonPause(String texte) {
@@ -324,6 +443,7 @@ public class JeuPanel extends JPanel {
         JButton commencerButton = creerBoutonPause("Commencer le tour");
 
         commencerButton.addActionListener(e -> {
+            rafraichirPanneauDroite();
             cardLayout.show(mainContainer, "GAME");
         });
 
@@ -338,7 +458,24 @@ public class JeuPanel extends JPanel {
         return panel;
     }
 
-    private void afficherTransitionTour() {
+    private void rafraichirPanneauDroite() {
+        if (jackInfoPanel != null) {
+            jackInfoPanel.rafraichir();
+        }
+
+        if (rightGamePanel != null) {
+            rightGamePanel.revalidate();
+            rightGamePanel.repaint();
+        }
+    }
+
+    private void afficherTransitionTour(String titreTransition) {
+        if (mode == GameMode.IA_VS_IA) {
+            rafraichirPanneauDroite();
+            cardLayout.show(mainContainer, "GAME");
+            return;
+        }
+
         String joueurActuel = gameEngine.getCurrentPlayer();
 
         if (premierAffichage) {
@@ -346,10 +483,20 @@ public class JeuPanel extends JPanel {
             transitionMessageLabel.setText("Joueur actuel : " + joueurActuel);
             premierAffichage = false;
         } else {
-            transitionTitleLabel.setText("Changement de tour");
+            transitionTitleLabel.setText(titreTransition);
             transitionMessageLabel.setText("Passez l'ordinateur à : " + joueurActuel);
         }
 
         cardLayout.show(mainContainer, "TRANSITION");
+    }
+    
+    public GameEngine getGameEngine() {
+        return this.gameEngine;
+    }
+
+    public void rafraichirToutesLesVues() {
+        // Ağdan yeni veri geldiğinde ekranı yeniler
+        this.revalidate();
+        this.repaint();
     }
 }

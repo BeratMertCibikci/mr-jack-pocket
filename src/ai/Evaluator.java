@@ -22,18 +22,7 @@ public class Evaluator {
     public static double evaluate(GameState state, EvaluationPerspective perspective) {
         if (state == null) {
             throw new IllegalArgumentException("GameState cannot be null.");
-        }
-
-        String winner = state.getWinner();
-
-        if ("Investigator".equals(winner)) {
-            return WIN_SCORE;
-        }
-
-        if ("Jack".equals(winner)) {
-            return -WIN_SCORE;
-        }
-
+        } 
         int suspectCount = countSuspects(state);
         int eliminatedSuspects = 9 - suspectCount;
 

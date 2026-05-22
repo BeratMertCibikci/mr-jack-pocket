@@ -33,7 +33,7 @@ public class DetectiveTokenPanel extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int size = (int)(Math.min(getWidth(), getHeight()) * 0.92);
+        int size = (int)(Math.min(getWidth(), getHeight()) * 0.82);
         int x = (getWidth() - size) / 2;
         int y = (getHeight() - size) / 2;
 
@@ -63,7 +63,7 @@ public class DetectiveTokenPanel extends JPanel {
 
         g2.setColor(new Color(212, 175, 55));
 
-        float epaisseur = Math.max(2f, size / 20f);
+        float epaisseur = Math.max(3f, size / 18f);
         g2.setStroke(new BasicStroke(epaisseur));
         g2.drawOval(x, y, size, size);
 

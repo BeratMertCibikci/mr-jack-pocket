@@ -20,7 +20,7 @@ public class TimeTokensPanel extends JPanel {
 
         //setPreferredSize(new Dimension(90, 0));
         setBackground(new Color(30, 30, 30));
-        setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
+        setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         afficherTimeTokens();
@@ -54,8 +54,10 @@ public class TimeTokensPanel extends JPanel {
         tokenSize = Math.min(largeurDisponible - 8, hauteurDisponible);
         tokenSize = Math.max(30, Math.min(tokenSize, 50));
 
-        JLabel titre = new JLabel("Tours", SwingConstants.CENTER);
-        titre.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        JLabel titre = new JLabel("Tours");
+        titre.setHorizontalAlignment(SwingConstants.CENTER);
+        titre.setPreferredSize(new Dimension(120, 40));
+        titre.setMaximumSize(new Dimension(200, 40));
 
         int tailleTitre = Math.max(14, getHeight() / 28);
         titre.setFont(new Font("Arial", Font.BOLD, tailleTitre));
@@ -292,11 +294,11 @@ public class TimeTokensPanel extends JPanel {
     @Override
     public Dimension getPreferredSize() {
 
-        int largeur = Math.max(78, getParent() != null
-                ? getParent().getWidth() / 13
-                : 90);
+        int largeur = Math.max(120, getParent() != null
+                ? getParent().getWidth() / 10
+                : 120);
 
-        largeur = Math.min(largeur, 105);
+        largeur = Math.min(largeur, 150);
 
         return new Dimension(largeur, 0);
     }

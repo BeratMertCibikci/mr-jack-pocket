@@ -22,10 +22,6 @@ public class PlateauPanel extends JPanel {
     private static final int PANEL_W = 920;
     private static final int PANEL_H = 760;
 
-    private static final int BOARD_X = 300;
-    private static final int BOARD_Y = 135;
-    private static final int BOARD_W = 574;
-    private static final int BOARD_H = 574;
     private static final int CARD_SIZE = 190;
 
     private static final int DETECTIVE_SIZE = 70;
@@ -62,9 +58,9 @@ public class PlateauPanel extends JPanel {
     public PlateauPanel(GameState gameState) {
         this.gameState = gameState;
 
-        setLayout(new GridBagLayout());
-        setPreferredSize(new Dimension(620, 620));
-        setMinimumSize(new Dimension(500, 500));
+        setLayout(null);
+        setPreferredSize(new Dimension(900, 900));
+        setMinimumSize(new Dimension(700, 700));
         setBackground(couleurFondTourActuel());
         setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
@@ -112,13 +108,23 @@ public class PlateauPanel extends JPanel {
 
         removeAll();
 
-        int margeX = getWidth() / 10;
-        int margeY = getHeight() / 12;
+        int panelW = getWidth();
+        int panelH = getHeight();
 
-        int taillePlateau = Math.min(getWidth() - margeX, getHeight() - margeY);
-        if (taillePlateau <= 0){
-            taillePlateau = 300;
-        }
+        int detectiveMargin = 75;
+
+        int totalBoardSize = Math.min(panelW - 40, panelH - 40);
+
+        int taillePlateau = totalBoardSize - detectiveMargin * 2;
+
+        taillePlateau = Math.max(taillePlateau, 420);
+
+        int totalX = (panelW - totalBoardSize) / 2;
+        int totalY = (panelH - totalBoardSize) / 2;
+
+        int boardX = totalX + detectiveMargin;
+        int boardY = totalY + detectiveMargin;
+
 
         int tailleCarte = taillePlateau / 3;
 
@@ -193,24 +199,22 @@ public class PlateauPanel extends JPanel {
             }
         }
 
-        add(boardPanel);
+        //add(boardPanel);
         if (selectionMessage != null) ajouterMessageSelection();
         JPanel plateauContainer = new JPanel(new BorderLayout());
         plateauContainer.setOpaque(false);
         plateauContainer.add(boardPanel, BorderLayout.CENTER);
 
-        plateauContainer.add(creerDetectivesTop(), BorderLayout.NORTH);
-        plateauContainer.add(creerDetectivesBottom(), BorderLayout.SOUTH);
-        plateauContainer.add(creerDetectivesLeft(), BorderLayout.WEST);
-        plateauContainer.add(creerDetectivesRight(), BorderLayout.EAST);
+        //plateauContainer.add(creerDetectivesTop(), BorderLayout.NORTH);
+        //plateauContainer.add(creerDetectivesBottom(), BorderLayout.SOUTH);
+        //plateauContainer.add(creerDetectivesLeft(), BorderLayout.WEST);
+        //plateauContainer.add(creerDetectivesRight(), BorderLayout.EAST);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.CENTER;
-        add(plateauContainer, gbc);
+        plateauContainer.setBounds(boardX, boardY, taillePlateau, taillePlateau);
+
+        add(plateauContainer);
         
-        ajouterDetectiveTokensAutourPlateau();
+        ajouterDetectiveTokensAutourPlateau(boardX, boardY, taillePlateau);
     }
 
     private void ajouterMessageSelection() {
@@ -287,9 +291,9 @@ public class PlateauPanel extends JPanel {
     }
 
     private JPanel creerCaseDetective(int position){
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        JPanel panel = new JPanel(new GridBagLayout());
 
-        int tailleDetective = Math.max(58, getWidth() / 14);
+        int tailleDetective = 76;
         tailleDetective = Math.min(tailleDetective, 92);
         panel.setPreferredSize(new Dimension(tailleDetective, tailleDetective));
         panel.setOpaque(false);
@@ -483,7 +487,7 @@ public class PlateauPanel extends JPanel {
         return 0;
     }
 
-    private void ajouterDetectiveTokensAutourPlateau() {
+    private void ajouterDetectiveTokensAutourPlateau(int boardX, int boardY, int boardSize) {
     int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
     int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
     int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
@@ -491,13 +495,16 @@ public class PlateauPanel extends JPanel {
     for (int position = 0; position < 12; position++) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         panel.setOpaque(false);
+
+        int tailleDetective = Math.min(58, getWidth() / 14);
+        tailleDetective = Math.min(tailleDetective, 92);
         
         panel.setBounds(
-        getXDetective(position),
-        getYDetective(position),
-        DETECTIVE_SIZE,
-        DETECTIVE_SIZE * 2
-);
+        getXDetective(position, boardX, boardSize),
+        getYDetective(position, boardY, boardSize),
+        tailleDetective,
+        tailleDetective
+        );
 
         boolean highlighted = highlightedDetectivePositions.contains(position);
         boolean contientDetective = false;
@@ -589,13 +596,13 @@ public class PlateauPanel extends JPanel {
         return bouton;
     }
 
-    private int getXDetective(int position) {
-        int left = BOARD_X - DETECTIVE_SIZE - DETECTIVE_MARGIN;
-        int right = BOARD_X + BOARD_W + DETECTIVE_MARGIN;
+    private int getXDetective(int position, int boardX, int boardSize) {
+        int left = boardX - 55;
+        int right = boardX + boardSize + 15;
 
-        int x0 = BOARD_X + BOARD_W / 6 - DETECTIVE_SIZE / 2;
-        int x1 = BOARD_X + BOARD_W / 2 - DETECTIVE_SIZE / 2;
-        int x2 = BOARD_X + (5 * BOARD_W) / 6 - DETECTIVE_SIZE / 2;
+        int x0 = boardX + boardSize / 6 - DETECTIVE_SIZE / 2;
+        int x1 = boardX + boardSize / 2 - DETECTIVE_SIZE / 2;
+        int x2 = boardX + (5 * boardSize) / 6 - DETECTIVE_SIZE / 2;
 
         switch (position) {
             case 0:
@@ -631,19 +638,20 @@ public class PlateauPanel extends JPanel {
         }
     }
 
-    private int getYDetective(int position) {
-        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN + 2;
-        int bottom = BOARD_Y + BOARD_H + DETECTIVE_MARGIN;
+    private int getYDetective(int position, int boardY, int boardSize) {
+        int top = boardY - 55;
+        int bottom = boardY + boardSize + 15;
 
-        int y0 = BOARD_Y + BOARD_H / 6 - DETECTIVE_SIZE / 2;
-        int y1 = BOARD_Y + BOARD_H / 2 - DETECTIVE_SIZE / 2;
-        int y2 = BOARD_Y + (5 * BOARD_H) / 6 - DETECTIVE_SIZE / 2;
+        int y0 = boardY + boardSize / 6 - DETECTIVE_SIZE / 2;
+        int y1 = boardY + boardSize / 2 - DETECTIVE_SIZE / 2;
+        int y2 = boardY + (5 * boardSize) / 6 - DETECTIVE_SIZE / 2;
 
         switch (position) {
             case 0:
             case 1:
             case 2:
-                return top-25;
+                //return top-25;
+                return top;
 
             case 3:
                 return y0;
@@ -687,7 +695,10 @@ public class PlateauPanel extends JPanel {
         }
 
         JLabel badge = new JLabel(texte, SwingConstants.CENTER);
-        badge.setPreferredSize(new Dimension(40, 40));
+        
+        badge.setPreferredSize(new Dimension(70, 70));
+        badge.setSize(70, 70);
+        
         badge.setOpaque(true);
         badge.setBackground(Color.WHITE);
         badge.setForeground(Color.BLACK);
@@ -701,7 +712,7 @@ public class PlateauPanel extends JPanel {
         JLabel point = new JLabel("•", SwingConstants.CENTER);
         
         int taille = Math.max(18, getWidth() / 35);
-        point.setPreferredSize(new Dimension(taille, taille));
+        point.setSize(taille, taille);
         point.setForeground(new Color(180, 180, 180));
         point.setFont(new Font("Arial", Font.BOLD, 16));
 

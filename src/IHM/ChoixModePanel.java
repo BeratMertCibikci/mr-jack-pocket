@@ -104,7 +104,7 @@ public class ChoixModePanel extends JPanel {
         dialog.setLocationRelativeTo(fenetre);
         dialog.setLayout(new BorderLayout());
 
-        JLabel titre = new JLabel("Choisissez le rôle du Joueur 1", SwingConstants.CENTER);
+        JLabel titre = new JLabel("Choisissez votre rôle", SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 20));
 
         JPanel panelRoles = new JPanel(new FlowLayout(FlowLayout.CENTER, 60, 20));

@@ -1,8 +1,6 @@
 package IHM;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -21,6 +19,9 @@ public class PlateauPanel extends JPanel {
     private java.util.List<Integer> highlightedDetectivePositions = new java.util.ArrayList<>();
     private java.util.function.Consumer<Integer> detectivePositionSelectionListener;
     private String selectionMessage;
+
+    private java.util.List<String> highlightedTiles = new java.util.ArrayList<>();
+    private Timer highlightTimer;
 
     private static final int PANEL_W = 920;
     private static final int PANEL_H = 760;
@@ -42,9 +43,16 @@ public class PlateauPanel extends JPanel {
         this.tileSelectionListener = tileSelectionListener;
     }
 
-    public void setDetectiveMoveSelection(java.util.List<Integer> positions, String message, java.util.function.Consumer<Integer> listener) {
+    public void setDetectiveMoveSelection(
+            java.util.List<Integer> positions,
+            String message,
+            java.util.function.Consumer<Integer> listener
+    ) {
         highlightedDetectivePositions.clear();
-        if (positions != null) highlightedDetectivePositions.addAll(positions);
+
+        if (positions != null) {
+            highlightedDetectivePositions.addAll(positions);
+        }
 
         selectionMessage = message;
         detectivePositionSelectionListener = listener;
@@ -113,7 +121,36 @@ public class PlateauPanel extends JPanel {
                 GameCharacter character = tile.getCharacter();
                 String nom = character != null ? character.getName() : "Carte vide";
 
-                JPanel cartePanel = new JPanel(new BorderLayout());
+                final String tileKey = getTileKey(li, ci);
+
+                JPanel cartePanel = new JPanel(new BorderLayout()) {
+                    @Override
+                    public void paint(Graphics g) {
+                        super.paint(g);
+
+                        if (highlightedTiles.contains(tileKey)) {
+                            Graphics2D g2 = (Graphics2D) g.create();
+                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                            g2.setColor(new Color(255, 215, 0));
+                            g2.setStroke(new BasicStroke(7));
+
+                            int margin = 5;
+
+                            g2.drawRoundRect(
+                                    margin,
+                                    margin,
+                                    getWidth() - margin * 2 - 1,
+                                    getHeight() - margin * 2 - 1,
+                                    18,
+                                    18
+                            );
+
+                            g2.dispose();
+                        }
+                    }
+                };
+
                 cartePanel.setOpaque(false);
                 cartePanel.setBorder(null);
                 cartePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -172,8 +209,47 @@ public class PlateauPanel extends JPanel {
         }
 
         add(boardPanel);
-        if (selectionMessage != null) ajouterMessageSelection();
+
+        if (selectionMessage != null) {
+            ajouterMessageSelection();
+        }
+
         ajouterDetectiveTokensAutourPlateau();
+    }
+
+    private String getTileKey(int row, int col) {
+        return row + "," + col;
+    }
+
+    public void highlightTileTemporarily(int row, int col) {
+        highlightedTiles.clear();
+        highlightedTiles.add(getTileKey(row, col));
+
+        startHighlightTimer();
+    }
+
+    public void highlightTilesTemporarily(int row1, int col1, int row2, int col2) {
+        highlightedTiles.clear();
+        highlightedTiles.add(getTileKey(row1, col1));
+        highlightedTiles.add(getTileKey(row2, col2));
+
+        startHighlightTimer();
+    }
+
+    private void startHighlightTimer() {
+        if (highlightTimer != null && highlightTimer.isRunning()) {
+            highlightTimer.stop();
+        }
+
+        rafraichir();
+
+        highlightTimer = new Timer(1200, e -> {
+            highlightedTiles.clear();
+            rafraichir();
+        });
+
+        highlightTimer.setRepeats(false);
+        highlightTimer.start();
     }
 
     private void ajouterMessageSelection() {
@@ -184,8 +260,10 @@ public class PlateauPanel extends JPanel {
         messageLabel.setBackground(new Color(25, 25, 25, 210));
         messageLabel.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 2));
 
-        int largeur = 300, hauteur = 42;
-        int x = 15, y = 20;
+        int largeur = 300;
+        int hauteur = 42;
+        int x = 15;
+        int y = 20;
 
         messageLabel.setBounds(x, y, largeur, hauteur);
         add(messageLabel, 0);
@@ -343,74 +421,56 @@ public class PlateauPanel extends JPanel {
     }
 
     private void ajouterDetectiveTokensAutourPlateau() {
-    int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
-    int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
-    int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
+        int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
+        int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
+        int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
 
-    for (int position = 0; position < 12; position++) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        panel.setOpaque(false);
-        
-        panel.setBounds(
-        getXDetective(position),
-        getYDetective(position),
-        DETECTIVE_SIZE,
-        DETECTIVE_SIZE * 2
-);
-
-        boolean highlighted = highlightedDetectivePositions.contains(position);
-        boolean contientDetective = false;
-
-        if (highlighted) {
-            panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        for (int position = 0; position < 12; position++) {
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
             panel.setOpaque(false);
-            panel.add(creerBoutonPositionDetective(position));
-            contientDetective = true;
-        } else {
-            if (holmesPos == position) {
-                panel.add(creerBadgeDetective("H"));
-                contientDetective = true;
-            }
-            if (watsonPos == position) {
-                panel.add(creerBadgeDetective("W"));
-                contientDetective = true;
-            }
-            if (tobyPos == position) {
-                panel.add(creerBadgeDetective("T"));
-                contientDetective = true;
-            }
-        }
 
-        if (!contientDetective) {
-            panel.add(creerPointVide());
+            panel.setBounds(
+                    getXDetective(position),
+                    getYDetective(position),
+                    DETECTIVE_SIZE,
+                    DETECTIVE_SIZE * 2
+            );
+
+            boolean highlighted = highlightedDetectivePositions.contains(position);
+            boolean contientDetective = false;
+
+            if (highlighted) {
+                panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                panel.setOpaque(false);
+                panel.add(creerBoutonPositionDetective(position));
+                contientDetective = true;
+            } else {
+                if (holmesPos == position) {
+                    panel.add(creerBadgeDetective("H"));
+                    contientDetective = true;
+                }
+
+                if (watsonPos == position) {
+                    panel.add(creerBadgeDetective("W"));
+                    contientDetective = true;
+                }
+
+                if (tobyPos == position) {
+                    panel.add(creerBadgeDetective("T"));
+                    contientDetective = true;
+                }
+            }
+
+            if (!contientDetective) {
+                panel.add(creerPointVide());
+            }
+
+            add(panel);
         }
-        
-        add(panel); 
     }
-}
 
     private JButton creerBoutonPositionDetective(int position) {
-        JButton bouton = new JButton("●");
-        bouton.setPreferredSize(new Dimension(46, 46));
-        bouton.setMaximumSize(new Dimension(46, 46));
-        bouton.setMinimumSize(new Dimension(46, 46));
-        bouton.setFont(new Font("Arial", Font.BOLD, 26));
-        bouton.setForeground(new Color(40, 40, 40));
-        bouton.setOpaque(false);
-        bouton.setContentAreaFilled(false);
-        bouton.setBorderPainted(false);
-        bouton.setFocusPainted(false);
-        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        bouton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
-
-        bouton.addActionListener(e -> {
-            if (detectivePositionSelectionListener != null) {
-                detectivePositionSelectionListener.accept(position);
-            }
-        });
-
-        bouton = new JButton("●") {
+        JButton bouton = new JButton("●") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -430,7 +490,7 @@ public class PlateauPanel extends JPanel {
             }
         };
 
-            bouton.setPreferredSize(new Dimension(46, 46));
+        bouton.setPreferredSize(new Dimension(46, 46));
         bouton.setMaximumSize(new Dimension(46, 46));
         bouton.setMinimumSize(new Dimension(46, 46));
         bouton.setOpaque(false);
@@ -502,7 +562,7 @@ public class PlateauPanel extends JPanel {
             case 0:
             case 1:
             case 2:
-                return top-25;
+                return top - 25;
 
             case 3:
                 return y0;

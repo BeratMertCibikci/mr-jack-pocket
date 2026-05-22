@@ -114,7 +114,7 @@ public class ChoixModePanel extends JPanel {
 
         investigator.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
+            public void mousePressed(java.awt.event.MouseEvent e) {
                 boutonClickMusique.jouerClick();
                 dialog.dispose();
 
@@ -128,7 +128,7 @@ public class ChoixModePanel extends JPanel {
 
         jack.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
+            public void mousePressed(java.awt.event.MouseEvent e) {
                 boutonClickMusique.jouerClick();
                 dialog.dispose();
 

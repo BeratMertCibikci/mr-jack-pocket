@@ -93,29 +93,60 @@ public class Board implements Serializable {
         }
     }
 
-    public void swapTiles(Tile tileA, Tile tileB) {
-        if (tileA == null || tileB == null) {
-            throw new IllegalArgumentException("Tile cannot be null.");
-        }
-
-        int rowA = tileA.getRow();
-        int columnA = tileA.getCol();
-
-        int rowB = tileB.getRow();
-        int columnB = tileB.getCol();
-
-        validatePosition(rowA, columnA);
-        validatePosition(rowB, columnB);
-
-        tiles[rowA][columnA] = tileB;
-        tiles[rowB][columnB] = tileA;
-
-        tileA.setRow(rowB);
-        tileA.setCol(columnB);
-
-        tileB.setRow(rowA);
-        tileB.setCol(columnA);
+public void swapTiles(Tile tileA, Tile tileB) {
+    if (tileA == null || tileB == null) {
+        throw new IllegalArgumentException("Tile cannot be null.");
     }
+
+    int rowA = tileA.getRow();
+    int columnA = tileA.getCol();
+
+    int rowB = tileB.getRow();
+    int columnB = tileB.getCol();
+
+    validatePosition(rowA, columnA);
+    validatePosition(rowB, columnB);
+
+    System.out.println("=== BEFORE EXCHANGE ===");
+    printTileDebug("A", tileA);
+    printTileDebug("B", tileB);
+
+    tiles[rowA][columnA] = tileB;
+    tiles[rowB][columnB] = tileA;
+
+    tileA.setRow(rowB);
+    tileA.setCol(columnB);
+
+    tileB.setRow(rowA);
+    tileB.setCol(columnA);
+
+    System.out.println("=== AFTER EXCHANGE ===");
+    System.out.println("Cell old A (" + rowA + "," + columnA + ") now contains:");
+    printTileDebug("oldAcell", tiles[rowA][columnA]);
+
+    System.out.println("Cell old B (" + rowB + "," + columnB + ") now contains:");
+    printTileDebug("oldBcell", tiles[rowB][columnB]);
+}
+private void printTileDebug(String label, Tile tile) {
+    if (tile == null) {
+        System.out.println(label + ": null");
+        return;
+    }
+
+    String characterName = tile.getCharacter() == null
+            ? "none"
+            : tile.getCharacter().getName();
+
+    System.out.println(
+            label
+                    + " | tileId=" + tile.getId()
+                    + " | character=" + characterName
+                    + " | pos=(" + tile.getRow() + "," + tile.getCol() + ")"
+                    + " | orientation=" + tile.getOrientation()
+                    + " | suspectSide=" + tile.isSuspectSide()
+                    + " | eliminated=" + tile.isEliminated()
+    );
+}
 
     public List<Tile> getAllTiles() {
         List<Tile> allTiles = new ArrayList<>();

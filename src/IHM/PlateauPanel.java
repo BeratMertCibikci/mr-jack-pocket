@@ -160,8 +160,14 @@ public class PlateauPanel extends JPanel {
                 imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
                 if (tile.isEliminated() || tile.isEmptySide()) {
-                    ImageIcon dosIcon = chargerImageDos("derriere.png", tile.getOrientation());
+                    ImageIcon dosIcon;
 
+                    if (tile.getCharacter() != null
+                            && "Joseph Lane".equals(tile.getCharacter().getName())) {
+                        dosIcon = chargerImageDos("derriere_joseph.png", tile.getOrientation());
+                    } else {
+                        dosIcon = chargerImageDos("derriere.png", tile.getOrientation());
+                    }
                     if (dosIcon != null) {
                         imageLabel.setIcon(dosIcon);
                     } else {
@@ -169,7 +175,6 @@ public class PlateauPanel extends JPanel {
                         imageLabel.setFont(new Font("Arial", Font.BOLD, 12));
                         imageLabel.setForeground(new Color(245, 235, 210));
                     }
-
                 } else {
                     ImageIcon icon = chargerImagePersonnage(nom, tile.getOrientation());
 
@@ -191,7 +196,7 @@ public class PlateauPanel extends JPanel {
 
                 cartePanel.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
+                    public void mousePressed(java.awt.event.MouseEvent e) {
                         System.out.println(
                                 "Carte cliquée : " + nomFinal
                                         + " position (" + l + "," + c + ")"

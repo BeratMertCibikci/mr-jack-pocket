@@ -161,11 +161,6 @@ public class ChoixModePanel extends JPanel {
 
         JPanel panel = creerPanelDifficulte();
 
-        ajouterBoutonDifficulte(panel, "Random", AIDifficulty.RANDOM, () -> {
-            dialog.dispose();
-            fenetre.lancerJeu(mode, player1Role, AIDifficulty.RANDOM);
-        });
-
         ajouterBoutonDifficulte(panel, "Easy", AIDifficulty.EASY, () -> {
             dialog.dispose();
             fenetre.lancerJeu(mode, player1Role, AIDifficulty.EASY);
@@ -199,11 +194,6 @@ public class ChoixModePanel extends JPanel {
         titre.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
 
         JPanel panel = creerPanelDifficulte();
-
-        ajouterBoutonDifficulte(panel, "Random", AIDifficulty.RANDOM, () -> {
-            dialog.dispose();
-            afficherChoixDifficulteJackIA(fenetre, AIDifficulty.RANDOM);
-        });
 
         ajouterBoutonDifficulte(panel, "Easy", AIDifficulty.EASY, () -> {
             dialog.dispose();
@@ -241,16 +231,6 @@ public class ChoixModePanel extends JPanel {
         titre.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
 
         JPanel panel = creerPanelDifficulte();
-
-        ajouterBoutonDifficulte(panel, "Random", AIDifficulty.RANDOM, () -> {
-            dialog.dispose();
-            fenetre.lancerJeu(
-                    GameMode.IA_VS_IA,
-                    "Investigator",
-                    investigatorDifficulty,
-                    AIDifficulty.RANDOM
-            );
-        });
 
         ajouterBoutonDifficulte(panel, "Easy", AIDifficulty.EASY, () -> {
             dialog.dispose();

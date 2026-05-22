@@ -40,8 +40,8 @@ public class MinimaxAI implements AIPlayer {
     public void play(GameEngine engine) {
         AIMove bestMove = chooseBestMove(engine);
 
-        System.out.println("[MinimaxAI] Current player: " + engine.getCurrentPlayer());
-        System.out.println("[MinimaxAI] Selected move: " + bestMove);
+        //System.out.println("[MinimaxAI] Current player: " + engine.getCurrentPlayer());
+        //System.out.println("[MinimaxAI] Selected move: " + bestMove);
 
         MoveApplier.apply(engine, bestMove);
     }
@@ -99,11 +99,11 @@ public class MinimaxAI implements AIPlayer {
         long endTime = System.nanoTime();
         double elapsedMs = (endTime - startTime) / 1_000_000.0;
 
-        System.out.println("[MinimaxAI] Best score: " + bestScore);
-        System.out.println("[MinimaxAI] Nodes visited for this move: " + nodesVisited);
-        System.out.println("[MinimaxAI] Leaf evaluations for this move: " + leafEvaluations);
-        System.out.println("[MinimaxAI] Pruned branches for this move: " + prunedBranches);
-        System.out.printf("[MinimaxAI] Search time for this move: %.2f ms%n", elapsedMs);
+        //System.out.println("[MinimaxAI] Best score: " + bestScore);
+        //System.out.println("[MinimaxAI] Nodes visited for this move: " + nodesVisited);
+        //System.out.println("[MinimaxAI] Leaf evaluations for this move: " + leafEvaluations);
+        //System.out.println("[MinimaxAI] Pruned branches for this move: " + prunedBranches);
+        //System.out.printf("[MinimaxAI] Search time for this move: %.2f ms%n", elapsedMs);
 
         return bestMove;
     }

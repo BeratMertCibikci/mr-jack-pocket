@@ -1,6 +1,8 @@
 package IHM;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -16,11 +18,15 @@ public class PlateauPanel extends JPanel {
     private GameState gameState;
     private TileSelectionListener tileSelectionListener;
 
+    private java.util.List<Integer> highlightedDetectivePositions = new java.util.ArrayList<>();
+    private java.util.function.Consumer<Integer> detectivePositionSelectionListener;
+    private String selectionMessage;
+
     private static final int PANEL_W = 920;
     private static final int PANEL_H = 760;
 
     private static final int BOARD_X = 300;
-    private static final int BOARD_Y = 95;
+    private static final int BOARD_Y = 135;
     private static final int BOARD_W = 574;
     private static final int BOARD_H = 574;
     private static final int CARD_SIZE = 190;
@@ -34,6 +40,26 @@ public class PlateauPanel extends JPanel {
 
     public void setTileSelectionListener(TileSelectionListener tileSelectionListener) {
         this.tileSelectionListener = tileSelectionListener;
+    }
+
+    public void setDetectiveMoveSelection(java.util.List<Integer> positions, String message, java.util.function.Consumer<Integer> listener) {
+        highlightedDetectivePositions.clear();
+        if (positions != null) highlightedDetectivePositions.addAll(positions);
+
+        selectionMessage = message;
+        detectivePositionSelectionListener = listener;
+
+        removeAll();
+        afficherPlateau();
+        revalidate();
+        repaint();
+    }
+
+    public void clearDetectiveMoveSelection() {
+        highlightedDetectivePositions.clear();
+        selectionMessage = null;
+        detectivePositionSelectionListener = null;
+        rafraichir();
     }
 
     public PlateauPanel(GameState gameState) {
@@ -146,7 +172,23 @@ public class PlateauPanel extends JPanel {
         }
 
         add(boardPanel);
+        if (selectionMessage != null) ajouterMessageSelection();
         ajouterDetectiveTokensAutourPlateau();
+    }
+
+    private void ajouterMessageSelection() {
+        JLabel messageLabel = new JLabel(selectionMessage, SwingConstants.CENTER);
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        messageLabel.setForeground(new Color(255, 215, 0));
+        messageLabel.setOpaque(true);
+        messageLabel.setBackground(new Color(25, 25, 25, 210));
+        messageLabel.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 2));
+
+        int largeur = 300, hauteur = 42;
+        int x = 15, y = 20;
+
+        messageLabel.setBounds(x, y, largeur, hauteur);
+        add(messageLabel, 0);
     }
 
     private ImageIcon chargerImagePersonnage(String nom, Orientation orientation) {
@@ -301,43 +343,109 @@ public class PlateauPanel extends JPanel {
     }
 
     private void ajouterDetectiveTokensAutourPlateau() {
-        int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
-        int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
-        int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
+    int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
+    int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
+    int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
 
-        for (int position = 0; position < 12; position++) {
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    for (int position = 0; position < 12; position++) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        panel.setOpaque(false);
+        
+        panel.setBounds(
+        getXDetective(position),
+        getYDetective(position),
+        DETECTIVE_SIZE,
+        DETECTIVE_SIZE * 2
+);
+
+        boolean highlighted = highlightedDetectivePositions.contains(position);
+        boolean contientDetective = false;
+
+        if (highlighted) {
+            panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
             panel.setOpaque(false);
-            panel.setBounds(
-                    getXDetective(position),
-                    getYDetective(position),
-                    DETECTIVE_SIZE,
-                    DETECTIVE_SIZE
-            );
-
-            boolean contientDetective = false;
-
+            panel.add(creerBoutonPositionDetective(position));
+            contientDetective = true;
+        } else {
             if (holmesPos == position) {
                 panel.add(creerBadgeDetective("H"));
                 contientDetective = true;
             }
-
             if (watsonPos == position) {
                 panel.add(creerBadgeDetective("W"));
                 contientDetective = true;
             }
-
             if (tobyPos == position) {
                 panel.add(creerBadgeDetective("T"));
                 contientDetective = true;
             }
-
-            if (!contientDetective) {
-                panel.add(creerPointVide());
-            }
-
-            add(panel);
         }
+
+        if (!contientDetective) {
+            panel.add(creerPointVide());
+        }
+        
+        add(panel); 
+    }
+}
+
+    private JButton creerBoutonPositionDetective(int position) {
+        JButton bouton = new JButton("●");
+        bouton.setPreferredSize(new Dimension(46, 46));
+        bouton.setMaximumSize(new Dimension(46, 46));
+        bouton.setMinimumSize(new Dimension(46, 46));
+        bouton.setFont(new Font("Arial", Font.BOLD, 26));
+        bouton.setForeground(new Color(40, 40, 40));
+        bouton.setOpaque(false);
+        bouton.setContentAreaFilled(false);
+        bouton.setBorderPainted(false);
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        bouton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+
+        bouton.addActionListener(e -> {
+            if (detectivePositionSelectionListener != null) {
+                detectivePositionSelectionListener.accept(position);
+            }
+        });
+
+        bouton = new JButton("●") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.setColor(new Color(255, 215, 0, 150));
+                g2.fillOval(4, 4, getWidth() - 8, getHeight() - 8);
+
+                g2.setColor(new Color(255, 245, 160, 210));
+                g2.setStroke(new BasicStroke(3));
+                g2.drawOval(4, 4, getWidth() - 8, getHeight() - 8);
+
+                g2.setColor(new Color(25, 25, 25, 220));
+                g2.fillOval(getWidth() / 2 - 4, getHeight() / 2 - 4, 8, 8);
+
+                g2.dispose();
+            }
+        };
+
+            bouton.setPreferredSize(new Dimension(46, 46));
+        bouton.setMaximumSize(new Dimension(46, 46));
+        bouton.setMinimumSize(new Dimension(46, 46));
+        bouton.setOpaque(false);
+        bouton.setContentAreaFilled(false);
+        bouton.setBorderPainted(false);
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        bouton.addActionListener(e -> {
+            if (detectivePositionSelectionListener != null) {
+                detectivePositionSelectionListener.accept(position);
+            }
+        });
+
+        return bouton;
     }
 
     private int getXDetective(int position) {
@@ -383,7 +491,7 @@ public class PlateauPanel extends JPanel {
     }
 
     private int getYDetective(int position) {
-        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN;
+        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN + 2;
         int bottom = BOARD_Y + BOARD_H + DETECTIVE_MARGIN;
 
         int y0 = BOARD_Y + BOARD_H / 6 - DETECTIVE_SIZE / 2;
@@ -394,7 +502,7 @@ public class PlateauPanel extends JPanel {
             case 0:
             case 1:
             case 2:
-                return top;
+                return top-25;
 
             case 3:
                 return y0;

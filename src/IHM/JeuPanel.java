@@ -108,9 +108,9 @@ public class JeuPanel extends JPanel {
         gameScreen.setBackground(new Color(25, 25, 25));
 
         JLabel titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
-        titre.setFont(new Font("Arial", Font.BOLD, 26));
+        titre.setFont(new Font("Arial", Font.BOLD, 16));
         titre.setForeground(new Color(245, 235, 210));
-        titre.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        titre.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 
         PlateauPanel plateauPanel = new PlateauPanel(gameState);
         InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
@@ -134,17 +134,17 @@ public class JeuPanel extends JPanel {
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(20, 20, 20));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
         topPanel.add(titre, BorderLayout.CENTER);
 
         JButton pauseButton = new JButton("⏸");
-        pauseButton.setFont(new Font("Arial", Font.BOLD, 26));
+        pauseButton.setFont(new Font("Arial", Font.BOLD, 14));
         pauseButton.setForeground(new Color(245, 235, 210));
         pauseButton.setBackground(new Color(55, 45, 35));
         pauseButton.setFocusPainted(false);
         pauseButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
-        pauseButton.setPreferredSize(new Dimension(75, 45));
+        pauseButton.setPreferredSize(new Dimension(50, 24));
         pauseButton.addActionListener(e -> afficherPauseMenu());
 
         topPanel.add(pauseButton, BorderLayout.EAST);

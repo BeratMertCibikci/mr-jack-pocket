@@ -27,7 +27,7 @@ public class MenuPrincipalPanel extends JPanel {
 
         JButton jouerButton = new JButton("Jouer");
         JButton multijoueurButton = new JButton("Multijoueur");
-        JButton loadButton = new JButton("Load Game");
+        JButton loadButton = new JButton("Charger le jeu");
         JButton reglesButton = new JButton("Règles");
         JButton quitterButton = new JButton("Quitter");
         JButton muteButton = new JButton("Unmute");
@@ -74,7 +74,7 @@ public class MenuPrincipalPanel extends JPanel {
 
         loadButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
-            System.out.println("Bouton Load Game cliqué");
+            System.out.println("Bouton Charger jeu cliqué");
             fenetre.chargerJeuDepuisMenu();
         });
 

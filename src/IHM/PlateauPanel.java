@@ -1,8 +1,6 @@
 package IHM;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -44,7 +42,9 @@ public class PlateauPanel extends JPanel {
 
     public void setDetectiveMoveSelection(java.util.List<Integer> positions, String message, java.util.function.Consumer<Integer> listener) {
         highlightedDetectivePositions.clear();
-        if (positions != null) highlightedDetectivePositions.addAll(positions);
+        if (positions != null) {
+            highlightedDetectivePositions.addAll(positions);
+        }
 
         selectionMessage = message;
         detectivePositionSelectionListener = listener;
@@ -172,8 +172,11 @@ public class PlateauPanel extends JPanel {
         }
 
         add(boardPanel);
-        if (selectionMessage != null) ajouterMessageSelection();
+        if (selectionMessage != null) {
+            ajouterMessageSelection();
+        }
         ajouterDetectiveTokensAutourPlateau();
+        ajouterJackHourglassesVertical();
     }
 
     private void ajouterMessageSelection() {
@@ -343,74 +346,54 @@ public class PlateauPanel extends JPanel {
     }
 
     private void ajouterDetectiveTokensAutourPlateau() {
-    int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
-    int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
-    int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
+        int holmesPos = gameState.getDetectiveTokens().getHolmes().getPosition();
+        int watsonPos = gameState.getDetectiveTokens().getWatson().getPosition();
+        int tobyPos = gameState.getDetectiveTokens().getToby().getPosition();
 
-    for (int position = 0; position < 12; position++) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        panel.setOpaque(false);
-        
-        panel.setBounds(
-        getXDetective(position),
-        getYDetective(position),
-        DETECTIVE_SIZE,
-        DETECTIVE_SIZE * 2
-);
-
-        boolean highlighted = highlightedDetectivePositions.contains(position);
-        boolean contientDetective = false;
-
-        if (highlighted) {
-            panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        for (int position = 0; position < 12; position++) {
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
             panel.setOpaque(false);
-            panel.add(creerBoutonPositionDetective(position));
-            contientDetective = true;
-        } else {
-            if (holmesPos == position) {
-                panel.add(creerBadgeDetective("H"));
-                contientDetective = true;
-            }
-            if (watsonPos == position) {
-                panel.add(creerBadgeDetective("W"));
-                contientDetective = true;
-            }
-            if (tobyPos == position) {
-                panel.add(creerBadgeDetective("T"));
-                contientDetective = true;
-            }
-        }
+            
+            panel.setBounds(
+                    getXDetective(position),
+                    getYDetective(position),
+                    DETECTIVE_SIZE,
+                    DETECTIVE_SIZE * 2
+            );
 
-        if (!contientDetective) {
-            panel.add(creerPointVide());
+            boolean highlighted = highlightedDetectivePositions.contains(position);
+            boolean contientDetective = false;
+
+            if (highlighted) {
+                panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                panel.setOpaque(false);
+                panel.add(creerBoutonPositionDetective(position));
+                contientDetective = true;
+            } else {
+                if (holmesPos == position) {
+                    panel.add(creerBadgeDetective("H"));
+                    contientDetective = true;
+                }
+                if (watsonPos == position) {
+                    panel.add(creerBadgeDetective("W"));
+                    contientDetective = true;
+                }
+                if (tobyPos == position) {
+                    panel.add(creerBadgeDetective("T"));
+                    contientDetective = true;
+                }
+            }
+
+            if (!contientDetective) {
+                panel.add(creerPointVide());
+            }
+            
+            add(panel); 
         }
-        
-        add(panel); 
     }
-}
 
     private JButton creerBoutonPositionDetective(int position) {
-        JButton bouton = new JButton("●");
-        bouton.setPreferredSize(new Dimension(46, 46));
-        bouton.setMaximumSize(new Dimension(46, 46));
-        bouton.setMinimumSize(new Dimension(46, 46));
-        bouton.setFont(new Font("Arial", Font.BOLD, 26));
-        bouton.setForeground(new Color(40, 40, 40));
-        bouton.setOpaque(false);
-        bouton.setContentAreaFilled(false);
-        bouton.setBorderPainted(false);
-        bouton.setFocusPainted(false);
-        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        bouton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
-
-        bouton.addActionListener(e -> {
-            if (detectivePositionSelectionListener != null) {
-                detectivePositionSelectionListener.accept(position);
-            }
-        });
-
-        bouton = new JButton("●") {
+        JButton bouton = new JButton("●") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -430,7 +413,7 @@ public class PlateauPanel extends JPanel {
             }
         };
 
-            bouton.setPreferredSize(new Dimension(46, 46));
+        bouton.setPreferredSize(new Dimension(46, 46));
         bouton.setMaximumSize(new Dimension(46, 46));
         bouton.setMinimumSize(new Dimension(46, 46));
         bouton.setOpaque(false);
@@ -457,36 +440,19 @@ public class PlateauPanel extends JPanel {
         int x2 = BOARD_X + (5 * BOARD_W) / 6 - DETECTIVE_SIZE / 2;
 
         switch (position) {
-            case 0:
-                return x0;
-
-            case 1:
-                return x1;
-
-            case 2:
-                return x2;
-
+            case 0: return x0;
+            case 1: return x1;
+            case 2: return x2;
             case 3:
             case 4:
-            case 5:
-                return right;
-
-            case 6:
-                return x2;
-
-            case 7:
-                return x1;
-
-            case 8:
-                return x0;
-
+            case 5: return right;
+            case 6: return x2;
+            case 7: return x1;
+            case 8: return x0;
             case 9:
             case 10:
-            case 11:
-                return left;
-
-            default:
-                return 0;
+            case 11: return left;
+            default: return 0;
         }
     }
 
@@ -501,49 +467,24 @@ public class PlateauPanel extends JPanel {
         switch (position) {
             case 0:
             case 1:
-            case 2:
-                return top-25;
-
-            case 3:
-                return y0;
-
-            case 4:
-                return y1;
-
-            case 5:
-                return y2;
-
+            case 2: return top - 25;
+            case 3: return y0;
+            case 4: return y1;
+            case 5: return y2;
             case 6:
             case 7:
-            case 8:
-                return bottom;
-
-            case 9:
-                return y2;
-
-            case 10:
-                return y1;
-
-            case 11:
-                return y0;
-
-            default:
-                return 0;
+            case 8: return bottom;
+            case 9: return y2;
+            case 10: return y1;
+            case 11: return y0;
+            default: return 0;
         }
     }
 
     private JComponent creerBadgeDetective(String texte) {
-        if (texte.equals("H")) {
-            return new DetectiveTokenPanel("Holmes");
-        }
-
-        if (texte.equals("W")) {
-            return new DetectiveTokenPanel("Watson");
-        }
-
-        if (texte.equals("T")) {
-            return new DetectiveTokenPanel("Toby");
-        }
+        if (texte.equals("H")) return new DetectiveTokenPanel("Holmes");
+        if (texte.equals("W")) return new DetectiveTokenPanel("Watson");
+        if (texte.equals("T")) return new DetectiveTokenPanel("Toby");
 
         JLabel badge = new JLabel(texte, SwingConstants.CENTER);
         badge.setPreferredSize(new Dimension(40, 40));
@@ -577,8 +518,50 @@ public class PlateauPanel extends JPanel {
                 kernel,
                 java.awt.image.ConvolveOp.EDGE_NO_OP,
                 null
-        );
+            );
 
         return op.filter(image, null);
+    }
+
+    private void ajouterJackHourglassesVertical() {
+        String joueur = gameState.getTurnManager().getCurrentPlayer();
+        if (!joueur.equals("Jack")) {
+            return;
+        }
+
+        int count = 0;
+        try {
+            count = gameState.getWinConditionChecker().calculateJackHourglassTotal(
+                    gameState.getAlibiDeckManager(),
+                    gameState.getJackPlayerState()
+            );
+        } catch (Exception e) {
+            return;
+        }
+
+        JPanel hourglassContainer = new JPanel();
+        hourglassContainer.setOpaque(false);
+        hourglassContainer.setLayout(new BoxLayout(hourglassContainer, BoxLayout.Y_AXIS));
+        
+        int containerW = 60;
+        int targetX = PANEL_W - containerW + 200 ;
+        hourglassContainer.setBounds(targetX, BOARD_Y, containerW, BOARD_H);
+
+        for (int i = 1; i <= 6; i++) {
+            JLabel iconLabel = new JLabel();
+            iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            String fileName = i <= count ? "hourglass_full.png" : "hourglass_empty.png";
+            String chemin = System.getProperty("user.dir") + "/assets/images/" + fileName;
+            ImageIcon icon = new ImageIcon(chemin);
+            
+            Image img = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+            iconLabel.setIcon(new ImageIcon(img));
+
+            hourglassContainer.add(iconLabel);
+            hourglassContainer.add(Box.createVerticalStrut(38));
+        }
+
+        add(hourglassContainer, 0);
     }
 }

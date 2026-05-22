@@ -220,6 +220,7 @@ public class PlateauPanel extends JPanel {
         }
         ajouterDetectiveTokensAutourPlateau();
         ajouterJackHourglassesVertical();
+        ajouterFlecheDirection();
     }
 
     private String getTileKey(int row, int col) {
@@ -643,5 +644,42 @@ public class PlateauPanel extends JPanel {
         }
 
         add(hourglassContainer, 0);
+    }
+
+    private void ajouterFlecheDirection() {
+        int flecheW = 120;
+        int flecheH = 80;
+        int targetX = PANEL_W - flecheW + 50; 
+        int targetY = 30; 
+
+        JPanel flechePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                String chemin = System.getProperty("user.dir") + "/assets/images/fleche.png";
+                File fichierImage = new File(chemin);
+                
+                if (fichierImage.exists()) {
+                    try {
+                        BufferedImage imgOriginale = ImageIO.read(fichierImage);
+                        if (imgOriginale != null) {
+                            Graphics2D g2 = (Graphics2D) g.create();
+                            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                            
+                            g2.drawImage(imgOriginale, 0, 0, flecheW, flecheH, null);
+                            g2.dispose();
+                        }
+                    } catch (Exception e) {
+                        
+                    }
+                }
+            }
+        };
+
+        flechePanel.setOpaque(false);
+        flechePanel.setBounds(targetX, targetY, flecheW, flecheH);
+        add(flechePanel, 0);
     }
 }

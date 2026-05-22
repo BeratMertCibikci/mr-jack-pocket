@@ -12,8 +12,8 @@ public class JackInfoPanel extends JPanel {
     private JLabel titleLabel;
     private JLabel jackIdentityLabel;
     private JLabel jackAlibisLabel;
-    private JLabel jackHourglassLabel;
-
+    private JPanel hourglassPanel;
+    
     public JackInfoPanel(GameEngine gameEngine) {
         this(gameEngine, GameMode.HUMAN_VS_HUMAN, "Investigator");
     }
@@ -44,7 +44,8 @@ public class JackInfoPanel extends JPanel {
 
         jackIdentityLabel = creerPetitLabelJack();
         jackAlibisLabel = creerPetitLabelJack();
-        jackHourglassLabel = creerPetitLabelJack();
+        hourglassPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
+        hourglassPanel.setOpaque(false);
 
         add(titleLabel);
         add(Box.createVerticalStrut(6));
@@ -52,7 +53,7 @@ public class JackInfoPanel extends JPanel {
         add(Box.createVerticalStrut(4));
         add(jackAlibisLabel);
         add(Box.createVerticalStrut(4));
-        add(jackHourglassLabel);
+        add(hourglassPanel);
 
         rafraichir();
     }
@@ -98,8 +99,7 @@ public class JackInfoPanel extends JPanel {
         }
 
         jackAlibisLabel.setText("Alibis: " + getAlibisJackTexte());
-        jackHourglassLabel.setText("Hourglass: " + getNombreSabliersJack());
-
+        rafraichirHourglasses();
         revalidate();
         repaint();
     }
@@ -149,6 +149,51 @@ public class JackInfoPanel extends JPanel {
         } catch (Exception e) {
             return "unavailable";
         }
+    }
+    private void rafraichirHourglasses() {
+        if (hourglassPanel == null) {
+            return;
+        }
+
+        hourglassPanel.removeAll();
+
+        int count = getNombreSabliersJack();
+
+        if (count < 0) {
+            count = 0;
+        }
+
+        if (count > 6) {
+            count = 6;
+        }
+
+        for (int i = 1; i <= 6; i++) {
+            JLabel iconLabel = new JLabel();
+
+            if (i <= count) {
+                iconLabel.setIcon(chargerIconeHourglass(true));
+            } else {
+                iconLabel.setIcon(chargerIconeHourglass(false));
+            }
+
+            hourglassPanel.add(iconLabel);
+        }
+
+        hourglassPanel.revalidate();
+        hourglassPanel.repaint();
+    }
+
+    private ImageIcon chargerIconeHourglass(boolean full) {
+        String fileName = full ? "hourglass_full.png" : "hourglass_empty.png";
+
+        String chemin = System.getProperty("user.dir")
+                + "/assets/images/"
+                + fileName;
+
+        ImageIcon icon = new ImageIcon(chemin);
+
+        Image image = icon.getImage().getScaledInstance(22, 22, Image.SCALE_SMOOTH);
+        return new ImageIcon(image);
     }
 
     private int getNombreSabliersJack() {

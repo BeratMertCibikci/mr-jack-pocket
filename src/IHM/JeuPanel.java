@@ -113,10 +113,15 @@ public class JeuPanel extends JPanel {
         gameScreen = new JPanel(new BorderLayout());
         gameScreen.setBackground(new Color(25, 25, 25));
 
+<<<<<<< HEAD
         titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 26));
+=======
+        JLabel titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
+        titre.setFont(new Font("Arial", Font.BOLD, 16));
+>>>>>>> origin/develop
         titre.setForeground(new Color(245, 235, 210));
-        titre.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        titre.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 
         PlateauPanel plateauPanel = new PlateauPanel(gameState);
         InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
@@ -145,20 +150,29 @@ public class JeuPanel extends JPanel {
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(20, 20, 20));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
         topPanel.add(titre, BorderLayout.CENTER);
 
+<<<<<<< HEAD
         pauseButton = new JButton("⏸");
         pauseButton.setFont(new Font("Arial", Font.BOLD, 26));
+=======
+        JButton pauseButton = new JButton("⏸");
+        pauseButton.setFont(new Font("Arial", Font.BOLD, 14));
+>>>>>>> origin/develop
         pauseButton.setForeground(new Color(245, 235, 210));
         pauseButton.setBackground(new Color(55, 45, 35));
         pauseButton.setFocusPainted(false);
         pauseButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+<<<<<<< HEAD
         
         int largeurBouton = Math.max(60, getWidth() / 14);
         int hauteurBouton = Math.max(35, getHeight() / 18);
         pauseButton.setPreferredSize(new Dimension(largeurBouton, hauteurBouton));
+=======
+        pauseButton.setPreferredSize(new Dimension(50, 24));
+>>>>>>> origin/develop
         pauseButton.addActionListener(e -> afficherPauseMenu());
 
         topPanel.add(pauseButton, BorderLayout.EAST);

@@ -20,6 +20,9 @@ public class PlateauPanel extends JPanel {
     private java.util.function.Consumer<Integer> detectivePositionSelectionListener;
     private String selectionMessage;
 
+    private java.util.List<String> highlightedTiles = new java.util.ArrayList<>();
+    private Timer highlightTimer;
+
     private static final int PANEL_W = 920;
     private static final int PANEL_H = 760;
 
@@ -40,8 +43,13 @@ public class PlateauPanel extends JPanel {
         this.tileSelectionListener = tileSelectionListener;
     }
 
-    public void setDetectiveMoveSelection(java.util.List<Integer> positions, String message, java.util.function.Consumer<Integer> listener) {
+    public void setDetectiveMoveSelection(
+            java.util.List<Integer> positions,
+            String message,
+            java.util.function.Consumer<Integer> listener
+    ) {
         highlightedDetectivePositions.clear();
+
         if (positions != null) {
             highlightedDetectivePositions.addAll(positions);
         }
@@ -113,7 +121,36 @@ public class PlateauPanel extends JPanel {
                 GameCharacter character = tile.getCharacter();
                 String nom = character != null ? character.getName() : "Carte vide";
 
-                JPanel cartePanel = new JPanel(new BorderLayout());
+                final String tileKey = getTileKey(li, ci);
+
+                JPanel cartePanel = new JPanel(new BorderLayout()) {
+                    @Override
+                    public void paint(Graphics g) {
+                        super.paint(g);
+
+                        if (highlightedTiles.contains(tileKey)) {
+                            Graphics2D g2 = (Graphics2D) g.create();
+                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                            g2.setColor(new Color(255, 215, 0));
+                            g2.setStroke(new BasicStroke(7));
+
+                            int margin = 5;
+
+                            g2.drawRoundRect(
+                                    margin,
+                                    margin,
+                                    getWidth() - margin * 2 - 1,
+                                    getHeight() - margin * 2 - 1,
+                                    18,
+                                    18
+                            );
+
+                            g2.dispose();
+                        }
+                    }
+                };
+
                 cartePanel.setOpaque(false);
                 cartePanel.setBorder(null);
                 cartePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -172,11 +209,47 @@ public class PlateauPanel extends JPanel {
         }
 
         add(boardPanel);
+
         if (selectionMessage != null) {
             ajouterMessageSelection();
         }
         ajouterDetectiveTokensAutourPlateau();
         ajouterJackHourglassesVertical();
+    }
+
+    private String getTileKey(int row, int col) {
+        return row + "," + col;
+    }
+
+    public void highlightTileTemporarily(int row, int col) {
+        highlightedTiles.clear();
+        highlightedTiles.add(getTileKey(row, col));
+
+        startHighlightTimer();
+    }
+
+    public void highlightTilesTemporarily(int row1, int col1, int row2, int col2) {
+        highlightedTiles.clear();
+        highlightedTiles.add(getTileKey(row1, col1));
+        highlightedTiles.add(getTileKey(row2, col2));
+
+        startHighlightTimer();
+    }
+
+    private void startHighlightTimer() {
+        if (highlightTimer != null && highlightTimer.isRunning()) {
+            highlightTimer.stop();
+        }
+
+        rafraichir();
+
+        highlightTimer = new Timer(1200, e -> {
+            highlightedTiles.clear();
+            rafraichir();
+        });
+
+        highlightTimer.setRepeats(false);
+        highlightTimer.start();
     }
 
     private void ajouterMessageSelection() {
@@ -187,8 +260,10 @@ public class PlateauPanel extends JPanel {
         messageLabel.setBackground(new Color(25, 25, 25, 210));
         messageLabel.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 2));
 
-        int largeur = 300, hauteur = 42;
-        int x = 15, y = 20;
+        int largeur = 300;
+        int hauteur = 42;
+        int x = 15;
+        int y = 20;
 
         messageLabel.setBounds(x, y, largeur, hauteur);
         add(messageLabel, 0);

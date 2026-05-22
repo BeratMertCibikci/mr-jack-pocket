@@ -8,18 +8,20 @@ import ai.EvaluationPerspective;
 import ai.MinimaxAI;
 import engine.ActionType;
 import engine.GameEngine;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.function.Consumer;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
+
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
-
 
 public class ActionPanel extends JPanel {
 
@@ -235,8 +237,8 @@ public class ActionPanel extends JPanel {
 
         rafraichir();
         verifierGameOverEtAfficher();
-
     }
+
     private void afficherActions() {
         Token[] actionTokens = gameEngine.getGameState()
                 .getActionTokens()
@@ -365,6 +367,7 @@ public class ActionPanel extends JPanel {
             });
 
             add(autoAIButton);
+
             JButton speedButton = creerBoutonControle(getAutoSpeedText(), new Color(55, 70, 90));
             speedButton.addActionListener(e -> {
                 boutonClickMusique.jouerClick();
@@ -516,22 +519,22 @@ public class ActionPanel extends JPanel {
 
         return sb.toString();
     }
-    private String getNomTuile(int row, int col){
+
+    private String getNomTuile(int row, int col) {
         try {
-            
             Tile tile = gameEngine.getGameState().getBoard().getTile(row, col);
-            if (tile == null){
+
+            if (tile == null || tile.getCharacter() == null) {
                 return "vide";
             }
-            if (tile.getCharacter() == null){
-                return "vide";
-            }
+
             return tile.getCharacter().getName();
-        } catch (Exception e){
+
+        } catch (Exception e) {
             return "inconnue";
         }
     }
-    
+
     private void updateAutoAIButtonText() {
         if (autoAIButton == null) {
             return;
@@ -702,37 +705,24 @@ public class ActionPanel extends JPanel {
 
                 case ROTATE:
                     preparerRotate(joueurAvantAction);
-                    break;
+                    return;
 
                 case EXCHANGE:
                     preparerExchange(joueurAvantAction);
-                    break;
+                    return;
 
                 case JOKER:
                     traiterJoker();
-                    break;
+                    return;
             }
 
-            if (actionType != ActionType.ROTATE && actionType != ActionType.EXCHANGE) {
-                actionEnCours = false;
-                rafraichirToutesLesVues();
+            actionEnCours = false;
+            rafraichirToutesLesVues();
 
-                if (gameEngine.isRoundOver()) {
-                    verifierFinDeRoundEtTransition();
-                } else {
-                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
-                }
+            if (gameEngine.isRoundOver()) {
+                verifierFinDeRoundEtTransition();
             } else {
-                plateauPanel.rafraichir();
-                infoJeuPanel.rafraichir();
-
-                if (timeTokensPanel != null) {
-                    timeTokensPanel.rafraichir();
-                }
-
-                if (jackInfoPanel != null) {
-                    jackInfoPanel.rafraichir();
-                }
+                verifierChangementDeJoueurEtTransition(joueurAvantAction);
             }
 
         } catch (Exception ex) {
@@ -745,6 +735,19 @@ public class ActionPanel extends JPanel {
                     JOptionPane.ERROR_MESSAGE
             );
         }
+    }
+
+    private void continuerApresHighlight(String joueurAvantAction) {
+        Timer timer = new Timer(1300, e -> {
+            if (gameEngine.isRoundOver()) {
+                verifierFinDeRoundEtTransition();
+            } else {
+                verifierChangementDeJoueurEtTransition(joueurAvantAction);
+            }
+        });
+
+        timer.setRepeats(false);
+        timer.start();
     }
 
     private void verifierFinDeRoundEtTransition() {
@@ -835,10 +838,11 @@ public class ActionPanel extends JPanel {
 
     private void traiterJoker() {
         boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
+
         JDialog jokerDialog = new JDialog(
-            SwingUtilities.getWindowAncestor(this),
-            "Joker",
-            Dialog.ModalityType.APPLICATION_MODAL
+                SwingUtilities.getWindowAncestor(this),
+                "Joker",
+                Dialog.ModalityType.APPLICATION_MODAL
         );
 
         jokerDialog.setSize(360, jackTurn ? 260 : 210);
@@ -862,21 +866,22 @@ public class ActionPanel extends JPanel {
         JButton holmesButton = creerBoutonControle("Holmes", new Color(55, 45, 35));
         JButton watsonButton = creerBoutonControle("Watson", new Color(55, 45, 35));
         JButton tobyButton = creerBoutonControle("Toby", new Color(55, 45, 35));
+
         boutonsDetectives.add(holmesButton);
         boutonsDetectives.add(watsonButton);
         boutonsDetectives.add(tobyButton);
 
-        holmesButton.addActionListener(e ->{
+        holmesButton.addActionListener(e -> {
             jokerDialog.dispose();
             resoudreJokerAvecDetective("Holmes");
         });
-        
-        watsonButton.addActionListener(e ->{
+
+        watsonButton.addActionListener(e -> {
             jokerDialog.dispose();
             resoudreJokerAvecDetective("Watson");
         });
 
-        tobyButton.addActionListener(e ->{
+        tobyButton.addActionListener(e -> {
             jokerDialog.dispose();
             resoudreJokerAvecDetective("Toby");
         });
@@ -894,6 +899,7 @@ public class ActionPanel extends JPanel {
                 try {
                     jokerDialog.dispose();
                     gameEngine.skipJokerMove();
+
                     actionEnCours = false;
                     plateauPanel.clearDetectiveMoveSelection();
                     rafraichirToutesLesVues();
@@ -903,17 +909,19 @@ public class ActionPanel extends JPanel {
                     } else {
                         verifierChangementDeJoueurEtTransition(dernierJoueurAffiche);
                     }
+
                 } catch (Exception ex) {
                     actionEnCours = false;
+
                     JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur Joker",
-                        JOptionPane.ERROR_MESSAGE
+                            this,
+                            ex.getMessage(),
+                            "Erreur Joker",
+                            JOptionPane.ERROR_MESSAGE
                     );
                 }
             });
-            
+
             panel.add(Box.createVerticalStrut(18));
             panel.add(skipButton);
         }
@@ -925,6 +933,7 @@ public class ActionPanel extends JPanel {
     private void resoudreJokerAvecDetective(String detectiveName) {
         try {
             gameEngine.moveDetectiveWithJoker(detectiveName);
+
             actionEnCours = false;
             plateauPanel.clearDetectiveMoveSelection();
             rafraichirToutesLesVues();
@@ -934,20 +943,22 @@ public class ActionPanel extends JPanel {
             } else {
                 verifierChangementDeJoueurEtTransition(dernierJoueurAffiche);
             }
+
         } catch (Exception ex) {
             actionEnCours = false;
+
             JOptionPane.showMessageDialog(
-                this,
-                ex.getMessage(),
-                "Erreur Joker",
-                JOptionPane.ERROR_MESSAGE
+                    this,
+                    ex.getMessage(),
+                    "Erreur Joker",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
 
     private void preparerRotate(String joueurAvantAction) {
         plateauPanel.clearDetectiveMoveSelection();
-        
+
         JOptionPane.showMessageDialog(
                 this,
                 "Sélectionnez une carte à tourner sur le plateau.",
@@ -981,13 +992,16 @@ public class ActionPanel extends JPanel {
 
                 int rotations = Integer.parseInt(reponse);
 
+                int row = tile.getRow();
+                int col = tile.getCol();
+
                 gameEngine.rotateTile(tile, rotations);
 
                 JOptionPane.showMessageDialog(
                         this,
                         "Carte tournée : "
                                 + tile.getCharacter().getName()
-                                + " (" + tile.getRow() + "," + tile.getCol() + ") "
+                                + " (" + row + "," + col + ") "
                                 + rotations + " fois.",
                         "Rotate",
                         JOptionPane.INFORMATION_MESSAGE
@@ -997,12 +1011,9 @@ public class ActionPanel extends JPanel {
                 actionEnCours = false;
 
                 rafraichirToutesLesVues();
+                plateauPanel.highlightTileTemporarily(row, col);
 
-                if (gameEngine.isRoundOver()) {
-                    verifierFinDeRoundEtTransition();
-                } else {
-                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
-                }
+                continuerApresHighlight(joueurAvantAction);
 
             } catch (Exception ex) {
                 actionEnCours = false;
@@ -1019,7 +1030,7 @@ public class ActionPanel extends JPanel {
 
     private void preparerExchange(String joueurAvantAction) {
         plateauPanel.clearDetectiveMoveSelection();
-        
+
         JOptionPane.showMessageDialog(
                 this,
                 "Sélectionnez deux cartes à échanger sur le plateau.",
@@ -1042,43 +1053,46 @@ public class ActionPanel extends JPanel {
                             "Exchange",
                             JOptionPane.INFORMATION_MESSAGE
                     );
-                } else {
-                    Tile deuxiemeCarte = tile;
+                    return;
+                }
 
-                    if (premiereCarte[0] == deuxiemeCarte) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Vous devez sélectionner deux cartes différentes.",
-                                "Exchange",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        return;
-                    }
+                Tile deuxiemeCarte = tile;
 
-                    gameEngine.exchangeTiles(premiereCarte[0], deuxiemeCarte);
-
+                if (premiereCarte[0] == deuxiemeCarte) {
                     JOptionPane.showMessageDialog(
                             this,
-                            "Cartes échangées : ("
-                                    + premiereCarte[0].getRow() + "," + premiereCarte[0].getCol()
-                                    + ") et ("
-                                    + deuxiemeCarte.getRow() + "," + deuxiemeCarte.getCol()
-                                    + ")",
+                            "Vous devez sélectionner deux cartes différentes.",
                             "Exchange",
-                            JOptionPane.INFORMATION_MESSAGE
+                            JOptionPane.WARNING_MESSAGE
                     );
-
-                    plateauPanel.setTileSelectionListener(null);
-                    actionEnCours = false;
-
-                    rafraichirToutesLesVues();
-
-                    if (gameEngine.isRoundOver()) {
-                        verifierFinDeRoundEtTransition();
-                    } else {
-                        verifierChangementDeJoueurEtTransition(joueurAvantAction);
-                    }
+                    return;
                 }
+
+                int row1 = premiereCarte[0].getRow();
+                int col1 = premiereCarte[0].getCol();
+                int row2 = deuxiemeCarte.getRow();
+                int col2 = deuxiemeCarte.getCol();
+
+                gameEngine.exchangeTiles(premiereCarte[0], deuxiemeCarte);
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Cartes échangées : ("
+                                + row1 + "," + col1
+                                + ") et ("
+                                + row2 + "," + col2
+                                + ")",
+                        "Exchange",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                plateauPanel.setTileSelectionListener(null);
+                actionEnCours = false;
+
+                rafraichirToutesLesVues();
+                plateauPanel.highlightTilesTemporarily(row1, col1, row2, col2);
+
+                continuerApresHighlight(joueurAvantAction);
 
             } catch (Exception ex) {
                 actionEnCours = false;
@@ -1105,45 +1119,51 @@ public class ActionPanel extends JPanel {
         }
 
         java.util.List<Integer> positions = new java.util.ArrayList<>();
-        positions.add((currentPosition + 1) % 12); positions.add((currentPosition + 2) % 12);
+        positions.add((currentPosition + 1) % 12);
+        positions.add((currentPosition + 2) % 12);
 
         plateauPanel.setDetectiveMoveSelection(
-            positions, 
-            "Choisissez votre déplacement",
-            selectedPosition -> {
-                
-                try {
-                    int steps = (selectedPosition - currentPosition + 12) % 12;
-                    if (steps == 0) steps = 12;
+                positions,
+                "Choisissez votre déplacement",
+                selectedPosition -> {
+                    try {
+                        int steps = (selectedPosition - currentPosition + 12) % 12;
 
-                    if ("Holmes".equals(detectiveName)) {
-                        gameEngine.moveHolmes(steps);
-                    } else if ("Watson".equals(detectiveName)) {
-                        gameEngine.moveWatson(steps);
-                    } else {
-                        gameEngine.moveToby(steps);
+                        if (steps == 0) {
+                            steps = 12;
+                        }
+
+                        if ("Holmes".equals(detectiveName)) {
+                            gameEngine.moveHolmes(steps);
+                        } else if ("Watson".equals(detectiveName)) {
+                            gameEngine.moveWatson(steps);
+                        } else {
+                            gameEngine.moveToby(steps);
+                        }
+
+                        plateauPanel.clearDetectiveMoveSelection();
+                        actionEnCours = false;
+                        rafraichirToutesLesVues();
+
+                        if (gameEngine.isRoundOver()) {
+                            verifierFinDeRoundEtTransition();
+                        } else {
+                            verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                        }
+
+                    } catch (Exception ex) {
+                        plateauPanel.clearDetectiveMoveSelection();
+                        actionEnCours = false;
+
+                        JOptionPane.showMessageDialog(
+                                this,
+                                ex.getMessage(),
+                                "Erreur déplacement",
+                                JOptionPane.ERROR_MESSAGE
+                        );
                     }
-
-                    plateauPanel.clearDetectiveMoveSelection();
-                    actionEnCours = false;
-                    rafraichirToutesLesVues();
-
-                    if (gameEngine.isRoundOver()) {
-                        verifierFinDeRoundEtTransition();
-                    } else {
-                        verifierChangementDeJoueurEtTransition(joueurAvantAction);
-                    }
-                } catch (Exception ex) {
-                    plateauPanel.clearDetectiveMoveSelection();
-                    actionEnCours = false;
-                    JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur déplacement",
-                        JOptionPane.ERROR_MESSAGE
-                    );
                 }
-            });
+        );
     }
 
     private void setupAIPlayers() {
@@ -1256,29 +1276,31 @@ public class ActionPanel extends JPanel {
 
                 rafraichirToutesLesVues();
 
-            if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
-                if (mode != GameMode.IA_VS_IA || !autoAIEnabled) {
-                    afficherWitnessPhaseDialog();
-                }
-
-                gameEngine.endRound();
-                rafraichirToutesLesVues();
-
-                if (onTransitionTour != null
-                        && mode == GameMode.HUMAN_VS_HUMAN
-                        && !gameEngine.getGameState().isGameOver()) {
-                    dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
-
-                    Timer transitionTimer = new Timer(
-                            1000,
-                            evt -> onTransitionTour.accept("Changement de tour")
-                    );
-                    transitionTimer.setRepeats(false);
-                    transitionTimer.start();
-                }
-            } else {   
-                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
+                    if (mode != GameMode.IA_VS_IA || !autoAIEnabled) {
+                        afficherWitnessPhaseDialog();
                     }
+
+                    gameEngine.endRound();
+                    rafraichirToutesLesVues();
+
+                    if (onTransitionTour != null
+                            && mode == GameMode.HUMAN_VS_HUMAN
+                            && !gameEngine.getGameState().isGameOver()) {
+                        dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
+
+                        Timer transitionTimer = new Timer(
+                                1000,
+                                evt -> onTransitionTour.accept("Changement de tour")
+                        );
+
+                        transitionTimer.setRepeats(false);
+                        transitionTimer.start();
+                    }
+
+                } else {
+                    verifierChangementDeJoueurEtTransition(joueurAvantAction);
+                }
 
                 if (gameEngine.getGameState().isGameOver()) {
                     autoAIEnabled = false;
@@ -1290,8 +1312,7 @@ public class ActionPanel extends JPanel {
                 if (mode == GameMode.IA_VS_IA
                         && autoAIEnabled
                         && !gameEngine.getGameState().isGameOver()) {
-
-                    Timer autoTimer = new Timer(autoAIDelayMs, next -> jouerSiTourIA());                    
+                    Timer autoTimer = new Timer(autoAIDelayMs, next -> jouerSiTourIA());
                     autoTimer.setRepeats(false);
                     autoTimer.start();
                 }
@@ -1313,6 +1334,7 @@ public class ActionPanel extends JPanel {
         timer.setRepeats(false);
         timer.start();
     }
+
     private String getAutoSpeedText() {
         if (autoAIDelayMs == 1000) {
             return "Speed: Slow";
@@ -1324,6 +1346,7 @@ public class ActionPanel extends JPanel {
 
         return "Speed: Normal";
     }
+
     private ImageIcon chargerImageAction(String actionName) {
         String nomFichier = getNomFichierAction(actionName);
 
@@ -1461,6 +1484,7 @@ public class ActionPanel extends JPanel {
 
         return new ImageIcon(grisee);
     }
+
     private void verifierGameOverEtAfficher() {
         if (gameOverDialogShown) {
             return;
@@ -1475,7 +1499,6 @@ public class ActionPanel extends JPanel {
         updateAutoAIButtonText();
 
         String winner = gameEngine.getGameState().getWinner();
-
         String message;
 
         if ("Investigator".equals(winner)) {
@@ -1493,6 +1516,7 @@ public class ActionPanel extends JPanel {
                 JOptionPane.INFORMATION_MESSAGE
         );
     }
+
     private boolean isJackVisibleForWitnessPhase() {
         try {
             GameCharacter jack = gameEngine.getGameState().getJackCharacter();
@@ -1525,21 +1549,20 @@ public class ActionPanel extends JPanel {
 
     private void afficherWitnessPhaseDialog() {
         boolean jackVisible = isJackVisibleForWitnessPhase();
-
         String message;
 
         if (jackVisible) {
             message =
-                    "Witness Phase\n\n" +
-                    "Jack est-il visible ?\n\n" +
-                    "OUI\n\n" +
-                    "Jack est visible par au moins un détective.";
+                    "Witness Phase\n\n"
+                            + "Jack est-il visible ?\n\n"
+                            + "OUI\n\n"
+                            + "Jack est visible par au moins un détective.";
         } else {
             message =
-                    "Witness Phase\n\n" +
-                    "Jack est-il visible ?\n\n" +
-                    "NON\n\n" +
-                    "Jack n'est visible par aucun détective.";
+                    "Witness Phase\n\n"
+                            + "Jack est-il visible ?\n\n"
+                            + "NON\n\n"
+                            + "Jack n'est visible par aucun détective.";
         }
 
         JOptionPane.showMessageDialog(

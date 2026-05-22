@@ -551,7 +551,7 @@ public class ActionPanel extends JPanel {
 
         bouton.setFont(new Font("Arial", Font.BOLD, 13));
         bouton.setBackground(couleur);
-        bouton.setForeground(new Color(245, 235, 210));
+        bouton.setForeground(Color.DARK_GRAY);
         bouton.setFocusPainted(false);
         bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 

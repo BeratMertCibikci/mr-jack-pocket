@@ -319,7 +319,14 @@ public class ChoixModePanel extends JPanel {
             Runnable action
     ) {
         JButton button = new JButton(texte);
-        BoutonTexte(button);
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setForeground(Color.BLACK);
+        button.setBackground(new Color(212, 175, 55));
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorder(BorderFactory.createLineBorder(new Color(80, 60, 20), 2));
 
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setMaximumSize(new Dimension(220, 40));

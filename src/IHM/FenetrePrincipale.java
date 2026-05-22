@@ -21,7 +21,8 @@ public class FenetrePrincipale extends JFrame {
     public FenetrePrincipale() {
         setTitle("Mr Jack Pocket");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 600);
+        setSize(1280, 850);
+        setMinimumSize(new Dimension(1200, 800));
         setLocationRelativeTo(null);
 
         musique = new MainMusique();

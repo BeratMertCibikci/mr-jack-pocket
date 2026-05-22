@@ -547,12 +547,36 @@ public class ActionPanel extends JPanel {
     }
 
     private JButton creerBoutonControle(String texte, Color couleur) {
-        JButton bouton = new JButton(texte);
+        JButton bouton = new JButton(texte){
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (getModel().isPressed()) {
+                    g2.setColor(new Color(45, 45, 45));
+                } else if (getModel().isRollover()) {
+                    g2.setColor(new Color(85, 85, 85));
+                } else {
+                    g2.setColor(new Color(65, 65, 65));
+                }
+
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                g2.dispose();
+
+                super.paintComponent(g);
+            }
+        };
 
         bouton.setFont(new Font("Arial", Font.BOLD, 13));
-        bouton.setBackground(couleur);
-        bouton.setForeground(Color.DARK_GRAY);
+        bouton.setForeground(new Color(245, 235, 210));
+
+        bouton.setOpaque(false);
+        bouton.setContentAreaFilled(false);
+        bouton.setBorderPainted(false);
         bouton.setFocusPainted(false);
+
         bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         return bouton;

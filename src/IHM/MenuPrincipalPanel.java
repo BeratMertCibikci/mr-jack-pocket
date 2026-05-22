@@ -23,7 +23,7 @@ public class MenuPrincipalPanel extends JPanel {
         boutonsPanel.setOpaque(false); // pour qu'on ne bloque pas l'arriere-plan
         //boutonsPanel.setLayout(new GridLayout(3, 1, 15, 15)); // 3 lignes, 1 colonne, 15 pixels entre les boutons
         boutonsPanel.setLayout(new BoxLayout(boutonsPanel, BoxLayout.Y_AXIS));
-        boutonsPanel.setBorder(BorderFactory.createEmptyBorder(330, 90, 40, 0)); // le comptour des boutons sont vides
+        boutonsPanel.setBorder(BorderFactory.createEmptyBorder(330, 140, 40, 0)); // le comptour des boutons sont vides
 
         JButton jouerButton = new JButton("Jouer");
         JButton multijoueurButton = new JButton("Multijoueur");
@@ -31,12 +31,6 @@ public class MenuPrincipalPanel extends JPanel {
         JButton reglesButton = new JButton("Règles");
         JButton quitterButton = new JButton("Quitter");
         JButton muteButton = new JButton("Unmute");
-
-        JSlider volumeSlider = new JSlider(0, 100, 40);
-        volumeSlider.setOpaque(false);
-        volumeSlider.setMaximumSize(new Dimension(180, 40));
-        volumeSlider.setAlignmentX(Component.LEFT_ALIGNMENT);
-        volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         BoutonTexte(jouerButton);
         BoutonTexte(multijoueurButton); 
@@ -61,8 +55,6 @@ public class MenuPrincipalPanel extends JPanel {
         boutonsPanel.add(reglesButton);
         boutonsPanel.add(Box.createVerticalStrut(10));
         boutonsPanel.add(muteButton);
-        boutonsPanel.add(Box.createVerticalStrut(10));
-        boutonsPanel.add(volumeSlider);
         boutonsPanel.add(Box.createVerticalStrut(10));
         boutonsPanel.add(quitterButton);
 
@@ -111,11 +103,6 @@ public class MenuPrincipalPanel extends JPanel {
             Timer timer = new Timer(200, event -> System.exit(0));
             timer.setRepeats(false);
             timer.start();
-        });
-
-        volumeSlider.addChangeListener(e -> {
-            int volume = volumeSlider.getValue();
-            fenetre.changerVolumeMusique(volume);
         });
     }
 

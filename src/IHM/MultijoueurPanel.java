@@ -53,7 +53,7 @@ public class MultijoueurPanel extends JPanel {
         JPanel contenuPanel = new JPanel();
         contenuPanel.setOpaque(false);
         contenuPanel.setLayout(new BoxLayout(contenuPanel, BoxLayout.Y_AXIS));
-        contenuPanel.setBorder(BorderFactory.createEmptyBorder(280, 90, 40, 0));
+        contenuPanel.setBorder(BorderFactory.createEmptyBorder(280, 140, 40, 0));
 
         titre.setAlignmentX(Component.LEFT_ALIGNMENT);
         contenuPanel.add(titre);

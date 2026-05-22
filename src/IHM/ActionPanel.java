@@ -655,6 +655,8 @@ public class ActionPanel extends JPanel {
 
                     boutonClickMusique.jouerClick();
 
+                    plateauPanel.clearTileHighlight();
+
                     String joueurAvantAction = String.valueOf(gameEngine.getCurrentPlayer());
 
                     Token selectedToken = gameEngine.selectActionToken(index);

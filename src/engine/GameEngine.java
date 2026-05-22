@@ -65,9 +65,17 @@ public class GameEngine implements Serializable {
     }
 
     public void setGameState(model.GameState gameState) {
-        this.gameState = gameState;
+    
+    this.gameState = gameState;
+    
+    
+    if (gameState != null) {
+        this.actionEngine = new engine.ActionEngine(gameState);
     }
     
+    
+}
+
     public GameCharacter investigatorDrawsAlibi() {
         ensureGameRunning();
         return actionEngine.investigatorDrawsAlibi();

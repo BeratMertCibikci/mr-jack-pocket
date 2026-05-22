@@ -56,7 +56,7 @@ public class ChoixModePanel extends JPanel {
         JPanel contenuPanel = new JPanel();
         contenuPanel.setOpaque(false);
         contenuPanel.setLayout(new BoxLayout(contenuPanel, BoxLayout.Y_AXIS));
-        contenuPanel.setBorder(BorderFactory.createEmptyBorder(280, 90, 40, 0));
+        contenuPanel.setBorder(BorderFactory.createEmptyBorder(280, 140, 40, 0));
 
         titre.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -109,8 +109,8 @@ public class ChoixModePanel extends JPanel {
 
         JPanel panelRoles = new JPanel(new FlowLayout(FlowLayout.CENTER, 60, 20));
 
-        JLabel investigator = creerRoleIcone("Investigator", "assets/images/characters/investigator.png");
-        JLabel jack = creerRoleIcone("Jack", "assets/images/characters/jack.png");
+        JLabel investigator = creerRoleIcone("Investigator", "assets/images/characters/investigator_new.png");
+        JLabel jack = creerRoleIcone("Jack", "assets/images/characters/jack_new.png");
 
         investigator.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override

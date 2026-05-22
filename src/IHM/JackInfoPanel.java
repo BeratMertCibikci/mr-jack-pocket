@@ -236,7 +236,7 @@ public class JackInfoPanel extends JPanel {
         Font infoFont = new Font("Arial", Font.PLAIN, texteSize);
         jackIdentityLabel.setFont(infoFont);
         jackAlibisLabel.setFont(infoFont);
-        jackHourglassLabel.setFont(infoFont);
+        //jackHourglassLabel.setFont(infoFont);
 
         revalidate();
         repaint();

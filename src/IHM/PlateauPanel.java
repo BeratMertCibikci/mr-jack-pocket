@@ -191,7 +191,7 @@ public class PlateauPanel extends JPanel {
 
                 cartePanel.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
+                    public void mousePressed(java.awt.event.MouseEvent e) {
                         System.out.println(
                                 "Carte cliquée : " + nomFinal
                                         + " position (" + l + "," + c + ")"

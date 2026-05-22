@@ -627,7 +627,7 @@ public class ActionPanel extends JPanel {
 
         tokenPanel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 try {
                     if (token.isUsed()) {
                         return;

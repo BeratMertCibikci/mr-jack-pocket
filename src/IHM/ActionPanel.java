@@ -811,12 +811,7 @@ public class ActionPanel extends JPanel {
             GameCharacter eliminated = gameEngine.investigatorDrawsAlibi();
 
             if (eliminated != null) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Alibi pioché : " + eliminated.getName(),
-                        "Alibi",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                afficherAlibiDetective(eliminated);
             } else {
                 JOptionPane.showMessageDialog(
                         this,
@@ -825,7 +820,6 @@ public class ActionPanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE
                 );
             }
-
         } else {
             gameEngine.jackDrawsAlibi();
 
@@ -1572,6 +1566,61 @@ public class ActionPanel extends JPanel {
                 message,
                 "Witness Phase",
                 JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    private void afficherAlibiDetective(GameCharacter character) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(70, 70, 70));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titleLabel = new JLabel("Carte Alibi piochée");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setForeground(new Color(245, 235, 210));
+
+        JLabel imageLabel = new JLabel();
+        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        String nomFichier = character.getName().toLowerCase()
+                .replace(".", "")
+                .replace(" ", "_");
+
+        String chemin = System.getProperty("user.dir")
+                + "/assets/images/characters/identity_"
+                + nomFichier
+                + ".png";
+
+        File fichier = new File(chemin);
+
+        if (fichier.exists()) {
+            ImageIcon icon = new ImageIcon(chemin);
+            Image image = icon.getImage().getScaledInstance(90, 90, Image.SCALE_SMOOTH);
+            imageLabel.setIcon(new ImageIcon(image));
+            imageLabel.setText("");
+        } else {
+            imageLabel.setText(character.getColor());
+            imageLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            imageLabel.setForeground(new Color(245, 235, 210));
+        }
+
+        JLabel eliminatedLabel = new JLabel("Éliminé");
+        eliminatedLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        eliminatedLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        eliminatedLabel.setForeground(new Color(212, 175, 55));
+
+        panel.add(titleLabel);
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(imageLabel);
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(eliminatedLabel);
+
+        JOptionPane.showMessageDialog(
+                this,
+                panel,
+                "Alibi",
+                JOptionPane.PLAIN_MESSAGE
         );
     }
 }

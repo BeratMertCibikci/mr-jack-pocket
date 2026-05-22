@@ -25,6 +25,19 @@ public class FenetrePrincipale extends JFrame {
         setMinimumSize(new Dimension(1200, 800));
         setLocationRelativeTo(null);
 
+        Color popupBackground = new Color(45, 45, 45);
+        Color popupText = new Color(245, 235, 210);
+        Color popupButton = new Color(70, 70, 70);
+
+        UIManager.put("OptionPane.background", popupBackground);
+        UIManager.put("Panel.background", popupBackground);
+
+        UIManager.put("OptionPane.messageForeground", popupText);
+        UIManager.put("Label.foreground", popupText);
+
+        UIManager.put("Button.background", popupButton);
+        UIManager.put("Button.foreground", popupText);
+
         musique = new MainMusique();
 
         cardLayout = new CardLayout();

@@ -10,7 +10,8 @@ public class JackInfoPanel extends JPanel {
     private GameMode mode;
     private String humanRole;
     private JLabel titleLabel;
-    private JLabel jackIdentityLabel;
+    private JLabel jackIdentityTextLabel;
+    private JLabel jackIdentityImageLabel;
     private JLabel jackAlibisLabel;
     
     public JackInfoPanel(GameEngine gameEngine) {
@@ -32,8 +33,8 @@ public class JackInfoPanel extends JPanel {
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
 
-        setPreferredSize(new Dimension(220, 90));
-        setMaximumSize(new Dimension(220, 90));
+        setPreferredSize(new Dimension(220, 180));
+        setMaximumSize(new Dimension(220, 180));
         setAlignmentX(Component.CENTER_ALIGNMENT);
 
         titleLabel = new JLabel("Jack Information");
@@ -41,12 +42,20 @@ public class JackInfoPanel extends JPanel {
         titleLabel.setForeground(new Color(245, 235, 210));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        jackIdentityLabel = creerPetitLabelJack();
+        jackIdentityTextLabel = creerPetitLabelJack();
+        jackIdentityTextLabel.setText("Identity:");
+
+        jackIdentityImageLabel = new JLabel();
+        jackIdentityImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        jackIdentityImageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
         jackAlibisLabel = creerPetitLabelJack();
 
         add(titleLabel);
         add(Box.createVerticalStrut(6));
-        add(jackIdentityLabel);
+        add(jackIdentityTextLabel);
+        add(Box.createVerticalStrut(4));
+        add(jackIdentityImageLabel);
         add(Box.createVerticalStrut(4));
         add(jackAlibisLabel);
 
@@ -88,9 +97,25 @@ public class JackInfoPanel extends JPanel {
     private void remplirInfosJack() {
         try {
             String identiteJack = gameEngine.getGameState().getJackCharacter().getName();
-            jackIdentityLabel.setText("Identity: " + identiteJack);
+
+            String nomFichier = identiteJack.toLowerCase()
+                    .replace(".", "")
+                    .replace(" ", "_");
+
+            String chemin = System.getProperty("user.dir")
+                    + "/assets/images/characters/identity_"
+                    + nomFichier
+                    + ".png";
+
+            ImageIcon icon = new ImageIcon(chemin);
+
+            Image image = icon.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH);
+            jackIdentityImageLabel.setIcon(new ImageIcon(image));
+            jackIdentityImageLabel.setText("");
+
         } catch (Exception e) {
-            jackIdentityLabel.setText("Identity: unknown");
+            jackIdentityImageLabel.setIcon(null);
+            jackIdentityImageLabel.setText("?");
         }
 
         jackAlibisLabel.setText("Alibis: " + getAlibisJackTexte());

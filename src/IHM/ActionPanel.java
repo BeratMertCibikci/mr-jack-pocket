@@ -253,7 +253,7 @@ public class ActionPanel extends JPanel {
         JButton undoButton = creerBoutonControle("Undo", new Color(55, 55, 70));
         undoButton.addActionListener(e -> {
             try {
-                boutonClickMusique.jouerClick();
+                boutonClickMusique.jouerClickAction();
 
                 actionEnCours = false;
                 plateauPanel.clearDetectiveMoveSelection();
@@ -277,7 +277,7 @@ public class ActionPanel extends JPanel {
         JButton redoButton = creerBoutonControle("Redo", new Color(55, 55, 70));
         redoButton.addActionListener(e -> {
             try {
-                boutonClickMusique.jouerClick();
+                boutonClickMusique.jouerClickAction();
 
                 actionEnCours = false;
                 plateauPanel.clearDetectiveMoveSelection();
@@ -303,7 +303,7 @@ public class ActionPanel extends JPanel {
 
             hintButton.addActionListener(e -> {
                 try {
-                    boutonClickMusique.jouerClick();
+                    boutonClickMusique.jouerClickAction();
                     afficherConseilIA();
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(
@@ -323,7 +323,7 @@ public class ActionPanel extends JPanel {
 
             nextAIButton.addActionListener(e -> {
                 try {
-                    boutonClickMusique.jouerClick();
+                    boutonClickMusique.jouerClickAction();
 
                     if (!isAITurn()) {
                         JOptionPane.showMessageDialog(
@@ -356,7 +356,7 @@ public class ActionPanel extends JPanel {
             autoAIButton = creerBoutonControle("Auto IA", new Color(45, 85, 45));
 
             autoAIButton.addActionListener(e -> {
-                boutonClickMusique.jouerClick();
+                boutonClickMusique.jouerClickAction();
 
                 autoAIEnabled = !autoAIEnabled;
                 updateAutoAIButtonText();
@@ -370,7 +370,7 @@ public class ActionPanel extends JPanel {
 
             JButton speedButton = creerBoutonControle(getAutoSpeedText(), new Color(55, 70, 90));
             speedButton.addActionListener(e -> {
-                boutonClickMusique.jouerClick();
+                boutonClickMusique.jouerClickAction();
 
                 if (autoAIDelayMs == 1000) {
                     autoAIDelayMs = 700;
@@ -653,7 +653,7 @@ public class ActionPanel extends JPanel {
                         return;
                     }
 
-                    boutonClickMusique.jouerClick();
+                    boutonClickMusique.jouerClickAction();
 
                     plateauPanel.clearTileHighlight();
 

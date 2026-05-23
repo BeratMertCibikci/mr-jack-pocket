@@ -9,6 +9,8 @@ import ai.MinimaxAI;
 import engine.ActionType;
 import engine.GameEngine;
 
+import reseau.Message;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -49,6 +51,10 @@ public class ActionPanel extends JPanel {
     private JButton autoAIButton;
     private boolean gameOverDialogShown = false;
     private int autoAIDelayMs = 700;
+
+    // Ağ oyununda token sadece ACTION_EXECUTE sırasında server tarafında seçilecek.
+    // Bu yüzden seçilen index geçici olarak burada tutulur.
+    private int selectedNetworkTokenIndex = -1;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -202,7 +208,7 @@ public class ActionPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         dernierJoueurAffiche = String.valueOf(gameEngine.getCurrentPlayer());
-
+        
         afficherActions();
     }
 
@@ -239,6 +245,29 @@ public class ActionPanel extends JPanel {
         verifierGameOverEtAfficher();
     }
 
+    private boolean isNetworkGame() {
+        FenetrePrincipale fen = (FenetrePrincipale) SwingUtilities.getWindowAncestor(this);
+        return fen != null && fen.getNetworkClient() != null;
+    }
+
+    private void sendNetworkMessage(Message msg) {
+        FenetrePrincipale fen = (FenetrePrincipale) SwingUtilities.getWindowAncestor(this);
+        if (fen != null && fen.getNetworkClient() != null) {
+            fen.getNetworkClient().sendMessage(msg);
+        }
+    }
+
+    private boolean checkNetworkTurn() {
+        if (!isNetworkGame()) {
+            return true;
+        }
+    
+        String currentPlayer = gameEngine.getGameState().getTurnManager().getCurrentPlayer();
+        if (humanRole == null || currentPlayer == null) return false;
+    
+        return humanRole.equalsIgnoreCase(currentPlayer);
+    }
+
     private void afficherActions() {
         Token[] actionTokens = gameEngine.getGameState()
                 .getActionTokens()
@@ -254,21 +283,20 @@ public class ActionPanel extends JPanel {
         undoButton.addActionListener(e -> {
             try {
                 boutonClickMusique.jouerClick();
-
-                actionEnCours = false;
-                plateauPanel.clearDetectiveMoveSelection();
-                plateauPanel.setTileSelectionListener(null);
-
-                gameEngine.undo();
-                rafraichirToutesLesVues();
-
+                
+               
+                if (isNetworkGame()) {
+                    sendNetworkMessage(new Message(Message.MessageType.UNDO, humanRole));
+                } else {
+                    
+                    actionEnCours = false;
+                    plateauPanel.clearDetectiveMoveSelection();
+                    plateauPanel.setTileSelectionListener(null);
+                    gameEngine.undo();
+                    rafraichirToutesLesVues();
+                }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur undo",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erreur undo", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -279,25 +307,23 @@ public class ActionPanel extends JPanel {
             try {
                 boutonClickMusique.jouerClick();
 
-                actionEnCours = false;
-                plateauPanel.clearDetectiveMoveSelection();
-                plateauPanel.setTileSelectionListener(null);
-
-                gameEngine.redo();
-                rafraichirToutesLesVues();
-
+                
+                if (isNetworkGame()) {
+                    sendNetworkMessage(new Message(Message.MessageType.REDO, humanRole));
+                } else {
+                    
+                    actionEnCours = false;
+                    plateauPanel.clearDetectiveMoveSelection();
+                    plateauPanel.setTileSelectionListener(null);
+                    gameEngine.redo();
+                    rafraichirToutesLesVues();
+                }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur redo",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erreur redo", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         add(redoButton);
-
         if (mode == GameMode.HUMAN_VS_HUMAN || mode == GameMode.HUMAN_VS_IA) {
             JButton hintButton = creerBoutonControle("Conseil IA", new Color(70, 55, 90));
 
@@ -633,6 +659,11 @@ public class ActionPanel extends JPanel {
                         return;
                     }
 
+                    if (!checkNetworkTurn()) {
+                        JOptionPane.showMessageDialog(tokenPanel, "Ce n'est pas votre tour (Réseau).", "Tour adverse", JOptionPane.INFORMATION_MESSAGE);
+                        return;
+                    }
+
                     if (isAITurn()) {
                         JOptionPane.showMessageDialog(
                                 tokenPanel,
@@ -657,13 +688,21 @@ public class ActionPanel extends JPanel {
 
                     plateauPanel.clearTileHighlight();
 
+                    if (isNetworkGame()) {
+                        // ─── AĞ OYUNU ────────────────────────────────────────
+                        // ACTION_SELECT artık server'a gönderilmiyor.
+                        // Token server tarafında, hamle tamamlanınca ACTION_EXECUTE içinde seçilecek.
+                        // Böylece token hamle yapılmadan kararmayacak.
+                        selectedNetworkTokenIndex = index;
+                        actionEnCours = true;
+                        traiterActionSecilenReseauIleActionName(actionName);
+                        return;
+                    }
+
                     String joueurAvantAction = String.valueOf(gameEngine.getCurrentPlayer());
 
                     Token selectedToken = gameEngine.selectActionToken(index);
                     actionEnCours = true;
-
-                    System.out.println("Action token choisi : " + selectedToken.getCurrentSide());
-                    System.out.println("Type action : " + gameEngine.getSelectedActionType());
 
                     tokenPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
@@ -684,9 +723,58 @@ public class ActionPanel extends JPanel {
         return tokenPanel;
     }
 
+    /**
+     * Ağ oyununda token seçildikten sonra çağrılır.
+     * Local engine'e HİÇ dokunmaz; sadece kullanıcıya dialog gösterir
+     * ve hamleyi server'a gönderir. Gerçek güncelleme server broadcast'inden gelir.
+     */
+    private void traiterActionSecilenReseauIleActionName(String actionName) {
+        try {
+            String upper = actionName.toUpperCase();
+
+            if (upper.equals("HOLMES") || upper.equals("WATSON") || upper.equals("TOBY")) {
+                preparerDeplacementDetective(actionName, null);
+                return;
+            }
+
+            if (upper.equals("ALIBI")) {
+                traiterAlibi(); // içinde isNetworkGame() kontrolü var
+                return;
+            }
+
+            if (upper.equals("ROTATE")) {
+                preparerRotate(null); // içinde isNetworkGame() kontrolü var
+                return;
+            }
+
+            if (upper.equals("EXCHANGE")) {
+                preparerExchange(null); // içinde isNetworkGame() kontrolü var
+                return;
+            }
+
+            if (upper.equals("JOKER")) {
+                traiterJoker(); // içinde isNetworkGame() kontrolü var
+                return;
+            }
+
+            // Tanınmayan action
+            actionEnCours = false;
+
+        } catch (Exception ex) {
+            actionEnCours = false;
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erreur action réseau", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void traiterActionSelectionnee(String joueurAvantAction) {
         try {
             ActionType actionType = gameEngine.getSelectedActionType();
+            
+            
+            if (isNetworkGame() && !checkNetworkTurn()) {
+                actionEnCours = false;
+                return;
+            }
 
             switch (actionType) {
                 case HOLMES:
@@ -703,21 +791,22 @@ public class ActionPanel extends JPanel {
 
                 case ALIBI:
                     traiterAlibi();
-                    break;
+                    break; 
 
                 case ROTATE:
                     preparerRotate(joueurAvantAction);
-                    return;
+                    return; 
 
                 case EXCHANGE:
                     preparerExchange(joueurAvantAction);
-                    return;
+                    return; 
 
                 case JOKER:
                     traiterJoker();
-                    return;
+                    return; 
             }
 
+           
             actionEnCours = false;
             rafraichirToutesLesVues();
 
@@ -729,16 +818,10 @@ public class ActionPanel extends JPanel {
 
         } catch (Exception ex) {
             actionEnCours = false;
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    ex.getMessage(),
-                    "Erreur action",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            rafraichirToutesLesVues(); 
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erreur action", JOptionPane.ERROR_MESSAGE);
         }
     }
-
     private void continuerApresHighlight(String joueurAvantAction) {
         Timer timer = new Timer(1300, e -> {
             if (gameEngine.isRoundOver()) {
@@ -787,51 +870,65 @@ public class ActionPanel extends JPanel {
     }
 
     private void verifierChangementDeJoueurEtTransition(String joueurAvantAction) {
+   
         if (mode != GameMode.HUMAN_VS_HUMAN) {
             return;
         }
-
+     
         String joueurApresAction = String.valueOf(gameEngine.getCurrentPlayer());
-
+     
         if (joueurAvantAction == null) {
             joueurAvantAction = "";
         }
-
+     
         if (!joueurAvantAction.equals(joueurApresAction)) {
             dernierJoueurAffiche = joueurApresAction;
-
+     
             if (onTransitionTour != null && !gameEngine.getGameState().isGameOver()) {
                 onTransitionTour.accept("Joueur");
             }
         }
     }
 
+              
+
     private void traiterAlibi() {
+        // ─── AĞ OYUNU: local engine çalıştırma, sadece server'a gönder ───────
+        if (isNetworkGame()) {
+            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+            exeMsg.setActionType(ActionType.ALIBI);
+            sendNetworkMessage(exeMsg);
+            actionEnCours = false;
+            return; // güncelleme server broadcast'inden gelecek
+        }
+
+        // ─── LOCAL OYUN ───────────────────────────────────────────────────────
         if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
             GameCharacter eliminated = gameEngine.investigatorDrawsAlibi();
-
+            // eliminasyon YAPILDI; şimdi dialog göster
+            // dialog modal olduğu için önce board yenile, sonra dialog aç
+            synchroniserGameStateDansVues();
+            plateauPanel.rafraichir();
             if (eliminated != null) {
                 afficherAlibiDetective(eliminated);
             } else {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Le paquet Alibi est vide.",
-                        "Alibi",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                JOptionPane.showMessageDialog(this, "Le paquet Alibi est vide.", "Alibi", JOptionPane.INFORMATION_MESSAGE);
             }
         } else {
-            gameEngine.jackDrawsAlibi();
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Jack a pioché une carte Alibi.",
-                    "Alibi",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+            GameCharacter drawn = gameEngine.jackDrawsAlibi();
+            synchroniserGameStateDansVues();
+            plateauPanel.rafraichir();
+            if (drawn != null) {
+                afficherAlibiDetective(drawn);
+            } else {
+                JOptionPane.showMessageDialog(this, "Jack a pioché une carte Alibi.", "Alibi", JOptionPane.INFORMATION_MESSAGE);
+            }
         }
-    }
 
+        actionEnCours = false;
+        rafraichirToutesLesVues();
+    }
     private void traiterJoker() {
         boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
 
@@ -894,6 +991,20 @@ public class ActionPanel extends JPanel {
             skipButton.addActionListener(e -> {
                 try {
                     jokerDialog.dispose();
+
+                    // ─── AĞ OYUNU: sadece server'a gönder ────────────────────
+                    if (isNetworkGame()) {
+                        Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                        exeMsg.setActionType(ActionType.JOKER);
+                        exeMsg.setDetectiveName("");
+                        sendNetworkMessage(exeMsg);
+                        actionEnCours = false;
+                        plateauPanel.clearDetectiveMoveSelection();
+                        return; // güncelleme server broadcast'inden gelecek
+                    }
+
+                    // ─── LOCAL OYUN ───────────────────────────────────────────
                     gameEngine.skipJokerMove();
 
                     actionEnCours = false;
@@ -908,7 +1019,6 @@ public class ActionPanel extends JPanel {
 
                 } catch (Exception ex) {
                     actionEnCours = false;
-
                     JOptionPane.showMessageDialog(
                             this,
                             ex.getMessage(),
@@ -927,6 +1037,19 @@ public class ActionPanel extends JPanel {
     }
 
     private void resoudreJokerAvecDetective(String detectiveName) {
+        // ─── AĞ OYUNU: sadece server'a gönder ────────────────────────────────
+        if (isNetworkGame()) {
+            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+            exeMsg.setActionType(ActionType.JOKER);
+            exeMsg.setDetectiveName(detectiveName);
+            sendNetworkMessage(exeMsg);
+            actionEnCours = false;
+            plateauPanel.clearDetectiveMoveSelection();
+            return; // güncelleme server broadcast'inden gelecek
+        }
+
+        // ─── LOCAL OYUN ───────────────────────────────────────────────────────
         try {
             gameEngine.moveDetectiveWithJoker(detectiveName);
 
@@ -942,7 +1065,6 @@ public class ActionPanel extends JPanel {
 
         } catch (Exception ex) {
             actionEnCours = false;
-
             JOptionPane.showMessageDialog(
                     this,
                     ex.getMessage(),
@@ -954,113 +1076,84 @@ public class ActionPanel extends JPanel {
 
     private void preparerRotate(String joueurAvantAction) {
         plateauPanel.clearDetectiveMoveSelection();
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Sélectionnez une carte à tourner sur le plateau.",
-                "Rotate",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        JOptionPane.showMessageDialog(this, "Sélectionnez une carte à tourner sur le plateau.", "Rotate", JOptionPane.INFORMATION_MESSAGE);
 
         plateauPanel.setTileSelectionListener(tile -> {
             try {
-                String[] choix = {"1", "2", "3"};
+                if (isNetworkGame() && !checkNetworkTurn()) {
+                    JOptionPane.showMessageDialog(this, "Ce n'est pas votre tour.", "Erreur", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
 
-                String reponse = (String) JOptionPane.showInputDialog(
-                        this,
-                        "Combien de fois voulez-vous tourner cette carte ?",
-                        "Rotate",
-                        JOptionPane.QUESTION_MESSAGE,
-                        null,
-                        choix,
-                        choix[0]
-                );
+                String[] choix = {"1", "2", "3"};
+                String reponse = (String) JOptionPane.showInputDialog(this, "Combien de fois voulez-vous tourner ?", "Rotate", JOptionPane.QUESTION_MESSAGE, null, choix, choix[0]);
 
                 if (reponse == null) {
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "L'action Rotate est déjà choisie. Sélectionnez une rotation pour terminer l'action.",
-                            "Action obligatoire",
-                            JOptionPane.WARNING_MESSAGE
-                    );
+                    actionEnCours = false;
+                    plateauPanel.setTileSelectionListener(null);
                     return;
                 }
 
                 int rotations = Integer.parseInt(reponse);
-
                 int row = tile.getRow();
                 int col = tile.getCol();
 
-                gameEngine.rotateTile(tile, rotations);
+                // ─── AĞ OYUNU: sadece server'a gönder ────────────────────────
+                if (isNetworkGame()) {
+                    Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                    exeMsg.setActionType(ActionType.ROTATE);
+                    exeMsg.setTileA(tile);
+                    exeMsg.setRotations(rotations);
+                    plateauPanel.highlightTileTemporarily(row, col);
+                    sendNetworkMessage(exeMsg);
+                    plateauPanel.setTileSelectionListener(null);
+                    actionEnCours = false;
+                    return; // güncelleme server broadcast'inden gelecek
+                }
 
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Carte tournée : "
-                                + tile.getCharacter().getName()
-                                + " (" + row + "," + col + ") "
-                                + rotations + " fois.",
-                        "Rotate",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                // ─── LOCAL OYUN ───────────────────────────────────────────────
+                gameEngine.rotateTile(tile, rotations);
+                JOptionPane.showMessageDialog(this, "Carte tournée : " + tile.getCharacter().getName() + " (" + row + "," + col + ") " + rotations + " fois.", "Rotate", JOptionPane.INFORMATION_MESSAGE);
 
                 plateauPanel.setTileSelectionListener(null);
                 actionEnCours = false;
-
                 rafraichirToutesLesVues();
                 plateauPanel.highlightTileTemporarily(row, col);
-
                 continuerApresHighlight(joueurAvantAction);
 
             } catch (Exception ex) {
                 actionEnCours = false;
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur Rotate",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                plateauPanel.setTileSelectionListener(null);
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erreur Rotate", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
 
+
     private void preparerExchange(String joueurAvantAction) {
         plateauPanel.clearDetectiveMoveSelection();
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Sélectionnez deux cartes à échanger sur le plateau.",
-                "Exchange",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        JOptionPane.showMessageDialog(this, "Sélectionnez deux cartes à échanger sur le plateau.", "Exchange", JOptionPane.INFORMATION_MESSAGE);
 
         final Tile[] premiereCarte = new Tile[1];
 
         plateauPanel.setTileSelectionListener(tile -> {
             try {
+                if (isNetworkGame() && !checkNetworkTurn()) {
+                    JOptionPane.showMessageDialog(this, "Ce n'est pas votre tour.", "Erreur", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
                 if (premiereCarte[0] == null) {
                     premiereCarte[0] = tile;
-
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Première carte sélectionnée : "
-                                    + tile.getCharacter().getName()
-                                    + "\nSélectionnez maintenant la deuxième carte.",
-                            "Exchange",
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
+                    JOptionPane.showMessageDialog(this, "Première carte sélectionnée : " + tile.getCharacter().getName() + "\nSélectionnez maintenant la deuxième carte.", "Exchange", JOptionPane.INFORMATION_MESSAGE);
                     return;
                 }
 
                 Tile deuxiemeCarte = tile;
 
                 if (premiereCarte[0] == deuxiemeCarte) {
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Vous devez sélectionner deux cartes différentes.",
-                            "Exchange",
-                            JOptionPane.WARNING_MESSAGE
-                    );
+                    JOptionPane.showMessageDialog(this, "Vous devez sélectionner deux cartes différentes.", "Exchange", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -1069,36 +1162,34 @@ public class ActionPanel extends JPanel {
                 int row2 = deuxiemeCarte.getRow();
                 int col2 = deuxiemeCarte.getCol();
 
-                gameEngine.exchangeTiles(premiereCarte[0], deuxiemeCarte);
+                // ─── AĞ OYUNU: sadece server'a gönder ────────────────────────
+                if (isNetworkGame()) {
+                    Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                    exeMsg.setActionType(ActionType.EXCHANGE);
+                    exeMsg.setTileA(premiereCarte[0]);
+                    exeMsg.setTileB(deuxiemeCarte);
+                    plateauPanel.highlightTilesTemporarily(row1, col1, row2, col2);
+                    sendNetworkMessage(exeMsg);
+                    plateauPanel.setTileSelectionListener(null);
+                    actionEnCours = false;
+                    return; // güncelleme server broadcast'inden gelecek
+                }
 
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Cartes échangées : ("
-                                + row1 + "," + col1
-                                + ") et ("
-                                + row2 + "," + col2
-                                + ")",
-                        "Exchange",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                // ─── LOCAL OYUN ───────────────────────────────────────────────
+                gameEngine.exchangeTiles(premiereCarte[0], deuxiemeCarte);
+                JOptionPane.showMessageDialog(this, "Cartes échangées : (" + row1 + "," + col1 + ") et (" + row2 + "," + col2 + ")", "Exchange", JOptionPane.INFORMATION_MESSAGE);
 
                 plateauPanel.setTileSelectionListener(null);
                 actionEnCours = false;
-
                 rafraichirToutesLesVues();
                 plateauPanel.highlightTilesTemporarily(row1, col1, row2, col2);
-
                 continuerApresHighlight(joueurAvantAction);
 
             } catch (Exception ex) {
                 actionEnCours = false;
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur Exchange",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                plateauPanel.setTileSelectionListener(null);
+                JOptionPane.showMessageDialog(this, "Erreur Exchange: " + ex.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
@@ -1124,11 +1215,23 @@ public class ActionPanel extends JPanel {
                 selectedPosition -> {
                     try {
                         int steps = (selectedPosition - currentPosition + 12) % 12;
+                        if (steps == 0) steps = 12;
 
-                        if (steps == 0) {
-                            steps = 12;
+                        // ─── AĞ OYUNU: sadece server'a gönder ────────────────
+                        if (isNetworkGame()) {
+                            ActionType aType = "Holmes".equals(detectiveName) ? ActionType.HOLMES
+                                    : ("Watson".equals(detectiveName) ? ActionType.WATSON : ActionType.TOBY);
+                            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                            exeMsg.setActionType(aType);
+                            exeMsg.setSteps(steps);
+                            sendNetworkMessage(exeMsg);
+                            plateauPanel.clearDetectiveMoveSelection();
+                            actionEnCours = false;
+                            return; // güncelleme server broadcast'inden gelecek
                         }
 
+                        // ─── LOCAL OYUN ───────────────────────────────────────
                         if ("Holmes".equals(detectiveName)) {
                             gameEngine.moveHolmes(steps);
                         } else if ("Watson".equals(detectiveName)) {
@@ -1150,7 +1253,6 @@ public class ActionPanel extends JPanel {
                     } catch (Exception ex) {
                         plateauPanel.clearDetectiveMoveSelection();
                         actionEnCours = false;
-
                         JOptionPane.showMessageDialog(
                                 this,
                                 ex.getMessage(),
@@ -1543,6 +1645,7 @@ public class ActionPanel extends JPanel {
         }
     }
 
+
     private void afficherWitnessPhaseDialog() {
         boolean jackVisible = isJackVisibleForWitnessPhase();
         String message;
@@ -1587,13 +1690,13 @@ public class ActionPanel extends JPanel {
                 .replace(".", "")
                 .replace(" ", "_");
 
-        String chemin = System.getProperty("user.dir")
-                + "/assets/images/characters/identity_"
-                + nomFichier
-                + ".png";
-
+        String chemin = "assets/images/characters/identity_" + nomFichier + ".png"; 
         File fichier = new File(chemin);
 
+        if (!fichier.exists()) {
+        chemin = "src/assets/images/characters/identity_" + nomFichier + ".png";
+        fichier = new File(chemin);
+        }
         if (fichier.exists()) {
             ImageIcon icon = new ImageIcon(chemin);
             Image image = icon.getImage().getScaledInstance(90, 90, Image.SCALE_SMOOTH);
@@ -1603,6 +1706,7 @@ public class ActionPanel extends JPanel {
             imageLabel.setText(character.getColor());
             imageLabel.setFont(new Font("Arial", Font.BOLD, 18));
             imageLabel.setForeground(new Color(245, 235, 210));
+            System.err.println("Aranan yol bulunamadi: " + chemin);
         }
 
         JLabel eliminatedLabel = new JLabel("Éliminé");
@@ -1622,5 +1726,16 @@ public class ActionPanel extends JPanel {
                 "Alibi",
                 JOptionPane.PLAIN_MESSAGE
         );
+    }
+    private void envoyerActionReseau(ActionType type, Tile tileA, Tile tileB, int steps, int rotations, String detectiveName) {
+        if (!isNetworkGame()) return;
+        Message msg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+        msg.setActionType(type);
+        msg.setTileA(tileA);
+        msg.setTileB(tileB);
+        msg.setSteps(steps);
+        msg.setRotations(rotations);
+        msg.setDetectiveName(detectiveName);
+        sendNetworkMessage(msg);
     }
 }

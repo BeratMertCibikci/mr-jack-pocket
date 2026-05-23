@@ -18,6 +18,9 @@ public class FenetrePrincipale extends JFrame {
     private JeuPanel activeJeuPanel;
     private GameClient networkClient;
 
+    
+    private String networkRole;
+
     public FenetrePrincipale() {
         setTitle("Mr Jack Pocket");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -31,10 +34,8 @@ public class FenetrePrincipale extends JFrame {
 
         UIManager.put("OptionPane.background", popupBackground);
         UIManager.put("Panel.background", popupBackground);
-
         UIManager.put("OptionPane.messageForeground", popupText);
         UIManager.put("Label.foreground", popupText);
-
         UIManager.put("Button.background", popupButton);
         UIManager.put("Button.foreground", popupText);
 
@@ -82,11 +83,6 @@ public class FenetrePrincipale extends JFrame {
             AIDifficulty investigatorDifficulty,
             AIDifficulty jackDifficulty
     ) {
-        System.out.println("Mode sélectionné: " + mode);
-        System.out.println("Rôle Joueur 1 : " + player1Role);
-        System.out.println("Difficulté IA Investigator : " + investigatorDifficulty);
-        System.out.println("Difficulté IA Jack : " + jackDifficulty);
-
         JeuPanel jeuPanel = new JeuPanel(
                 mode,
                 player1Role,
@@ -95,9 +91,9 @@ public class FenetrePrincipale extends JFrame {
                 jackDifficulty
         );
 
+        this.activeJeuPanel = jeuPanel;
         mainPanel.add(jeuPanel, "jeu");
         cardLayout.show(mainPanel, "jeu");
-
         revalidate();
         repaint();
     }
@@ -131,48 +127,38 @@ public class FenetrePrincipale extends JFrame {
                 JOptionPane.QUESTION_MESSAGE
         );
 
-        if (filename == null) {
-            return;
-        }
-
+        if (filename == null) return;
         filename = filename.trim();
 
         if (filename.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Nom de fichier invalide.",
-                    "Erreur chargement",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Nom de fichier invalide.", "Erreur chargement", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         GameEngine loadedEngine = GameEngine.loadGame(filename);
 
         if (loadedEngine == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Impossible de charger la partie.",
-                    "Erreur chargement",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Impossible de charger la partie.", "Erreur chargement", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         String player1Role = loadedEngine.getGameState().getPlayer1Role();
 
-        JeuPanel jeuPanel = new JeuPanel(
-                GameMode.HUMAN_VS_HUMAN,
-                player1Role,
-                this,
-                loadedEngine
-        );
-
+        JeuPanel jeuPanel = new JeuPanel(GameMode.HUMAN_VS_HUMAN, player1Role, this, loadedEngine);
+        this.activeJeuPanel = jeuPanel;
         mainPanel.add(jeuPanel, "jeu");
         cardLayout.show(mainPanel, "jeu");
-
         revalidate();
         repaint();
+    }
+
+    public GameClient getNetworkClient() {
+        return networkClient;
+    }
+
+    
+    public String getNetworkRole() {
+        return networkRole;
     }
 
     public static void main(String[] args) {
@@ -182,52 +168,82 @@ public class FenetrePrincipale extends JFrame {
         });
     }
 
+    
     public void demarrerReseauHost(String roleChoisi) {
-    new Thread(() -> {
-        GameServer gameServer = new GameServer(8080);
-        gameServer.start();
-    }).start();
-
-    Timer timer = new Timer(800, e -> demarrerReseauClient("localhost", roleChoisi));
-    timer.setRepeats(false);
-    timer.start();
-}
-public void demarrerReseauClient(String ipAddress) {
-        demarrerReseauClient(ipAddress, "Client");
-    }
-
-public void demarrerReseauClient(String ipAddress, String role) {
-    new Thread(() -> {
-        this.networkClient = new GameClient(ipAddress, 8080, role, msg -> {
-            if (msg.getType() == Message.MessageType.UPDATE_STATE) {
-                model.GameState state = (model.GameState) msg.getGameStatePayload();
-                handleNetworkUpdate(state, role);
-            }
-        });
-    }).start();
-}
-
-private void handleNetworkUpdate(model.GameState state, String role) {
-    if (activeJeuPanel == null) {
-        engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
-        proxyEngine.startGame(); 
-        proxyEngine.setGameState(state);
         
-        activeJeuPanel = new JeuPanel(GameMode.HUMAN_VS_HUMAN, role, this, proxyEngine);
-        mainPanel.add(activeJeuPanel, "jeu");
-        cardLayout.show(mainPanel, "jeu");
-    } else {
-        activeJeuPanel.getGameEngine().setGameState(state);
-        activeJeuPanel.rafraichirToutesLesVues();
+        this.networkRole = roleChoisi;
+
+        new Thread(() -> {
+            GameServer gameServer = new GameServer(8080);
+            gameServer.start();
+        }).start();
+
+        
+        Timer timer = new Timer(800, e -> demarrerReseauClient("localhost", roleChoisi));
+        timer.setRepeats(false);
+        timer.start();
     }
+
     
-    revalidate();
-    repaint();
-    
-    for (Window window : Window.getWindows()) {
-        if (window instanceof JDialog) {
-            window.dispose();
+    public void demarrerReseauClient(String ipAddress) {
+        // Rol henüz bilinmiyorsa dialog ile sor
+        String[] options = {"Investigator", "Jack"};
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                "Quel est votre rôle ?",
+                "Choisir un rôle",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+        String role = (choice >= 0) ? options[choice] : "Investigator";
+        demarrerReseauClient(ipAddress, role);
+    }
+
+    public void demarrerReseauClient(String ipAddress, String role) {
+        // Rolü kaydet
+        this.networkRole = role;
+
+        new Thread(() -> {
+            this.networkClient = new GameClient(ipAddress, 8080, role, msg -> {
+                if (msg.getType() == Message.MessageType.UPDATE_STATE) {
+                    model.GameState state = (model.GameState) msg.getGameStatePayload();
+                    SwingUtilities.invokeLater(() -> handleNetworkUpdate(state));
+                }
+            });
+        }).start();
+    }
+
+   
+    private void handleNetworkUpdate(model.GameState state) {
+        
+        
+
+        if (activeJeuPanel == null) {
+            
+            engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
+            proxyEngine.startGame();
+            proxyEngine.setGameState(state);
+
+            
+            activeJeuPanel = new JeuPanel(
+                    GameMode.HUMAN_NETWORK,
+                    networkRole,
+                    this,
+                    proxyEngine
+            );
+
+            mainPanel.add(activeJeuPanel, "jeu");
+            cardLayout.show(mainPanel, "jeu");
+        } else {
+            
+            activeJeuPanel.getGameEngine().setGameState(state);
+            activeJeuPanel.rafraichirToutesLesVues();
         }
+
+        revalidate();
+        repaint();
     }
-}
 }

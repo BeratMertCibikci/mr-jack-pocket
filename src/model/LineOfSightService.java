@@ -159,29 +159,37 @@ public class LineOfSightService implements Serializable {
         switch (position) {
             case 0:
                 return new SightLine(0, 0, 1, 0, Direction.SOUTH);
+
             case 1:
                 return new SightLine(0, 1, 1, 0, Direction.SOUTH);
+
             case 2:
                 return new SightLine(0, 2, 1, 0, Direction.SOUTH);
 
             case 3:
                 return new SightLine(0, 2, 0, -1, Direction.WEST);
+
             case 4:
                 return new SightLine(1, 2, 0, -1, Direction.WEST);
+
             case 5:
                 return new SightLine(2, 2, 0, -1, Direction.WEST);
 
             case 6:
                 return new SightLine(2, 2, -1, 0, Direction.NORTH);
+
             case 7:
                 return new SightLine(2, 1, -1, 0, Direction.NORTH);
+
             case 8:
                 return new SightLine(2, 0, -1, 0, Direction.NORTH);
 
             case 9:
                 return new SightLine(2, 0, 0, 1, Direction.EAST);
+
             case 10:
                 return new SightLine(1, 0, 0, 1, Direction.EAST);
+
             case 11:
                 return new SightLine(0, 0, 0, 1, Direction.EAST);
 

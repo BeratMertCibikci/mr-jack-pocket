@@ -7,7 +7,7 @@ import java.util.Set;
 public class Tile implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    
+
     private int id;
     private GameCharacter character;
 
@@ -204,16 +204,21 @@ public class Tile implements Serializable {
         return hasCharacter() && !isEliminated;
     }
 
-    public Tile deepCopy(GameCharacter characterCopy){
-        Tile copy = new Tile(this.id, characterCopy, 
-            new Position(this.getRow(), this.getCol()), 
-            new HashSet<>(this.suspectSideRoads), new HashSet<>(this.emptySideRoads));
+    public Tile deepCopy(GameCharacter characterCopy) {
+        Tile copy = new Tile(
+                this.id,
+                characterCopy,
+                new Position(this.getRow(), this.getCol()),
+                new HashSet<>(this.suspectSideRoads),
+                new HashSet<>(this.emptySideRoads)
+        );
+
         copy.orientation = this.orientation;
         copy.isSuspectSide = this.isSuspectSide;
         copy.isEliminated = this.isEliminated;
         copy.hasBarricade = this.hasBarricade;
 
-        if (characterCopy != null){
+        if (characterCopy != null) {
             characterCopy.setTile(copy);
         }
 

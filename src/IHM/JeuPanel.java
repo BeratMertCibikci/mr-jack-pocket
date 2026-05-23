@@ -161,8 +161,8 @@ public class JeuPanel extends JPanel {
         alibiPanel.setPreferredSize(new Dimension(220, 250));
         alibiPanel.setMaximumSize(new Dimension(220, 250));
 
-        jackInfoPanel.setPreferredSize(new Dimension(220, 120));
-        jackInfoPanel.setMaximumSize(new Dimension(220, 120));
+        jackInfoPanel.setPreferredSize(new Dimension(220, 180));
+        jackInfoPanel.setMaximumSize(new Dimension(220, 180));
 
         actionPanel.setPreferredSize(new Dimension(220, 360));
         actionPanel.setMaximumSize(new Dimension(220, 360));

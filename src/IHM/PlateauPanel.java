@@ -160,8 +160,14 @@ public class PlateauPanel extends JPanel {
                 imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
                 if (tile.isEliminated() || tile.isEmptySide()) {
-                    ImageIcon dosIcon = chargerImageDos("derriere.png", tile.getOrientation());
+                    ImageIcon dosIcon;
 
+                    if (tile.getCharacter() != null
+                            && "Joseph Lane".equals(tile.getCharacter().getName())) {
+                        dosIcon = chargerImageDos("derriere_joseph.png", tile.getOrientation());
+                    } else {
+                        dosIcon = chargerImageDos("derriere.png", tile.getOrientation());
+                    }
                     if (dosIcon != null) {
                         imageLabel.setIcon(dosIcon);
                     } else {
@@ -169,7 +175,6 @@ public class PlateauPanel extends JPanel {
                         imageLabel.setFont(new Font("Arial", Font.BOLD, 12));
                         imageLabel.setForeground(new Color(245, 235, 210));
                     }
-
                 } else {
                     ImageIcon icon = chargerImagePersonnage(nom, tile.getOrientation());
 
@@ -213,8 +218,10 @@ public class PlateauPanel extends JPanel {
         if (selectionMessage != null) {
             ajouterMessageSelection();
         }
+
         ajouterDetectiveTokensAutourPlateau();
         ajouterJackHourglassesVertical();
+        ajouterFlecheDirection();
     }
 
     private String getTileKey(int row, int col) {
@@ -242,14 +249,16 @@ public class PlateauPanel extends JPanel {
         }
 
         rafraichir();
+    }
 
-        highlightTimer = new Timer(1200, e -> {
-            highlightedTiles.clear();
-            rafraichir();
-        });
+    public void clearTileHighlight() {
+        highlightedTiles.clear();
 
-        highlightTimer.setRepeats(false);
-        highlightTimer.start();
+        if (highlightTimer != null && highlightTimer.isRunning()) {
+            highlightTimer.stop();
+        }
+
+        rafraichir();
     }
 
     private void ajouterMessageSelection() {
@@ -428,7 +437,7 @@ public class PlateauPanel extends JPanel {
         for (int position = 0; position < 12; position++) {
             JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
             panel.setOpaque(false);
-            
+
             panel.setBounds(
                     getXDetective(position),
                     getYDetective(position),
@@ -449,10 +458,12 @@ public class PlateauPanel extends JPanel {
                     panel.add(creerBadgeDetective("H"));
                     contientDetective = true;
                 }
+
                 if (watsonPos == position) {
                     panel.add(creerBadgeDetective("W"));
                     contientDetective = true;
                 }
+
                 if (tobyPos == position) {
                     panel.add(creerBadgeDetective("T"));
                     contientDetective = true;
@@ -462,8 +473,8 @@ public class PlateauPanel extends JPanel {
             if (!contientDetective) {
                 panel.add(creerPointVide());
             }
-            
-            add(panel); 
+
+            add(panel);
         }
     }
 
@@ -515,19 +526,28 @@ public class PlateauPanel extends JPanel {
         int x2 = BOARD_X + (5 * BOARD_W) / 6 - DETECTIVE_SIZE / 2;
 
         switch (position) {
-            case 0: return x0;
-            case 1: return x1;
-            case 2: return x2;
+            case 0:
+                return x0;
+            case 1:
+                return x1;
+            case 2:
+                return x2;
             case 3:
             case 4:
-            case 5: return right;
-            case 6: return x2;
-            case 7: return x1;
-            case 8: return x0;
+            case 5:
+                return right;
+            case 6:
+                return x2;
+            case 7:
+                return x1;
+            case 8:
+                return x0;
             case 9:
             case 10:
-            case 11: return left;
-            default: return 0;
+            case 11:
+                return left;
+            default:
+                return 0;
         }
     }
 
@@ -542,24 +562,41 @@ public class PlateauPanel extends JPanel {
         switch (position) {
             case 0:
             case 1:
-            case 2: return top - 25;
-            case 3: return y0;
-            case 4: return y1;
-            case 5: return y2;
+            case 2:
+                return top - 25;
+            case 3:
+                return y0;
+            case 4:
+                return y1;
+            case 5:
+                return y2;
             case 6:
             case 7:
-            case 8: return bottom;
-            case 9: return y2;
-            case 10: return y1;
-            case 11: return y0;
-            default: return 0;
+            case 8:
+                return bottom;
+            case 9:
+                return y2;
+            case 10:
+                return y1;
+            case 11:
+                return y0;
+            default:
+                return 0;
         }
     }
 
     private JComponent creerBadgeDetective(String texte) {
-        if (texte.equals("H")) return new DetectiveTokenPanel("Holmes");
-        if (texte.equals("W")) return new DetectiveTokenPanel("Watson");
-        if (texte.equals("T")) return new DetectiveTokenPanel("Toby");
+        if (texte.equals("H")) {
+            return new DetectiveTokenPanel("Holmes");
+        }
+
+        if (texte.equals("W")) {
+            return new DetectiveTokenPanel("Watson");
+        }
+
+        if (texte.equals("T")) {
+            return new DetectiveTokenPanel("Toby");
+        }
 
         JLabel badge = new JLabel(texte, SwingConstants.CENTER);
         badge.setPreferredSize(new Dimension(40, 40));
@@ -593,18 +630,20 @@ public class PlateauPanel extends JPanel {
                 kernel,
                 java.awt.image.ConvolveOp.EDGE_NO_OP,
                 null
-            );
+        );
 
         return op.filter(image, null);
     }
 
     private void ajouterJackHourglassesVertical() {
         String joueur = gameState.getTurnManager().getCurrentPlayer();
+
         if (!joueur.equals("Jack")) {
             return;
         }
 
-        int count = 0;
+        int count;
+
         try {
             count = gameState.getWinConditionChecker().calculateJackHourglassTotal(
                     gameState.getAlibiDeckManager(),
@@ -617,20 +656,21 @@ public class PlateauPanel extends JPanel {
         JPanel hourglassContainer = new JPanel();
         hourglassContainer.setOpaque(false);
         hourglassContainer.setLayout(new BoxLayout(hourglassContainer, BoxLayout.Y_AXIS));
-        
+
         int containerW = 60;
-        int targetX = PANEL_W - containerW + 200 ;
+        int targetX = PANEL_W - containerW - 10;
         hourglassContainer.setBounds(targetX, BOARD_Y, containerW, BOARD_H);
 
         for (int i = 1; i <= 6; i++) {
             JLabel iconLabel = new JLabel();
             iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
+
             String fileName = i <= count ? "hourglass_full.png" : "hourglass_empty.png";
             String chemin = System.getProperty("user.dir") + "/assets/images/" + fileName;
+
             ImageIcon icon = new ImageIcon(chemin);
-            
             Image img = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+
             iconLabel.setIcon(new ImageIcon(img));
 
             hourglassContainer.add(iconLabel);
@@ -638,5 +678,42 @@ public class PlateauPanel extends JPanel {
         }
 
         add(hourglassContainer, 0);
+    }
+
+    private void ajouterFlecheDirection() {
+        int flecheW = 120;
+        int flecheH = 80;
+        int targetX = PANEL_W - flecheW + 50; 
+        int targetY = 30; 
+
+        JPanel flechePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                String chemin = System.getProperty("user.dir") + "/assets/images/fleche.png";
+                File fichierImage = new File(chemin);
+                
+                if (fichierImage.exists()) {
+                    try {
+                        BufferedImage imgOriginale = ImageIO.read(fichierImage);
+                        if (imgOriginale != null) {
+                            Graphics2D g2 = (Graphics2D) g.create();
+                            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                            
+                            g2.drawImage(imgOriginale, 0, 0, flecheW, flecheH, null);
+                            g2.dispose();
+                        }
+                    } catch (Exception e) {
+                        
+                    }
+                }
+            }
+        };
+
+        flechePanel.setOpaque(false);
+        flechePanel.setBounds(targetX, targetY, flecheW, flecheH);
+        add(flechePanel, 0);
     }
 }

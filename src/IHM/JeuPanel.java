@@ -263,12 +263,20 @@ public class JeuPanel extends JPanel {
         });
 
         reglesButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    pauseDialog,
-                    "Règles du jeu à afficher ici.",
-                    "Règles",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+        JDialog rulesDialog = new JDialog(
+                pauseDialog,
+                "Règles du jeu",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+
+        rulesDialog.setSize(700, 700);
+        rulesDialog.setLocationRelativeTo(pauseDialog);
+        rulesDialog.setResizable(false);
+
+        ReglesPanel reglesPanel = new ReglesPanel(() -> rulesDialog.dispose());
+
+            rulesDialog.setContentPane(reglesPanel);
+            rulesDialog.setVisible(true);
         });
 
         retourMenuButton.addActionListener(e -> {
@@ -291,7 +299,7 @@ public class JeuPanel extends JPanel {
         pausePanel.add(retourMenuButton);
 
         pauseDialog.setContentPane(pausePanel);
-        pauseDialog.setVisible(true);
+        ParcheminDialog.afficherAvecFondAssombri(this, pauseDialog);
     }
 
     private void afficherSettingsDialog(JDialog parentDialog) {

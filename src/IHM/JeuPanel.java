@@ -222,26 +222,45 @@ public class JeuPanel extends JPanel {
                 Dialog.ModalityType.APPLICATION_MODAL
         );
 
-        pauseDialog.setSize(320, 460);
+        pauseDialog.setSize(420, 560);
         pauseDialog.setLocationRelativeTo(this);
         pauseDialog.setResizable(false);
+        pauseDialog.setUndecorated(true);
 
-        JPanel pausePanel = new JPanel();
+        JPanel pausePanel = new JPanel() {
+            private Image backgroundImage = new ImageIcon("assets/images/action_message/pause.png").getImage();
+
+            {
+                setOpaque(false);
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+
+                g2.dispose();
+            }
+        };
+
         pausePanel.setLayout(new BoxLayout(pausePanel, BoxLayout.Y_AXIS));
-        pausePanel.setBackground(new Color(25, 25, 25));
-        pausePanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        JLabel titre = new JLabel("Pause");
-        titre.setFont(new Font("Arial", Font.BOLD, 28));
-        titre.setForeground(new Color(245, 235, 210));
-        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Görselde üstte "Pause" yazısı zaten var.
+        // Bu değerler butonları ortadaki boş alana yerleştiriyor.
+        pausePanel.setBorder(BorderFactory.createEmptyBorder(220, 75, 60, 75));
 
-        JButton resumeButton = creerBoutonPause("Resume");
-        JButton saveButton = creerBoutonPause("Save");
-        JButton settingsButton = creerBoutonPause("Settings");
-        JButton reglesButton = creerBoutonPause("Game Rules");
-        JButton saveQuitButton = creerBoutonPause("Save and Quit");
-        JButton retourMenuButton = creerBoutonPause("Return to Menu");
+        JButton resumeButton = creerBoutonPauseParchemin("Resume");
+        JButton saveButton = creerBoutonPauseParchemin("Save");
+        JButton settingsButton = creerBoutonPauseParchemin("Settings");
+        JButton reglesButton = creerBoutonPauseParchemin("Game Rules");
+        JButton saveQuitButton = creerBoutonPauseParchemin("Save and Quit");
+        JButton retourMenuButton = creerBoutonPauseParchemin("Return to Menu");
 
         resumeButton.addActionListener(e -> pauseDialog.dispose());
 
@@ -263,17 +282,17 @@ public class JeuPanel extends JPanel {
         });
 
         reglesButton.addActionListener(e -> {
-        JDialog rulesDialog = new JDialog(
-                pauseDialog,
-                "Règles du jeu",
-                Dialog.ModalityType.APPLICATION_MODAL
-        );
+            JDialog rulesDialog = new JDialog(
+                    pauseDialog,
+                    "Règles du jeu",
+                    Dialog.ModalityType.APPLICATION_MODAL
+            );
 
-        rulesDialog.setSize(700, 700);
-        rulesDialog.setLocationRelativeTo(pauseDialog);
-        rulesDialog.setResizable(false);
+            rulesDialog.setSize(700, 700);
+            rulesDialog.setLocationRelativeTo(pauseDialog);
+            rulesDialog.setResizable(false);
 
-        ReglesPanel reglesPanel = new ReglesPanel(() -> rulesDialog.dispose());
+            ReglesPanel reglesPanel = new ReglesPanel(() -> rulesDialog.dispose());
 
             rulesDialog.setContentPane(reglesPanel);
             rulesDialog.setVisible(true);
@@ -284,88 +303,20 @@ public class JeuPanel extends JPanel {
             fenetre.afficherMenu();
         });
 
-        pausePanel.add(titre);
-        pausePanel.add(Box.createVerticalStrut(25));
         pausePanel.add(resumeButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(saveButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(settingsButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(reglesButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(saveQuitButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(retourMenuButton);
 
         pauseDialog.setContentPane(pausePanel);
         ParcheminDialog.afficherAvecFondAssombri(this, pauseDialog);
-    }
-
-    private void afficherSettingsDialog(JDialog parentDialog) {
-        JDialog settingsDialog = new JDialog(
-                parentDialog,
-                "Settings",
-                Dialog.ModalityType.APPLICATION_MODAL
-        );
-    
-        settingsDialog.setSize(360, 260);
-        settingsDialog.setLocationRelativeTo(parentDialog);
-        settingsDialog.setResizable(false);
-    
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(new Color(25, 25, 25));
-        panel.setBorder(BorderFactory.createEmptyBorder(25, 35, 25, 35));
-    
-        JLabel titre = new JLabel("Settings");
-        titre.setFont(new Font("Arial", Font.BOLD, 24));
-        titre.setForeground(new Color(245, 235, 210));
-        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
-    
-        JCheckBox musiqueCheckBox = new JCheckBox("Musique activée");
-        musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
-        musiqueCheckBox.setFont(new Font("Arial", Font.BOLD, 15));
-        musiqueCheckBox.setForeground(new Color(245, 235, 210));
-        musiqueCheckBox.setBackground(new Color(25, 25, 25));
-        musiqueCheckBox.setFocusPainted(false);
-        musiqueCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
-    
-        JLabel volumeLabel = new JLabel("Volume");
-        volumeLabel.setFont(new Font("Arial", Font.BOLD, 15));
-        volumeLabel.setForeground(new Color(245, 235, 210));
-        volumeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    
-        JSlider volumeSlider = new JSlider(0, 100, 40);
-        volumeSlider.setMaximumSize(new Dimension(230, 45));
-        volumeSlider.setOpaque(false);
-        volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        volumeSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
-    
-        JButton fermerButton = creerBoutonPause("Fermer");
-    
-        musiqueCheckBox.addActionListener(e -> {
-            fenetre.toggleMusique();
-            musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
-        });
-    
-        volumeSlider.addChangeListener(e -> {
-            fenetre.changerVolumeMusique(volumeSlider.getValue());
-        });
-    
-        fermerButton.addActionListener(e -> settingsDialog.dispose());
-    
-        panel.add(titre);
-        panel.add(Box.createVerticalStrut(20));
-        panel.add(musiqueCheckBox);
-        panel.add(Box.createVerticalStrut(15));
-        panel.add(volumeLabel);
-        panel.add(volumeSlider);
-        panel.add(Box.createVerticalStrut(20));
-        panel.add(fermerButton);
-    
-        settingsDialog.setContentPane(panel);
-        settingsDialog.setVisible(true);
     }
 
     private JButton creerBoutonPause(String texte) {
@@ -383,6 +334,95 @@ public class JeuPanel extends JPanel {
         bouton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
 
         return bouton;
+    }
+    private JButton creerBoutonPauseParchemin(String texte) {
+        JButton bouton = new JButton(texte);
+
+        bouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bouton.setMaximumSize(new Dimension(230, 34));
+        bouton.setPreferredSize(new Dimension(230, 34));
+
+        bouton.setFont(new Font("Serif", Font.BOLD, 16));
+        bouton.setForeground(new Color(35, 20, 8));
+
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        bouton.setOpaque(false);
+        bouton.setContentAreaFilled(false);
+
+        bouton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(70, 38, 12), 2),
+                BorderFactory.createEmptyBorder(4, 12, 4, 12)
+        ));
+
+        return bouton;
+    }
+
+    private void afficherSettingsDialog(JDialog parentDialog) {
+        JDialog settingsDialog = new JDialog(
+                parentDialog,
+                "Settings",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+
+        settingsDialog.setSize(360, 260);
+        settingsDialog.setLocationRelativeTo(parentDialog);
+        settingsDialog.setResizable(false);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(25, 25, 25));
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 35, 25, 35));
+
+        JLabel titre = new JLabel("Settings");
+        titre.setFont(new Font("Arial", Font.BOLD, 24));
+        titre.setForeground(new Color(245, 235, 210));
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JCheckBox musiqueCheckBox = new JCheckBox("Musique activée");
+        musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
+        musiqueCheckBox.setFont(new Font("Arial", Font.BOLD, 15));
+        musiqueCheckBox.setForeground(new Color(245, 235, 210));
+        musiqueCheckBox.setBackground(new Color(25, 25, 25));
+        musiqueCheckBox.setFocusPainted(false);
+        musiqueCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel volumeLabel = new JLabel("Volume");
+        volumeLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        volumeLabel.setForeground(new Color(245, 235, 210));
+        volumeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JSlider volumeSlider = new JSlider(0, 100, 40);
+        volumeSlider.setMaximumSize(new Dimension(230, 45));
+        volumeSlider.setOpaque(false);
+        volumeSlider.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        volumeSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton fermerButton = creerBoutonPause("Fermer");
+
+        musiqueCheckBox.addActionListener(e -> {
+            fenetre.toggleMusique();
+            musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
+        });
+
+        volumeSlider.addChangeListener(e -> {
+            fenetre.changerVolumeMusique(volumeSlider.getValue());
+        });
+
+        fermerButton.addActionListener(e -> settingsDialog.dispose());
+
+        panel.add(titre);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(musiqueCheckBox);
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(volumeLabel);
+        panel.add(volumeSlider);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(fermerButton);
+
+        settingsDialog.setContentPane(panel);
+        settingsDialog.setVisible(true);
     }
 
     private boolean sauvegarderAvecDialogue(Component parent) {

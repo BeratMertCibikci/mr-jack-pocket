@@ -153,25 +153,29 @@ public class JeuPanel extends JPanel {
         rightGamePanel.setOpaque(false);
         rightGamePanel.setPreferredSize(new Dimension(240, 0));
         rightGamePanel.setLayout(new BoxLayout(rightGamePanel, BoxLayout.Y_AXIS));
+        rightGamePanel.setMinimumSize(new Dimension(240, 0));
 
         alibiPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         jackInfoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        alibiPanel.setPreferredSize(new Dimension(220, 250));
-        alibiPanel.setMaximumSize(new Dimension(220, 250));
+        alibiPanel.setPreferredSize(new Dimension(220, 210));
+        //alibiPanel.setMaximumSize(new Dimension(220, 250));
 
-        jackInfoPanel.setPreferredSize(new Dimension(220, 180));
-        jackInfoPanel.setMaximumSize(new Dimension(220, 180));
+        jackInfoPanel.setPreferredSize(new Dimension(220, 150));
+        //jackInfoPanel.setMaximumSize(new Dimension(220, 180));
 
-        actionPanel.setPreferredSize(new Dimension(220, 360));
-        actionPanel.setMaximumSize(new Dimension(220, 360));
+        //int actionPanelHeight = Math.max(300, getHeight() - 420);
 
-        rightGamePanel.add(Box.createVerticalStrut(30));
+        actionPanel.setPreferredSize(new Dimension(220, 320));
+        actionPanel.setMaximumSize(new Dimension(220, 320));
+        actionPanel.setAlignmentY(Component.TOP_ALIGNMENT);
+
+        rightGamePanel.add(Box.createVerticalStrut(15));
         rightGamePanel.add(alibiPanel);
-        rightGamePanel.add(Box.createVerticalStrut(15));
+        rightGamePanel.add(Box.createVerticalStrut(8));
         rightGamePanel.add(jackInfoPanel);
-        rightGamePanel.add(Box.createVerticalStrut(15));
+        rightGamePanel.add(Box.createVerticalStrut(8));
         rightGamePanel.add(actionPanel);
         rightGamePanel.add(Box.createVerticalGlue());
 

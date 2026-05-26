@@ -298,7 +298,13 @@ public class PlateauPanel extends JPanel {
 
         rafraichir();
     }
+    public void clearTileHighlightSilently() {
+        highlightedTiles.clear();
 
+        if (highlightTimer != null && highlightTimer.isRunning()) {
+            highlightTimer.stop();
+        }
+    }
     private void ajouterMessageSelection() {
         JLabel messageLabel = new JLabel(selectionMessage, SwingConstants.CENTER);
         messageLabel.setFont(new Font("Arial", Font.BOLD, 18));

@@ -1,19 +1,27 @@
 package reseau;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import engine.GameEngine;
 import engine.ActionType;
+import engine.GameEngine;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import model.Tile;
 
 public class GameServer {
     private int port;
     private ServerSocket serverSocket;
     private List<ClientHandler> clients = new ArrayList<>();
+
     private GameEngine gameEngine;
+
     private boolean gameStarted = false;
     private int readyClients = 0;
+
+    private Message lastHighlightMessage;
 
     public GameServer(int port) {
         this.port = port;
@@ -30,8 +38,10 @@ public class GameServer {
 
                 ClientHandler handler = new ClientHandler(socket, this);
                 clients.add(handler);
+
                 new Thread(handler).start();
             }
+
         } catch (IOException e) {
             System.err.println("Server error: " + e.getMessage());
         }
@@ -39,6 +49,7 @@ public class GameServer {
 
     public synchronized void clientReady() {
         readyClients++;
+
         if (readyClients == 2 && !gameStarted) {
             initializeGame();
         }
@@ -46,19 +57,48 @@ public class GameServer {
 
     private void initializeGame() {
         String player1Role = clients.get(0).getRole();
+
         gameEngine = new GameEngine(player1Role);
         gameEngine.startGame();
+
         gameStarted = true;
+
         broadcastUpdate();
         System.out.println("Game started and state broadcasted.");
     }
 
     public synchronized void broadcastUpdate() {
+        if (gameEngine == null) {
+            return;
+        }
+
         Message updateMsg = new Message(Message.MessageType.UPDATE_STATE, "Server");
         updateMsg.setGameStatePayload(gameEngine.getGameState());
 
+        copyLastHighlightTo(updateMsg);
+
         for (ClientHandler client : clients) {
             client.sendMessage(updateMsg);
+        }
+    }
+
+    private void copyLastHighlightTo(Message updateMsg) {
+        if (lastHighlightMessage == null || !lastHighlightMessage.hasHighlight()) {
+            return;
+        }
+
+        if (lastHighlightMessage.getHighlightRow2() >= 0) {
+            updateMsg.setHighlight(
+                    lastHighlightMessage.getHighlightRow1(),
+                    lastHighlightMessage.getHighlightCol1(),
+                    lastHighlightMessage.getHighlightRow2(),
+                    lastHighlightMessage.getHighlightCol2()
+            );
+        } else {
+            updateMsg.setHighlight(
+                    lastHighlightMessage.getHighlightRow1(),
+                    lastHighlightMessage.getHighlightCol1()
+            );
         }
     }
 
@@ -67,11 +107,21 @@ public class GameServer {
             boolean shouldBroadcast = processMessageOnEngine(msg);
 
             if (shouldBroadcast) {
+                rememberHighlightIfNeeded(msg);
                 broadcastUpdate();
             }
+
         } catch (Exception e) {
             System.err.println("Action error: " + e.getMessage());
         }
+    }
+
+    private void rememberHighlightIfNeeded(Message msg) {
+        if (msg == null || !msg.hasHighlight()) {
+            return;
+        }
+
+        lastHighlightMessage = msg;
     }
 
     private boolean processMessageOnEngine(Message msg) {
@@ -80,17 +130,18 @@ public class GameServer {
         }
 
         if (msg.getType() == Message.MessageType.ACTION_SELECT) {
-           
             return false;
         }
 
         if (msg.getType() == Message.MessageType.UNDO) {
             gameEngine.undo();
+            lastHighlightMessage = null;
             return true;
         }
 
         if (msg.getType() == Message.MessageType.REDO) {
             gameEngine.redo();
+            lastHighlightMessage = null;
             return true;
         }
 
@@ -104,8 +155,6 @@ public class GameServer {
     }
 
     private void executeAction(Message msg) {
-        // Token seçimi ve hamle aynı server işleminde yapılır.
-        // ActionEngine böylece doğru selectedActionToken ile çalışır.
         gameEngine.selectActionToken(msg.getTokenIndex());
 
         ActionType type = msg.getActionType();
@@ -128,40 +177,76 @@ public class GameServer {
                 break;
 
             case ROTATE:
-                Tile serverTileToRotate = gameEngine.getGameState()
-                        .getBoard()
-                        .getTile(msg.getTileA().getRow(), msg.getTileA().getCol());
-                gameEngine.rotateTile(serverTileToRotate, msg.getRotations());
+                executeRotate(msg);
                 break;
 
             case EXCHANGE:
-                Tile serverTileA = gameEngine.getGameState()
-                        .getBoard()
-                        .getTile(msg.getTileA().getRow(), msg.getTileA().getCol());
-                Tile serverTileB = gameEngine.getGameState()
-                        .getBoard()
-                        .getTile(msg.getTileB().getRow(), msg.getTileB().getCol());
-                gameEngine.exchangeTiles(serverTileA, serverTileB);
+                executeExchange(msg);
                 break;
 
             case ALIBI:
-                if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
-                    gameEngine.investigatorDrawsAlibi();
-                } else {
-                    gameEngine.jackDrawsAlibi();
-                }
+                executeAlibi();
                 break;
 
             case JOKER:
-                if (msg.getDetectiveName() != null && !msg.getDetectiveName().isEmpty()) {
-                    gameEngine.moveDetectiveWithJoker(msg.getDetectiveName());
-                } else {
-                    gameEngine.skipJokerMove();
-                }
+                executeJoker(msg);
                 break;
 
             default:
                 throw new IllegalArgumentException("Unsupported action type: " + type);
+        }
+    }
+
+    private void executeRotate(Message msg) {
+        if (msg.getTileA() == null) {
+            throw new IllegalArgumentException("Rotate action requires tileA.");
+        }
+
+        Tile serverTileToRotate = gameEngine.getGameState()
+                .getBoard()
+                .getTile(
+                        msg.getTileA().getRow(),
+                        msg.getTileA().getCol()
+                );
+
+        gameEngine.rotateTile(serverTileToRotate, msg.getRotations());
+    }
+
+    private void executeExchange(Message msg) {
+        if (msg.getTileA() == null || msg.getTileB() == null) {
+            throw new IllegalArgumentException("Exchange action requires tileA and tileB.");
+        }
+
+        Tile serverTileA = gameEngine.getGameState()
+                .getBoard()
+                .getTile(
+                        msg.getTileA().getRow(),
+                        msg.getTileA().getCol()
+                );
+
+        Tile serverTileB = gameEngine.getGameState()
+                .getBoard()
+                .getTile(
+                        msg.getTileB().getRow(),
+                        msg.getTileB().getCol()
+                );
+
+        gameEngine.exchangeTiles(serverTileA, serverTileB);
+    }
+
+    private void executeAlibi() {
+        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
+            gameEngine.investigatorDrawsAlibi();
+        } else {
+            gameEngine.jackDrawsAlibi();
+        }
+    }
+
+    private void executeJoker(Message msg) {
+        if (msg.getDetectiveName() != null && !msg.getDetectiveName().isEmpty()) {
+            gameEngine.moveDetectiveWithJoker(msg.getDetectiveName());
+        } else {
+            gameEngine.skipJokerMove();
         }
     }
 
@@ -189,9 +274,11 @@ public class GameServer {
 
         public void sendMessage(Message msg) {
             try {
-                out.writeObject(msg);
-                out.flush();
-                out.reset();
+                if (out != null) {
+                    out.writeObject(msg);
+                    out.flush();
+                    out.reset();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -204,18 +291,23 @@ public class GameServer {
                 in = new ObjectInputStream(socket.getInputStream());
 
                 Message connectMsg = (Message) in.readObject();
+
                 if (connectMsg != null && connectMsg.getType() == Message.MessageType.CONNECT) {
                     this.role = connectMsg.getSenderRole();
+
                     System.out.println("Player connected. Role: " + this.role);
+
                     server.clientReady();
                 }
 
                 while (true) {
                     Message msg = (Message) in.readObject();
+
                     if (msg != null) {
                         server.handleAction(msg);
                     }
                 }
+
             } catch (Exception e) {
                 System.out.println((role != null ? role : "Unknown player") + " disconnected.");
             }

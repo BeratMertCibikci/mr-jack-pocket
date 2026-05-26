@@ -5,6 +5,7 @@ import engine.GameEngine;
 import java.awt.*;
 import javax.swing.*;
 import model.GameState;
+import reseau.Message;
 
 public class JeuPanel extends JPanel {
 
@@ -12,6 +13,7 @@ public class JeuPanel extends JPanel {
     private GameEngine gameEngine;
     private GameState gameState;
     private FenetrePrincipale fenetre;
+    private String playerRole;
 
     private CardLayout cardLayout;
     private JPanel mainContainer;
@@ -23,6 +25,12 @@ public class JeuPanel extends JPanel {
 
     private JackInfoPanel jackInfoPanel;
     private JPanel rightGamePanel;
+
+    private PlateauPanel plateauPanel;
+    private InfoJeuPanel infoJeuPanel;
+    private TimeTokensPanel timeTokensPanel;
+    private AlibiPanel alibiPanel;
+    private ActionPanel actionPanel;
 
     private boolean premierAffichage = true;
 
@@ -86,6 +94,7 @@ public class JeuPanel extends JPanel {
     ) {
         this.mode = mode;
         this.fenetre = fenetre;
+        this.playerRole = player1Role;
 
         if (loadedEngine != null) {
             gameEngine = loadedEngine;
@@ -107,18 +116,27 @@ public class JeuPanel extends JPanel {
         gameScreen = new JPanel(new BorderLayout());
         gameScreen.setBackground(new Color(25, 25, 25));
 
-        JLabel titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
+        String titreText = "Mr Jack Pocket : " + mode;
+
+        if (mode == GameMode.HUMAN_NETWORK) {
+            titreText = "Mr Jack Pocket - Réseau [" + playerRole + "]";
+        }
+
+        JLabel titre = new JLabel(titreText, SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 16));
         titre.setForeground(new Color(245, 235, 210));
         titre.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 
-        PlateauPanel plateauPanel = new PlateauPanel(gameState);
-        InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
-        TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
-        AlibiPanel alibiPanel = new AlibiPanel();
+        plateauPanel = new PlateauPanel(gameState);
+        plateauPanel.setLocalPlayerRole(playerRole);
 
-        jackInfoPanel = new JackInfoPanel(gameEngine, mode, player1Role);
-        ActionPanel actionPanel = new ActionPanel(
+        infoJeuPanel = new InfoJeuPanel(gameEngine, mode, playerRole);
+        timeTokensPanel = new TimeTokensPanel(gameState);
+        alibiPanel = new AlibiPanel();
+
+        jackInfoPanel = new JackInfoPanel(gameEngine, mode, playerRole);
+
+        actionPanel = new ActionPanel(
                 gameEngine,
                 infoJeuPanel,
                 plateauPanel,
@@ -129,7 +147,7 @@ public class JeuPanel extends JPanel {
                 mode,
                 investigatorDifficulty,
                 jackDifficulty,
-                player1Role
+                playerRole
         );
 
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -160,12 +178,8 @@ public class JeuPanel extends JPanel {
         actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         alibiPanel.setPreferredSize(new Dimension(220, 210));
-        //alibiPanel.setMaximumSize(new Dimension(220, 250));
 
         jackInfoPanel.setPreferredSize(new Dimension(220, 150));
-        //jackInfoPanel.setMaximumSize(new Dimension(220, 180));
-
-        //int actionPanelHeight = Math.max(300, getHeight() - 420);
 
         actionPanel.setPreferredSize(new Dimension(220, 320));
         actionPanel.setMaximumSize(new Dimension(220, 320));
@@ -174,8 +188,17 @@ public class JeuPanel extends JPanel {
         rightGamePanel.add(Box.createVerticalStrut(15));
         rightGamePanel.add(alibiPanel);
         rightGamePanel.add(Box.createVerticalStrut(8));
-        rightGamePanel.add(jackInfoPanel);
-        rightGamePanel.add(Box.createVerticalStrut(8));
+
+        if (mode == GameMode.HUMAN_NETWORK) {
+            if ("Jack".equalsIgnoreCase(playerRole)) {
+                rightGamePanel.add(jackInfoPanel);
+                rightGamePanel.add(Box.createVerticalStrut(8));
+            }
+        } else {
+            rightGamePanel.add(jackInfoPanel);
+            rightGamePanel.add(Box.createVerticalStrut(8));
+        }
+
         rightGamePanel.add(actionPanel);
         rightGamePanel.add(Box.createVerticalGlue());
 
@@ -196,6 +219,9 @@ public class JeuPanel extends JPanel {
         add(mainContainer, BorderLayout.CENTER);
 
         if (mode == GameMode.IA_VS_IA) {
+            premierAffichage = false;
+            cardLayout.show(mainContainer, "GAME");
+        } else if (mode == GameMode.HUMAN_NETWORK) {
             premierAffichage = false;
             cardLayout.show(mainContainer, "GAME");
         } else {
@@ -254,9 +280,6 @@ public class JeuPanel extends JPanel {
         };
 
         pausePanel.setLayout(new BoxLayout(pausePanel, BoxLayout.Y_AXIS));
-
-        // Görselde üstte "Pause" yazısı zaten var.
-        // Bu değerler butonları ortadaki boş alana yerleştiriyor.
         pausePanel.setBorder(BorderFactory.createEmptyBorder(220, 75, 60, 75));
 
         JButton resumeButton = creerBoutonPauseParchemin("Continuer");
@@ -339,6 +362,7 @@ public class JeuPanel extends JPanel {
 
         return bouton;
     }
+
     private JButton creerBoutonPauseParchemin(String texte) {
         JButton bouton = new JButton(texte);
 
@@ -430,34 +454,36 @@ public class JeuPanel extends JPanel {
     }
 
     private boolean sauvegarderAvecDialogue(Component parent) {
-        String filename = JOptionPane.showInputDialog(
-                parent,
-                "Nom du fichier de sauvegarde :",
-                "Sauvegarder",
-                JOptionPane.QUESTION_MESSAGE
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setDialogTitle("Sauvegarder la partie");
+
+        fileChooser.setFileFilter(
+                new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Fichiers sauvegarde (*.sav)",
+                        "sav"
+                )
         );
 
-        if (filename == null) {
+        int result = fileChooser.showSaveDialog(parent);
+
+        if (result != JFileChooser.APPROVE_OPTION) {
             return false;
         }
 
-        filename = filename.trim();
+        java.io.File selectedFile = fileChooser.getSelectedFile();
 
-        if (filename.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    parent,
-                    "Nom de fichier invalide.",
-                    "Erreur sauvegarde",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            return false;
+        String path = selectedFile.getAbsolutePath();
+
+        if (!path.toLowerCase().endsWith(".sav")) {
+            path += ".sav";
         }
 
-        gameEngine.saveGame(filename);
+        gameEngine.saveGame(path);
 
         JOptionPane.showMessageDialog(
                 parent,
-                "Partie sauvegardée : " + filename,
+                "Partie sauvegardée :\n" + path,
                 "Sauvegarde",
                 JOptionPane.INFORMATION_MESSAGE
         );
@@ -511,6 +537,12 @@ public class JeuPanel extends JPanel {
     }
 
     private void afficherTransitionTour(String titreTransition) {
+        if (mode == GameMode.HUMAN_NETWORK) {
+            rafraichirPanneauDroite();
+            cardLayout.show(mainContainer, "GAME");
+            return;
+        }
+
         if (mode == GameMode.IA_VS_IA) {
             rafraichirPanneauDroite();
             cardLayout.show(mainContainer, "GAME");
@@ -530,13 +562,80 @@ public class JeuPanel extends JPanel {
 
         cardLayout.show(mainContainer, "TRANSITION");
     }
-    
+
     public GameEngine getGameEngine() {
         return this.gameEngine;
     }
 
+    public void appliquerEtatReseau(GameState nouveauState) {
+        if (nouveauState == null) {
+            return;
+        }
+
+        if (plateauPanel != null) {
+            plateauPanel.clearTileHighlightSilently();
+        }
+
+        this.gameState = nouveauState;
+        this.gameEngine.setGameState(nouveauState);
+
+        rafraichirToutesLesVues();
+
+        if (mode == GameMode.HUMAN_NETWORK) {
+            cardLayout.show(mainContainer, "GAME");
+        }
+    }
+    public void appliquerHighlightReseau(Message msg) {
+    if (msg == null || !msg.hasHighlight() || plateauPanel == null) {
+        return;
+    }
+
+    if (msg.getHighlightRow2() >= 0) {
+        plateauPanel.highlightTilesTemporarily(
+                msg.getHighlightRow1(),
+                msg.getHighlightCol1(),
+                msg.getHighlightRow2(),
+                msg.getHighlightCol2()
+        );
+    } else {
+        plateauPanel.highlightTileTemporarily(
+                msg.getHighlightRow1(),
+                msg.getHighlightCol1()
+        );
+    }
+}
+
     public void rafraichirToutesLesVues() {
-        // Ağdan yeni veri geldiğinde ekranı yeniler
+        this.gameState = gameEngine.getGameState();
+
+        if (plateauPanel != null) {
+            plateauPanel.setGameState(gameState);
+            plateauPanel.setLocalPlayerRole(playerRole);
+            plateauPanel.rafraichir();
+        }
+
+        if (timeTokensPanel != null) {
+            timeTokensPanel.setGameState(gameState);
+            timeTokensPanel.rafraichir();
+        }
+
+        if (infoJeuPanel != null) {
+            infoJeuPanel.rafraichir();
+        }
+
+        if (jackInfoPanel != null) {
+            jackInfoPanel.rafraichir();
+        }
+
+        if (actionPanel != null) {
+            actionPanel.rafraichir();
+        }
+
+        if (rightGamePanel != null) {
+            rightGamePanel.revalidate();
+            rightGamePanel.repaint();
+        }
+
         this.revalidate();
         this.repaint();
     }

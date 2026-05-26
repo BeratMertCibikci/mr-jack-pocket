@@ -1,12 +1,13 @@
 package IHM;
 
-import reseau.GameClient;
-import reseau.GameServer;
-import reseau.Message;
 import ai.AIDifficulty;
 import engine.GameEngine;
 import java.awt.*;
 import javax.swing.*;
+import model.GameState;
+import reseau.GameClient;
+import reseau.GameServer;
+import reseau.Message;
 
 public class FenetrePrincipale extends JFrame {
 
@@ -95,6 +96,8 @@ public class FenetrePrincipale extends JFrame {
                 jackDifficulty
         );
 
+        activeJeuPanel = jeuPanel;
+
         mainPanel.add(jeuPanel, "jeu");
         cardLayout.show(mainPanel, "jeu");
 
@@ -124,30 +127,27 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public void chargerJeuDepuisMenu() {
-        String filename = JOptionPane.showInputDialog(
-                this,
-                "Nom du fichier à charger :",
-                "Charger une partie",
-                JOptionPane.QUESTION_MESSAGE
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setDialogTitle("Charger une partie");
+
+        fileChooser.setFileFilter(
+                new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Fichiers sauvegarde (*.sav)",
+                        "sav"
+                )
         );
 
-        if (filename == null) {
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result != JFileChooser.APPROVE_OPTION) {
             return;
         }
 
-        filename = filename.trim();
+        java.io.File selectedFile = fileChooser.getSelectedFile();
+        String path = selectedFile.getAbsolutePath();
 
-        if (filename.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Nom de fichier invalide.",
-                    "Erreur chargement",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            return;
-        }
-
-        GameEngine loadedEngine = GameEngine.loadGame(filename);
+        GameEngine loadedEngine = GameEngine.loadGame(path);
 
         if (loadedEngine == null) {
             JOptionPane.showMessageDialog(
@@ -156,6 +156,7 @@ public class FenetrePrincipale extends JFrame {
                     "Erreur chargement",
                     JOptionPane.ERROR_MESSAGE
             );
+
             return;
         }
 
@@ -168,11 +169,86 @@ public class FenetrePrincipale extends JFrame {
                 loadedEngine
         );
 
+        activeJeuPanel = jeuPanel;
+
         mainPanel.add(jeuPanel, "jeu");
         cardLayout.show(mainPanel, "jeu");
 
         revalidate();
         repaint();
+    }
+
+    public void demarrerReseauHost(String roleChoisi) {
+        new Thread(() -> {
+            GameServer gameServer = new GameServer(8080);
+            gameServer.start();
+        }).start();
+
+        Timer timer = new Timer(800, e -> demarrerReseauClient("localhost", roleChoisi));
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+    public void demarrerReseauClient(String ipAddress) {
+        demarrerReseauClient(ipAddress, "Jack");
+    }
+
+    public void demarrerReseauClient(String ipAddress, String role) {
+        new Thread(() -> {
+            GameClient createdClient = new GameClient(ipAddress, 8080, role, msg -> {
+                if (msg.getType() == Message.MessageType.UPDATE_STATE) {
+                    GameState state = (GameState) msg.getGameStatePayload();
+                    handleNetworkUpdate(state, role, msg);
+                }
+            });
+
+            this.networkClient = createdClient;
+        }).start();
+    }
+
+    private void handleNetworkUpdate(GameState state, String role, Message msg) {
+        if (state == null) {
+            return;
+        }
+
+        if (activeJeuPanel == null) {
+            GameEngine proxyEngine = new GameEngine(state);
+            proxyEngine.setGameState(state);
+
+            activeJeuPanel = new JeuPanel(
+                    GameMode.HUMAN_NETWORK,
+                    role,
+                    this,
+                    proxyEngine
+            );
+
+            mainPanel.add(activeJeuPanel, "jeu");
+            cardLayout.show(mainPanel, "jeu");
+
+        } else {
+            activeJeuPanel.appliquerEtatReseau(state);
+        }
+
+        if (activeJeuPanel != null && msg != null && msg.hasHighlight()) {
+            activeJeuPanel.appliquerHighlightReseau(msg);
+        }
+
+        revalidate();
+        repaint();
+
+        fermerDialogsOuverts();
+    }
+
+    private void fermerDialogsOuverts() {
+        for (Window window : Window.getWindows()) {
+            if (window instanceof JDialog && window.isVisible()) {
+                window.dispose();
+            }
+        }
+    }
+
+    public GameClient getNetworkClient() {
+        return networkClient;
     }
 
     public static void main(String[] args) {
@@ -181,53 +257,4 @@ public class FenetrePrincipale extends JFrame {
             fenetre.setVisible(true);
         });
     }
-
-    public void demarrerReseauHost(String roleChoisi) {
-    new Thread(() -> {
-        GameServer gameServer = new GameServer(8080);
-        gameServer.start();
-    }).start();
-
-    Timer timer = new Timer(800, e -> demarrerReseauClient("localhost", roleChoisi));
-    timer.setRepeats(false);
-    timer.start();
-}
-public void demarrerReseauClient(String ipAddress) {
-        demarrerReseauClient(ipAddress, "Client");
-    }
-
-public void demarrerReseauClient(String ipAddress, String role) {
-    new Thread(() -> {
-        this.networkClient = new GameClient(ipAddress, 8080, role, msg -> {
-            if (msg.getType() == Message.MessageType.UPDATE_STATE) {
-                model.GameState state = (model.GameState) msg.getGameStatePayload();
-                handleNetworkUpdate(state, role);
-            }
-        });
-    }).start();
-}
-
-private void handleNetworkUpdate(model.GameState state, String role) {
-    if (activeJeuPanel == null) {
-        engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
-        proxyEngine.startGame(); 
-        proxyEngine.setGameState(state);
-        
-        activeJeuPanel = new JeuPanel(GameMode.HUMAN_VS_HUMAN, role, this, proxyEngine);
-        mainPanel.add(activeJeuPanel, "jeu");
-        cardLayout.show(mainPanel, "jeu");
-    } else {
-        activeJeuPanel.getGameEngine().setGameState(state);
-        activeJeuPanel.rafraichirToutesLesVues();
-    }
-    
-    revalidate();
-    repaint();
-    
-    for (Window window : Window.getWindows()) {
-        if (window instanceof JDialog) {
-            window.dispose();
-        }
-    }
-}
 }

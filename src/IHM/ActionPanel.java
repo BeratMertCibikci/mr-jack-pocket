@@ -8,20 +8,19 @@ import ai.EvaluationPerspective;
 import ai.MinimaxAI;
 import engine.ActionType;
 import engine.GameEngine;
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.function.Consumer;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
-
+import model.AlibiCards;
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
+import reseau.Message;
 import model.HourglassCalculator;
 
 public class ActionPanel extends JPanel {
@@ -50,6 +49,8 @@ public class ActionPanel extends JPanel {
     private JButton autoAIButton;
     private boolean gameOverDialogShown = false;
     private int autoAIDelayMs = 700;
+
+    private int selectedNetworkTokenIndex = -1;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -238,6 +239,35 @@ public class ActionPanel extends JPanel {
 
         rafraichir();
         verifierGameOverEtAfficher();
+    }
+
+    private boolean isNetworkGame() {
+        FenetrePrincipale fen = (FenetrePrincipale) SwingUtilities.getWindowAncestor(this);
+        return fen != null && fen.getNetworkClient() != null;
+    }
+
+    private void sendNetworkMessage(Message msg) {
+        FenetrePrincipale fen = (FenetrePrincipale) SwingUtilities.getWindowAncestor(this);
+
+        if (fen != null && fen.getNetworkClient() != null) {
+            fen.getNetworkClient().sendMessage(msg);
+        }
+    }
+
+    private boolean checkNetworkTurn() {
+        if (!isNetworkGame()) {
+            return true;
+        }
+
+        String currentPlayer = gameEngine.getGameState()
+                .getTurnManager()
+                .getCurrentPlayer();
+
+        if (humanRole == null || currentPlayer == null) {
+            return false;
+        }
+
+        return humanRole.equalsIgnoreCase(currentPlayer);
     }
 
     private void afficherActions() {
@@ -573,8 +603,9 @@ public class ActionPanel extends JPanel {
             }
         };
 
-        bouton.setFont(new Font("Arial", Font.BOLD, 13));
-        bouton.setForeground(new Color(245, 235, 210));
+      bouton.setFont(new Font("Arial", Font.BOLD, 11));
+bouton.setMargin(new Insets(2, 2, 2, 2));
+bouton.setForeground(new Color(245, 235, 210));
 
         bouton.setOpaque(false);
         bouton.setContentAreaFilled(false);
@@ -634,6 +665,16 @@ public class ActionPanel extends JPanel {
                         return;
                     }
 
+                    if (!checkNetworkTurn()) {
+                        JOptionPane.showMessageDialog(
+                                tokenPanel,
+                                "Ce n'est pas votre tour (Réseau).",
+                                "Tour adverse",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                        return;
+                    }
+
                     if (isAITurn()) {
                         JOptionPane.showMessageDialog(
                                 tokenPanel,
@@ -657,6 +698,13 @@ public class ActionPanel extends JPanel {
                     boutonClickMusique.jouerClickAction();
 
                     plateauPanel.clearTileHighlight();
+
+                    if (isNetworkGame()) {
+                        selectedNetworkTokenIndex = index;
+                        actionEnCours = true;
+                        traiterActionSecilenReseauIleActionName(actionName);
+                        return;
+                    }
 
                     String joueurAvantAction = String.valueOf(gameEngine.getCurrentPlayer());
 
@@ -683,6 +731,48 @@ public class ActionPanel extends JPanel {
         });
 
         return tokenPanel;
+    }
+
+    private void traiterActionSecilenReseauIleActionName(String actionName) {
+        try {
+            String upper = actionName.toUpperCase();
+
+            if (upper.equals("HOLMES") || upper.equals("WATSON") || upper.equals("TOBY")) {
+                preparerDeplacementDetective(actionName, null);
+                return;
+            }
+
+            if (upper.equals("ALIBI")) {
+                traiterAlibi();
+                return;
+            }
+
+            if (upper.equals("ROTATE")) {
+                preparerRotate(null);
+                return;
+            }
+
+            if (upper.equals("EXCHANGE")) {
+                preparerEchange(null);
+                return;
+            }
+
+            if (upper.equals("JOKER")) {
+                traiterJoker();
+                return;
+            }
+
+            actionEnCours = false;
+
+        } catch (Exception ex) {
+            actionEnCours = false;
+            JOptionPane.showMessageDialog(
+                    this,
+                    ex.getMessage(),
+                    "Erreur action réseau",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     private void traiterActionSelectionnee(String joueurAvantAction) {
@@ -786,7 +876,6 @@ public class ActionPanel extends JPanel {
             );
         }
     }
-
     private void verifierChangementDeJoueurEtTransition(String joueurAvantAction) {
         if (mode != GameMode.HUMAN_VS_HUMAN) {
             return;
@@ -808,6 +897,17 @@ public class ActionPanel extends JPanel {
     }
 
     private void traiterAlibi() {
+        if (isNetworkGame()) {
+            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+            exeMsg.setActionType(ActionType.ALIBI);
+
+            sendNetworkMessage(exeMsg);
+
+            actionEnCours = false;
+            return;
+        }
+
         if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
             GameCharacter eliminated = gameEngine.investigatorDrawsAlibi();
 
@@ -825,11 +925,107 @@ public class ActionPanel extends JPanel {
             }
 
         } else {
-            gameEngine.jackDrawsAlibi();
+    AlibiCards drawnCard = gameEngine.jackDrawsAlibi();
 
-            ParcheminDialog.JackAlibiMessage(plateauPanel);
-        }
+    ParcheminDialog.JackAlibiMessage(plateauPanel);
+
+    if (drawnCard != null && drawnCard.getCharacter() != null) {
+
+        afficherAlibiJack(drawnCard);
+
+    }}};
+    private void afficherAlibiJack(AlibiCards card) {
+    if (card == null || card.getCharacter() == null) {
+        return;
     }
+
+    JDialog dialog = new JDialog(
+            SwingUtilities.getWindowAncestor(plateauPanel),
+            "Alibi Jack",
+            Dialog.ModalityType.APPLICATION_MODAL
+    );
+
+    dialog.setUndecorated(true);
+    dialog.setSize(520, 560);
+    dialog.setResizable(false);
+    dialog.setBackground(new Color(0, 0, 0, 0));
+
+    JPanel panel = new JPanel(null) {
+        private BufferedImage background;
+
+        {
+            String chemin = System.getProperty("user.dir")
+                    + "/assets/images/action_message/alibi_piochée.png";
+
+            try {
+                background = ImageIO.read(new File(chemin));
+            } catch (Exception e) {
+                System.out.println("Image alibi_piochee non trouvée : " + chemin);
+                background = null;
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+
+            Graphics2D g2 = (Graphics2D) g.create();
+
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            if (background != null) {
+                g2.drawImage(background, 0, 0, getWidth(), getHeight(), null);
+            } else {
+                g2.setColor(new Color(238, 218, 175));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 28, 28);
+            }
+
+            g2.dispose();
+        }
+    };
+
+    panel.setOpaque(false);
+
+    GameCharacter character = card.getCharacter();
+
+    JLabel imageLabel = new JLabel("", SwingConstants.CENTER);
+    imageLabel.setBounds(180, 205, 160, 160);
+
+    ImageIcon characterIcon = chargerImageAlibiCharacter(character);
+
+    if (characterIcon != null) {
+        imageLabel.setIcon(characterIcon);
+    } else {
+        imageLabel.setText(character.getName());
+        imageLabel.setFont(new Font("Serif", Font.BOLD, 18));
+        imageLabel.setForeground(new Color(45, 32, 20));
+    }
+
+JLabel hourglassLabel = new JLabel(
+        "Sablier : " + card.getHourglassValue(),
+        SwingConstants.CENTER
+);
+
+hourglassLabel.setFont(new Font("Serif", Font.BOLD, 28));
+hourglassLabel.setForeground(new Color(45, 32, 20));
+hourglassLabel.setOpaque(true);
+hourglassLabel.setBackground(new Color(232, 202, 145));
+hourglassLabel.setBorder(BorderFactory.createLineBorder(new Color(95, 65, 35), 2));
+hourglassLabel.setBounds(160, 392, 200, 48);
+
+    JButton okButton = creerBoutonAlibi("Continuer");
+    okButton.setBounds(185, 495, 150, 38);
+    okButton.addActionListener(e -> dialog.dispose());
+
+    panel.add(imageLabel);
+    panel.add(hourglassLabel);
+    panel.add(okButton);
+
+    dialog.setContentPane(panel);
+    ParcheminDialog.afficherAvecFondAssombri(plateauPanel, dialog);
+}
 
     private void traiterJoker() {
         boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
@@ -893,6 +1089,20 @@ public class ActionPanel extends JPanel {
             skipButton.addActionListener(e -> {
                 try {
                     jokerDialog.dispose();
+
+                    if (isNetworkGame()) {
+                        Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                        exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                        exeMsg.setActionType(ActionType.JOKER);
+                        exeMsg.setDetectiveName("");
+
+                        sendNetworkMessage(exeMsg);
+
+                        actionEnCours = false;
+                        plateauPanel.clearDetectiveMoveSelection();
+                        return;
+                    }
+
                     gameEngine.skipJokerMove();
 
                     actionEnCours = false;
@@ -924,33 +1134,65 @@ public class ActionPanel extends JPanel {
         jokerDialog.setContentPane(panel);
         jokerDialog.setVisible(true);
     }
+    private int getDetectivePosition(String detectiveName) {
+    if ("Holmes".equals(detectiveName)) {
+        return gameEngine.getGameState().getDetectiveTokens().getHolmes().getPosition();
+    }
 
-    private void resoudreJokerAvecDetective(String detectiveName) {
-        try {
-            gameEngine.moveDetectiveWithJoker(detectiveName);
+    if ("Watson".equals(detectiveName)) {
+        return gameEngine.getGameState().getDetectiveTokens().getWatson().getPosition();
+    }
+
+    if ("Toby".equals(detectiveName)) {
+        return gameEngine.getGameState().getDetectiveTokens().getToby().getPosition();
+    }
+
+    return -1;
+}
+
+   private void resoudreJokerAvecDetective(String detectiveName) {
+    try {
+        if (isNetworkGame()) {
+            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+            exeMsg.setActionType(ActionType.JOKER);
+            exeMsg.setDetectiveName(detectiveName);
+
+            sendNetworkMessage(exeMsg);
 
             actionEnCours = false;
             plateauPanel.clearDetectiveMoveSelection();
-            rafraichirToutesLesVues();
-
-            if (gameEngine.isRoundOver()) {
-                verifierFinDeRoundEtTransition();
-            } else {
-                verifierChangementDeJoueurEtTransition(dernierJoueurAffiche);
-            }
-
-        } catch (Exception ex) {
-            actionEnCours = false;
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    ex.getMessage(),
-                    "Erreur Joker",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            return;
         }
-    }
+        int oldPosition = getDetectivePosition(detectiveName);
 
+        gameEngine.moveDetectiveWithJoker(detectiveName);
+
+        plateauPanel.setGhostDetectivePosition(detectiveName, oldPosition);
+
+        actionEnCours = false;
+        plateauPanel.clearDetectiveMoveSelection();
+        plateauPanel.setTileSelectionListener(null);
+
+        rafraichirToutesLesVues();
+
+        if (gameEngine.isRoundOver()) {
+            verifierFinDeRoundEtTransition();
+        } else {
+            verifierChangementDeJoueurEtTransition(dernierJoueurAffiche);
+        }
+
+    } catch (Exception ex) {
+        actionEnCours = false;
+
+        JOptionPane.showMessageDialog(
+                this,
+                ex.getMessage(),
+                "Erreur Joker",
+                JOptionPane.ERROR_MESSAGE
+        );
+    }
+}
     private void preparerRotate(String joueurAvantAction) {
         plateauPanel.clearDetectiveMoveSelection();
 
@@ -975,6 +1217,22 @@ public class ActionPanel extends JPanel {
 
                 int row = tile.getRow();
                 int col = tile.getCol();
+
+            if (isNetworkGame()) {
+                Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                exeMsg.setActionType(ActionType.ROTATE);
+                exeMsg.setTileA(tile);
+                exeMsg.setRotations(rotations);
+                exeMsg.setHighlight(row, col);
+
+                sendNetworkMessage(exeMsg);
+
+                plateauPanel.setTileSelectionListener(null);
+                actionEnCours = false;
+
+                return;
+            }
 
                 gameEngine.rotateTile(tile, rotations);
 
@@ -1038,6 +1296,22 @@ public class ActionPanel extends JPanel {
                 int row2 = deuxiemeCarte.getRow();
                 int col2 = deuxiemeCarte.getCol();
 
+                if (isNetworkGame()) {
+                    Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                    exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                    exeMsg.setActionType(ActionType.EXCHANGE);
+                    exeMsg.setTileA(premiereCarte[0]);
+                    exeMsg.setTileB(deuxiemeCarte);
+                    exeMsg.setHighlight(row1, col1, row2, col2);
+
+                    sendNetworkMessage(exeMsg);
+
+                    plateauPanel.setTileSelectionListener(null);
+                    actionEnCours = false;
+
+                    return;
+                }
+
                 gameEngine.exchangeTiles(premiereCarte[0], deuxiemeCarte);
 
                 plateauPanel.setTileSelectionListener(null);
@@ -1071,6 +1345,7 @@ public class ActionPanel extends JPanel {
         } else {
             currentPosition = gameEngine.getGameState().getDetectiveTokens().getToby().getPosition();
         }
+        plateauPanel.setGhostDetectivePosition(detectiveName, currentPosition);
 
         java.util.List<Integer> positions = new java.util.ArrayList<>();
         positions.add((currentPosition + 1) % 12);
@@ -1085,6 +1360,30 @@ public class ActionPanel extends JPanel {
 
                         if (steps == 0) {
                             steps = 12;
+                        }
+
+                        if (isNetworkGame()) {
+                            ActionType aType;
+
+                            if ("Holmes".equals(detectiveName)) {
+                                aType = ActionType.HOLMES;
+                            } else if ("Watson".equals(detectiveName)) {
+                                aType = ActionType.WATSON;
+                            } else {
+                                aType = ActionType.TOBY;
+                            }
+
+                            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                            exeMsg.setActionType(aType);
+                            exeMsg.setSteps(steps);
+
+                            sendNetworkMessage(exeMsg);
+
+                            plateauPanel.clearDetectiveMoveSelection();
+                            actionEnCours = false;
+
+                            return;
                         }
 
                         if ("Holmes".equals(detectiveName)) {
@@ -1223,12 +1522,13 @@ public class ActionPanel extends JPanel {
             try {
                 String joueurAvantAction = String.valueOf(gameEngine.getCurrentPlayer());
 
-                currentAI.play(gameEngine);
+                AIMove playedMove = currentAI.play(gameEngine);
 
                 plateauPanel.setTileSelectionListener(null);
                 actionEnCours = false;
 
                 rafraichirToutesLesVues();
+                highlightAIMove(playedMove);
 
                 if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
                     if (mode != GameMode.IA_VS_IA || !autoAIEnabled) {
@@ -1714,5 +2014,31 @@ public class ActionPanel extends JPanel {
 
         dialog.setContentPane(panel);
         ParcheminDialog.afficherAvecFondAssombri(plateauPanel, dialog);
+    }
+    private void highlightAIMove(AIMove move) {
+        if (move == null || plateauPanel == null) {
+            return;
+        }
+
+        switch (move.getActionType()) {
+            case ROTATE:
+                plateauPanel.highlightTileTemporarily(
+                        move.getRow(),
+                        move.getCol()
+                );
+                break;
+
+            case EXCHANGE:
+                plateauPanel.highlightTilesTemporarily(
+                        move.getRowA(),
+                        move.getColA(),
+                        move.getRowB(),
+                        move.getColB()
+                );
+                break;
+
+            default:
+                break;
+        }
     }
 }

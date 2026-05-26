@@ -9,7 +9,7 @@ public class RandomAI implements AIPlayer {
     private final Random random = new Random();
 
     @Override
-    public void play(GameEngine engine) {
+    public AIMove play(GameEngine engine) {
         List<AIMove> legalMoves = MoveGenerator.generateMoves(engine);
 
         if (legalMoves.isEmpty()) {
@@ -23,5 +23,7 @@ public class RandomAI implements AIPlayer {
         System.out.println("[RandomAI] Selected move: " + selectedMove);
 
         MoveApplier.apply(engine, selectedMove);
+
+        return selectedMove;
     }
 }

@@ -37,13 +37,19 @@ public class MinimaxAI implements AIPlayer {
     }
 
     @Override
-    public void play(GameEngine engine) {
+    public AIMove play(GameEngine engine) {
         AIMove bestMove = chooseBestMove(engine);
+
+        if (bestMove == null) {
+            throw new IllegalStateException("MinimaxAI cannot play. No move selected.");
+        }
 
         //System.out.println("[MinimaxAI] Current player: " + engine.getCurrentPlayer());
         //System.out.println("[MinimaxAI] Selected move: " + bestMove);
 
         MoveApplier.apply(engine, bestMove);
+
+        return bestMove;
     }
 
     public AIMove chooseBestMove(GameEngine engine) {

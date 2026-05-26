@@ -1,6 +1,7 @@
 package engine;
 
 import java.io.Serializable;
+import model.AlibiCards;
 import model.GameCharacter;
 import model.GameState;
 import model.Tile;
@@ -116,28 +117,32 @@ public class ActionEngine implements Serializable {
         return eliminatedCharacter;
     }
 
-    public void jackDrawsAlibi() {
-        ensureSelectedActionIs(ActionType.ALIBI);
+public AlibiCards jackDrawsAlibi() {
+    ensureSelectedActionIs(ActionType.ALIBI);
 
-        if (!gameState.getTurnManager().isJackTurn()) {
-            throw new IllegalStateException("Only Jack can draw Jack alibi.");
-        }
-
-        gameState.getAlibiDeckManager().mrJackDraws(false);
-
-        finishAction();
+    if (!gameState.getTurnManager().isJackTurn()) {
+        throw new IllegalStateException("Only Jack can draw Jack alibi.");
     }
-    public void jackDrawsAlibiCardById(int cardId) {
-        ensureSelectedActionIs(ActionType.ALIBI);
 
-        if (!gameState.getTurnManager().isJackTurn()) {
-            throw new IllegalStateException("Only Jack can draw Jack alibi.");
-        }
+    AlibiCards drawnCard = gameState.getAlibiDeckManager().mrJackDraws(false);
 
-        gameState.getAlibiDeckManager().mrJackDrawsCardById(cardId, false);
+    finishAction();
 
-        finishAction();
+    return drawnCard;
+}
+public AlibiCards jackDrawsAlibiCardById(int cardId) {
+    ensureSelectedActionIs(ActionType.ALIBI);
+
+    if (!gameState.getTurnManager().isJackTurn()) {
+        throw new IllegalStateException("Only Jack can draw Jack alibi.");
     }
+
+    AlibiCards drawnCard = gameState.getAlibiDeckManager().mrJackDrawsCardById(cardId, false);
+
+    finishAction();
+
+    return drawnCard;
+}
 
     public void rotateTile(Tile tile, int rotations) {
         ensureSelectedActionIs(ActionType.ROTATE);

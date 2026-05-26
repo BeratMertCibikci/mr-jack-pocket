@@ -686,12 +686,7 @@ bouton.setForeground(new Color(245, 235, 210));
                     }
 
                     if (actionEnCours) {
-                        JOptionPane.showMessageDialog(
-                                tokenPanel,
-                                "Une action est déjà en cours. Terminez-la avant de choisir un autre token.",
-                                "Action en cours",
-                                JOptionPane.WARNING_MESSAGE
-                        );
+                        ParcheminDialog.ActionEnCoursMessage(plateauPanel);
                         return;
                     }
 
@@ -1287,12 +1282,7 @@ hourglassLabel.setBounds(160, 392, 200, 48);
                 Tile deuxiemeCarte = tile;
 
                 if (premiereCarte[0] == deuxiemeCarte) {
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Vous devez sélectionner deux cartes différentes.",
-                            "Echange",
-                            JOptionPane.WARNING_MESSAGE
-                    );
+                    ParcheminDialog.EchangeErreurMessage(plateauPanel);
                     return;
                 }
 

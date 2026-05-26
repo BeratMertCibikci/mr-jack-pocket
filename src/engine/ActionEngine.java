@@ -116,16 +116,25 @@ public class ActionEngine implements Serializable {
         return eliminatedCharacter;
     }
 
-    public void jackDrawsAlibi() {
+    public GameCharacter jackDrawsAlibi() {
         ensureSelectedActionIs(ActionType.ALIBI);
 
         if (!gameState.getTurnManager().isJackTurn()) {
             throw new IllegalStateException("Only Jack can draw Jack alibi.");
         }
 
-        gameState.getAlibiDeckManager().mrJackDraws(false);
+        model.AlibiCards drawnCard = gameState.getAlibiDeckManager().mrJackDraws(false);
+        GameCharacter drawnCharacter = drawnCard != null ? drawnCard.getCharacter() : null;
 
+        // Investigator gibi Jack'in çektiği kart da board'dan kaldırılmalı
+        if (drawnCharacter != null && drawnCharacter.getTile() != null) {
+            drawnCharacter.getTile().flipToEmptySide();
+        }
+
+        gameState.updateVisibility();
         finishAction();
+
+        return drawnCharacter;
     }
     public void jackDrawsAlibiCardById(int cardId) {
         ensureSelectedActionIs(ActionType.ALIBI);

@@ -18,11 +18,11 @@ public class GameEngine implements Serializable {
     public GameEngine(String player1Role) {
         this.gameState = new GameState(player1Role); 
     }
+
     public GameEngine(GameState gameState) {
         if (gameState == null) {
             throw new IllegalArgumentException("GameState cannot be null.");
         }
-
         this.gameState = gameState;
         this.actionEngine = new ActionEngine(gameState);
         this.roundEngine = new RoundEngine(gameState);
@@ -31,10 +31,8 @@ public class GameEngine implements Serializable {
 
     public void startGame() {
         gameState.setupGame();
-
         this.actionEngine = new ActionEngine(gameState);
         this.roundEngine = new RoundEngine(gameState);
-
         this.history = new GameHistory();
     }
 
@@ -65,30 +63,28 @@ public class GameEngine implements Serializable {
     }
 
     public void setGameState(model.GameState gameState) {
-    
-    this.gameState = gameState;
-    
-    
-    if (gameState != null) {
-        this.actionEngine = new engine.ActionEngine(gameState);
+        this.gameState = gameState;
+        if (gameState != null) {
+            this.actionEngine = new ActionEngine(gameState);
+            this.roundEngine = new RoundEngine(gameState);
+        }
     }
-    
-    
-}
 
     public GameCharacter investigatorDrawsAlibi() {
         ensureGameRunning();
         return actionEngine.investigatorDrawsAlibi();
     }
+
     public GameCharacter investigatorDrawsAlibiCardById(int cardId) {
         ensureGameRunning();
         return actionEngine.investigatorDrawsAlibiCardById(cardId);
     }
 
-    public void jackDrawsAlibi() {
+    public GameCharacter jackDrawsAlibi() {
         ensureGameRunning();
-        actionEngine.jackDrawsAlibi();
+        return actionEngine.jackDrawsAlibi();
     }
+
     public void jackDrawsAlibiCardById(int cardId) {
         ensureGameRunning();
         actionEngine.jackDrawsAlibiCardById(cardId);
@@ -106,7 +102,7 @@ public class GameEngine implements Serializable {
 
     public void moveDetectiveWithJoker(String detectiveName) {
         ensureGameRunning();
-        actionEngine.moveDetectiveWithJoker(detectiveName, 1); // Joker can only move 1 step
+        actionEngine.moveDetectiveWithJoker(detectiveName, 1); 
     }
 
     public void skipJokerMove() {
@@ -116,14 +112,10 @@ public class GameEngine implements Serializable {
 
     public void endRound() {
         ensureGameRunning();
-
         if (actionEngine.hasSelectedAction()) {
             throw new IllegalStateException("Resolve selected action before ending round.");
         }
-        //history.save(gameState);
-
         roundEngine.endRound();
-
         if (!gameState.isGameOver()) {
             gameState.resetRotatedTilesThisRound();
         }
@@ -131,13 +123,10 @@ public class GameEngine implements Serializable {
 
     public void accuse(GameCharacter accusedCharacter) {
         ensureGameRunning();
-
         if (accusedCharacter == null) {
             throw new IllegalArgumentException("Accused character cannot be null.");
         }
-
         history.save(gameState);
-
         if (accusedCharacter.isJack()) {
             gameState.finishGame("Investigator");
         } else {
@@ -177,7 +166,6 @@ public class GameEngine implements Serializable {
         if (!gameState.isGameStarted()) {
             throw new IllegalStateException("Game has not started.");
         }
-
         if (gameState.isGameOver()) {
             throw new IllegalStateException("Game is already over.");
         }
@@ -189,7 +177,6 @@ public class GameEngine implements Serializable {
             return;
         }
         this.gameState = history.undo(this.gameState);
-
         this.actionEngine = new ActionEngine(gameState);
         this.roundEngine = new RoundEngine(gameState);
     }
@@ -200,7 +187,6 @@ public class GameEngine implements Serializable {
             return;
         }
         this.gameState = history.redo(this.gameState);
-
         this.actionEngine = new ActionEngine(gameState);
         this.roundEngine = new RoundEngine(gameState);
     }
@@ -217,16 +203,12 @@ public class GameEngine implements Serializable {
         return SaveManager.loadGame(filename);
     }
 
-    /*
-    public void loadGame(String filename){
-        GameState loaded = SaveManager.loadGame(filename);
-
-        if (loaded != null){
-            this.gameState = loaded;
-
+    public void loadGameState(String filename){
+        GameEngine loadedEngine = SaveManager.loadGame(filename);
+        if (loadedEngine != null){
+            this.gameState = loadedEngine.getGameState();
             this.actionEngine = new ActionEngine(gameState);
             this.roundEngine = new RoundEngine(gameState);
         }
     }
-    */
 }

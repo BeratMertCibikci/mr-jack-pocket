@@ -133,7 +133,7 @@ public class MultijoueurPanel extends JPanel {
 
     private void afficherDialogConnexion() {
         JDialog dialog = new JDialog(fenetre, "Rejoindre une partie", true);
-        dialog.setSize(350, 250);
+        dialog.setSize(380, 360);
         dialog.setLocationRelativeTo(fenetre);
         dialog.setLayout(new BorderLayout());
         dialog.getContentPane().setBackground(new Color(35, 35, 35));
@@ -141,13 +141,12 @@ public class MultijoueurPanel extends JPanel {
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setOpaque(false);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 10, 40));
 
         JLabel ipLabel = new JLabel("Adresse IP du Host :");
         ipLabel.setForeground(new Color(245, 235, 210));
         ipLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Hafızadan son girilen IP'yi çekiyoruz (Yoksa localhost yazar)
         String lastIp = prefs.get("last_ip", "localhost");
         JTextField ipField = new JTextField(lastIp);
         ipField.setMaximumSize(new Dimension(200, 30));
@@ -160,30 +159,81 @@ public class MultijoueurPanel extends JPanel {
         JTextField portField = new JTextField("8080");
         portField.setMaximumSize(new Dimension(100, 30));
         portField.setHorizontalAlignment(JTextField.CENTER);
-        portField.setEditable(false); // Port değiştirilemez!
+        portField.setEditable(false);
         portField.setBackground(new Color(100, 100, 100));
 
+        JLabel roleLabel = new JLabel("Votre rôle :");
+        roleLabel.setForeground(new Color(245, 235, 210));
+        roleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        roleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel rolePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        rolePanel.setOpaque(false);
+        rolePanel.setMaximumSize(new Dimension(280, 45));
+
+        JRadioButton rbInvestigator = new JRadioButton("Investigator");
+        JRadioButton rbJack = new JRadioButton("Jack");
+
+        rbInvestigator.setForeground(new Color(245, 235, 210));
+        rbInvestigator.setBackground(new Color(35, 35, 35));
+        rbInvestigator.setFocusPainted(false);
+
+        rbJack.setForeground(new Color(245, 235, 210));
+        rbJack.setBackground(new Color(35, 35, 35));
+        rbJack.setFocusPainted(false);
+
+        String lastRole = prefs.get("last_client_role", "Investigator");
+
+        if ("Jack".equals(lastRole)) {
+            rbJack.setSelected(true);
+        } else {
+            rbInvestigator.setSelected(true);
+        }
+
+        ButtonGroup roleGroup = new ButtonGroup();
+        roleGroup.add(rbInvestigator);
+        roleGroup.add(rbJack);
+
+        rolePanel.add(rbInvestigator);
+        rolePanel.add(rbJack);
+
+        JLabel warnLabel = new JLabel("⚠ Votre rôle doit être différent de celui du Host");
+        warnLabel.setForeground(new Color(212, 175, 55));
+        warnLabel.setFont(new Font("Arial", Font.ITALIC, 11));
+        warnLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         formPanel.add(ipLabel);
-        formPanel.add(Box.createVerticalStrut(10));
+        formPanel.add(Box.createVerticalStrut(8));
         formPanel.add(ipField);
-        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(Box.createVerticalStrut(15));
         formPanel.add(portLabel);
-        formPanel.add(Box.createVerticalStrut(10));
+        formPanel.add(Box.createVerticalStrut(8));
         formPanel.add(portField);
+        formPanel.add(Box.createVerticalStrut(15));
+        formPanel.add(roleLabel);
+        formPanel.add(Box.createVerticalStrut(5));
+        formPanel.add(rolePanel);
+        formPanel.add(Box.createVerticalStrut(5));
+        formPanel.add(warnLabel);
 
         JButton connectBtn = new JButton("Connexion");
         connectBtn.setFocusPainted(false);
         connectBtn.setBackground(new Color(55, 45, 35));
         connectBtn.setForeground(new Color(245, 235, 210));
+        connectBtn.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
 
         connectBtn.addActionListener(e -> {
             boutonClickMusique.jouerClick();
+
             String ip = ipField.getText().trim();
+            String role = rbJack.isSelected() ? "Jack" : "Investigator";
+
             if (!ip.isEmpty()) {
-                // Başarılı girişte IP'yi hafızaya kaydet
                 prefs.put("last_ip", ip);
+                prefs.put("last_client_role", role);
+
                 dialog.dispose();
-                fenetre.demarrerReseauClient(ip);
+                fenetre.demarrerReseauClient(ip, role);
             }
         });
 

@@ -8,6 +8,7 @@ import ai.EvaluationPerspective;
 import ai.MinimaxAI;
 import engine.ActionType;
 import engine.GameEngine;
+import reseau.Message;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -47,6 +48,8 @@ public class ActionPanel extends JPanel {
     private JButton autoAIButton;
     private boolean gameOverDialogShown = false;
     private int autoAIDelayMs = 700;
+
+    private int selectedNetworkTokenIndex = -1;
 
     public ActionPanel(
             GameEngine gameEngine,
@@ -235,6 +238,35 @@ public class ActionPanel extends JPanel {
 
         rafraichir();
         verifierGameOverEtAfficher();
+    }
+
+    private boolean isNetworkGame() {
+        FenetrePrincipale fen = (FenetrePrincipale) SwingUtilities.getWindowAncestor(this);
+        return fen != null && fen.getNetworkClient() != null;
+    }
+
+    private void sendNetworkMessage(Message msg) {
+        FenetrePrincipale fen = (FenetrePrincipale) SwingUtilities.getWindowAncestor(this);
+
+        if (fen != null && fen.getNetworkClient() != null) {
+            fen.getNetworkClient().sendMessage(msg);
+        }
+    }
+
+    private boolean checkNetworkTurn() {
+        if (!isNetworkGame()) {
+            return true;
+        }
+
+        String currentPlayer = gameEngine.getGameState()
+                .getTurnManager()
+                .getCurrentPlayer();
+
+        if (humanRole == null || currentPlayer == null) {
+            return false;
+        }
+
+        return humanRole.equalsIgnoreCase(currentPlayer);
     }
 
     private void afficherActions() {
@@ -632,6 +664,16 @@ bouton.setForeground(new Color(245, 235, 210));
                         return;
                     }
 
+                    if (!checkNetworkTurn()) {
+                        JOptionPane.showMessageDialog(
+                                tokenPanel,
+                                "Ce n'est pas votre tour (Réseau).",
+                                "Tour adverse",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                        return;
+                    }
+
                     if (isAITurn()) {
                         JOptionPane.showMessageDialog(
                                 tokenPanel,
@@ -655,6 +697,13 @@ bouton.setForeground(new Color(245, 235, 210));
                     boutonClickMusique.jouerClickAction();
 
                     plateauPanel.clearTileHighlight();
+
+                    if (isNetworkGame()) {
+                        selectedNetworkTokenIndex = index;
+                        actionEnCours = true;
+                        traiterActionSecilenReseauIleActionName(actionName);
+                        return;
+                    }
 
                     String joueurAvantAction = String.valueOf(gameEngine.getCurrentPlayer());
 
@@ -681,6 +730,48 @@ bouton.setForeground(new Color(245, 235, 210));
         });
 
         return tokenPanel;
+    }
+
+    private void traiterActionSecilenReseauIleActionName(String actionName) {
+        try {
+            String upper = actionName.toUpperCase();
+
+            if (upper.equals("HOLMES") || upper.equals("WATSON") || upper.equals("TOBY")) {
+                preparerDeplacementDetective(actionName, null);
+                return;
+            }
+
+            if (upper.equals("ALIBI")) {
+                traiterAlibi();
+                return;
+            }
+
+            if (upper.equals("ROTATE")) {
+                preparerRotate(null);
+                return;
+            }
+
+            if (upper.equals("EXCHANGE")) {
+                preparerEchange(null);
+                return;
+            }
+
+            if (upper.equals("JOKER")) {
+                traiterJoker();
+                return;
+            }
+
+            actionEnCours = false;
+
+        } catch (Exception ex) {
+            actionEnCours = false;
+            JOptionPane.showMessageDialog(
+                    this,
+                    ex.getMessage(),
+                    "Erreur action réseau",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     private void traiterActionSelectionnee(String joueurAvantAction) {
@@ -805,6 +896,17 @@ bouton.setForeground(new Color(245, 235, 210));
     }
 
     private void traiterAlibi() {
+        if (isNetworkGame()) {
+            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+            exeMsg.setActionType(ActionType.ALIBI);
+
+            sendNetworkMessage(exeMsg);
+
+            actionEnCours = false;
+            return;
+        }
+
         if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
             GameCharacter eliminated = gameEngine.investigatorDrawsAlibi();
 
@@ -986,6 +1088,20 @@ hourglassLabel.setBounds(160, 392, 200, 48);
             skipButton.addActionListener(e -> {
                 try {
                     jokerDialog.dispose();
+
+                    if (isNetworkGame()) {
+                        Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                        exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                        exeMsg.setActionType(ActionType.JOKER);
+                        exeMsg.setDetectiveName("");
+
+                        sendNetworkMessage(exeMsg);
+
+                        actionEnCours = false;
+                        plateauPanel.clearDetectiveMoveSelection();
+                        return;
+                    }
+
                     gameEngine.skipJokerMove();
 
                     actionEnCours = false;
@@ -1035,6 +1151,18 @@ hourglassLabel.setBounds(160, 392, 200, 48);
 
    private void resoudreJokerAvecDetective(String detectiveName) {
     try {
+        if (isNetworkGame()) {
+            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+            exeMsg.setActionType(ActionType.JOKER);
+            exeMsg.setDetectiveName(detectiveName);
+
+            sendNetworkMessage(exeMsg);
+
+            actionEnCours = false;
+            plateauPanel.clearDetectiveMoveSelection();
+            return;
+        }
         int oldPosition = getDetectivePosition(detectiveName);
 
         gameEngine.moveDetectiveWithJoker(detectiveName);
@@ -1088,6 +1216,22 @@ hourglassLabel.setBounds(160, 392, 200, 48);
 
                 int row = tile.getRow();
                 int col = tile.getCol();
+
+                if (isNetworkGame()) {
+                    Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                    exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                    exeMsg.setActionType(ActionType.ROTATE);
+                    exeMsg.setTileA(tile);
+                    exeMsg.setRotations(rotations);
+
+                    sendNetworkMessage(exeMsg);
+
+                    plateauPanel.highlightTileTemporarily(row, col);
+                    plateauPanel.setTileSelectionListener(null);
+                    actionEnCours = false;
+
+                    return;
+                }
 
                 gameEngine.rotateTile(tile, rotations);
 
@@ -1156,6 +1300,22 @@ hourglassLabel.setBounds(160, 392, 200, 48);
                 int row2 = deuxiemeCarte.getRow();
                 int col2 = deuxiemeCarte.getCol();
 
+                if (isNetworkGame()) {
+                    Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                    exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                    exeMsg.setActionType(ActionType.EXCHANGE);
+                    exeMsg.setTileA(premiereCarte[0]);
+                    exeMsg.setTileB(deuxiemeCarte);
+
+                    sendNetworkMessage(exeMsg);
+
+                    plateauPanel.highlightTilesTemporarily(row1, col1, row2, col2);
+                    plateauPanel.setTileSelectionListener(null);
+                    actionEnCours = false;
+
+                    return;
+                }
+
                 gameEngine.exchangeTiles(premiereCarte[0], deuxiemeCarte);
 
                 plateauPanel.setTileSelectionListener(null);
@@ -1204,6 +1364,30 @@ hourglassLabel.setBounds(160, 392, 200, 48);
 
                         if (steps == 0) {
                             steps = 12;
+                        }
+
+                        if (isNetworkGame()) {
+                            ActionType aType;
+
+                            if ("Holmes".equals(detectiveName)) {
+                                aType = ActionType.HOLMES;
+                            } else if ("Watson".equals(detectiveName)) {
+                                aType = ActionType.WATSON;
+                            } else {
+                                aType = ActionType.TOBY;
+                            }
+
+                            Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                            exeMsg.setActionType(aType);
+                            exeMsg.setSteps(steps);
+
+                            sendNetworkMessage(exeMsg);
+
+                            plateauPanel.clearDetectiveMoveSelection();
+                            actionEnCours = false;
+
+                            return;
                         }
 
                         if ("Holmes".equals(detectiveName)) {

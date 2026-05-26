@@ -17,6 +17,7 @@ public class FenetrePrincipale extends JFrame {
 
     private JeuPanel activeJeuPanel;
     private GameClient networkClient;
+    private String networkRole;
 
     public FenetrePrincipale() {
         setTitle("Mr Jack Pocket");
@@ -95,11 +96,20 @@ public class FenetrePrincipale extends JFrame {
                 jackDifficulty
         );
 
+        this.activeJeuPanel = jeuPanel;
         mainPanel.add(jeuPanel, "jeu");
         cardLayout.show(mainPanel, "jeu");
 
         revalidate();
         repaint();
+    }
+
+    public GameClient getNetworkClient() {
+        return networkClient;
+    }
+
+    public String getNetworkRole() {
+        return networkRole;
     }
 
     public void toggleMusique() {
@@ -183,51 +193,70 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public void demarrerReseauHost(String roleChoisi) {
-    new Thread(() -> {
-        GameServer gameServer = new GameServer(8080);
-        gameServer.start();
-    }).start();
+        this.networkRole = roleChoisi;
 
-    Timer timer = new Timer(800, e -> demarrerReseauClient("localhost", roleChoisi));
-    timer.setRepeats(false);
-    timer.start();
-}
-public void demarrerReseauClient(String ipAddress) {
-        demarrerReseauClient(ipAddress, "Client");
+        new Thread(() -> {
+            GameServer gameServer = new GameServer(8080);
+            gameServer.start();
+        }).start();
+
+        Timer timer = new Timer(800, e -> demarrerReseauClient("localhost", roleChoisi));
+        timer.setRepeats(false);
+        timer.start();
     }
 
-public void demarrerReseauClient(String ipAddress, String role) {
-    new Thread(() -> {
-        this.networkClient = new GameClient(ipAddress, 8080, role, msg -> {
-            if (msg.getType() == Message.MessageType.UPDATE_STATE) {
-                model.GameState state = (model.GameState) msg.getGameStatePayload();
-                handleNetworkUpdate(state, role);
-            }
-        });
-    }).start();
-}
+    public void demarrerReseauClient(String ipAddress) {
+        String[] options = {"Investigator", "Jack"};
 
-private void handleNetworkUpdate(model.GameState state, String role) {
-    if (activeJeuPanel == null) {
-        engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
-        proxyEngine.startGame(); 
-        proxyEngine.setGameState(state);
-        
-        activeJeuPanel = new JeuPanel(GameMode.HUMAN_VS_HUMAN, role, this, proxyEngine);
-        mainPanel.add(activeJeuPanel, "jeu");
-        cardLayout.show(mainPanel, "jeu");
-    } else {
-        activeJeuPanel.getGameEngine().setGameState(state);
-        activeJeuPanel.rafraichirToutesLesVues();
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                "Quel est votre rôle ?",
+                "Choisir un rôle",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+
+        String role = (choice >= 0) ? options[choice] : "Investigator";
+        demarrerReseauClient(ipAddress, role);
     }
-    
-    revalidate();
-    repaint();
-    
-    for (Window window : Window.getWindows()) {
-        if (window instanceof JDialog) {
-            window.dispose();
+
+    public void demarrerReseauClient(String ipAddress, String role) {
+        this.networkRole = role;
+
+        new Thread(() -> {
+            this.networkClient = new GameClient(ipAddress, 8080, role, msg -> {
+                if (msg.getType() == Message.MessageType.UPDATE_STATE) {
+                    model.GameState state = (model.GameState) msg.getGameStatePayload();
+                    SwingUtilities.invokeLater(() -> handleNetworkUpdate(state));
+                }
+            });
+        }).start();
+    }
+
+    private void handleNetworkUpdate(model.GameState state) {
+        if (activeJeuPanel == null) {
+            engine.GameEngine proxyEngine = new engine.GameEngine(state.getPlayer1Role());
+            proxyEngine.startGame();
+            proxyEngine.setGameState(state);
+
+            activeJeuPanel = new JeuPanel(
+                    GameMode.HUMAN_NETWORK,
+                    networkRole,
+                    this,
+                    proxyEngine
+            );
+
+            mainPanel.add(activeJeuPanel, "jeu");
+            cardLayout.show(mainPanel, "jeu");
+        } else {
+            activeJeuPanel.getGameEngine().setGameState(state);
+            activeJeuPanel.rafraichirToutesLesVues();
         }
+
+        revalidate();
+        repaint();
     }
-}
 }

@@ -5,6 +5,7 @@ import engine.GameEngine;
 import java.awt.*;
 import javax.swing.*;
 import model.GameState;
+import reseau.Message;
 
 public class JeuPanel extends JPanel {
 
@@ -571,6 +572,10 @@ public class JeuPanel extends JPanel {
             return;
         }
 
+        if (plateauPanel != null) {
+            plateauPanel.clearTileHighlightSilently();
+        }
+
         this.gameState = nouveauState;
         this.gameEngine.setGameState(nouveauState);
 
@@ -580,6 +585,25 @@ public class JeuPanel extends JPanel {
             cardLayout.show(mainContainer, "GAME");
         }
     }
+    public void appliquerHighlightReseau(Message msg) {
+    if (msg == null || !msg.hasHighlight() || plateauPanel == null) {
+        return;
+    }
+
+    if (msg.getHighlightRow2() >= 0) {
+        plateauPanel.highlightTilesTemporarily(
+                msg.getHighlightRow1(),
+                msg.getHighlightCol1(),
+                msg.getHighlightRow2(),
+                msg.getHighlightCol2()
+        );
+    } else {
+        plateauPanel.highlightTileTemporarily(
+                msg.getHighlightRow1(),
+                msg.getHighlightCol1()
+        );
+    }
+}
 
     public void rafraichirToutesLesVues() {
         this.gameState = gameEngine.getGameState();

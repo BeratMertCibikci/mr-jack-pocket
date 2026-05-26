@@ -8,7 +8,6 @@ import ai.EvaluationPerspective;
 import ai.MinimaxAI;
 import engine.ActionType;
 import engine.GameEngine;
-import reseau.Message;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -21,6 +20,7 @@ import model.AlibiCards;
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
+import reseau.Message;
 import model.HourglassCalculator;
 
 public class ActionPanel extends JPanel {
@@ -1218,21 +1218,21 @@ hourglassLabel.setBounds(160, 392, 200, 48);
                 int row = tile.getRow();
                 int col = tile.getCol();
 
-                if (isNetworkGame()) {
-                    Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
-                    exeMsg.setTokenIndex(selectedNetworkTokenIndex);
-                    exeMsg.setActionType(ActionType.ROTATE);
-                    exeMsg.setTileA(tile);
-                    exeMsg.setRotations(rotations);
+            if (isNetworkGame()) {
+                Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                exeMsg.setActionType(ActionType.ROTATE);
+                exeMsg.setTileA(tile);
+                exeMsg.setRotations(rotations);
+                exeMsg.setHighlight(row, col);
 
-                    sendNetworkMessage(exeMsg);
+                sendNetworkMessage(exeMsg);
 
-                    plateauPanel.highlightTileTemporarily(row, col);
-                    plateauPanel.setTileSelectionListener(null);
-                    actionEnCours = false;
+                plateauPanel.setTileSelectionListener(null);
+                actionEnCours = false;
 
-                    return;
-                }
+                return;
+            }
 
                 gameEngine.rotateTile(tile, rotations);
 
@@ -1307,10 +1307,10 @@ hourglassLabel.setBounds(160, 392, 200, 48);
                     exeMsg.setActionType(ActionType.EXCHANGE);
                     exeMsg.setTileA(premiereCarte[0]);
                     exeMsg.setTileB(deuxiemeCarte);
+                    exeMsg.setHighlight(row1, col1, row2, col2);
 
                     sendNetworkMessage(exeMsg);
 
-                    plateauPanel.highlightTilesTemporarily(row1, col1, row2, col2);
                     plateauPanel.setTileSelectionListener(null);
                     actionEnCours = false;
 

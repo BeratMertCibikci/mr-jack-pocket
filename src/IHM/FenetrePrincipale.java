@@ -111,8 +111,9 @@ public class FenetrePrincipale extends JFrame {
             musiqueActive = false;
         } else {
             musique = new MainMusique();
-            musique.jouerMusique("assets/sounds/menu.wav");
-            musiqueActive = true;
+musique.jouerMusique(
+        System.getProperty("user.dir") + "/assets/sounds/menu.wav"
+);            musiqueActive = true;
         }
     }
 
@@ -252,6 +253,7 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public static void main(String[] args) {
+            AssetExtractor.prepareAssetsDirectory();
         SwingUtilities.invokeLater(() -> {
             FenetrePrincipale fenetre = new FenetrePrincipale();
             fenetre.setVisible(true);

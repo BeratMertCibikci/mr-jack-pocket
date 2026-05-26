@@ -1,16 +1,17 @@
 package IHM;
 
+import java.io.File;
 import javax.sound.sampled.*;
 import javax.swing.Timer;
-import java.io.File;
 
 public class BoutonClickMusique {
 
     public void jouerClick() {
         new Thread(() -> {
             try {
-                File fichierAudio = new File("assets/sounds/click.wav");
-
+File fichierAudio = new File(
+        System.getProperty("user.dir") + "/assets/sounds/click.wav"
+);
                 if (!fichierAudio.exists()) {
                     System.out.println("Son click non trouvé : " + fichierAudio.getAbsolutePath());
                     return;

@@ -100,8 +100,15 @@ public class MultijoueurPanel extends JPanel {
 
         JPanel panelRoles = new JPanel(new FlowLayout(FlowLayout.CENTER, 60, 20));
 
-        JLabel investigator = creerRoleIcone("Investigator", "assets/images/characters/investigator.png");
-        JLabel jack = creerRoleIcone("Jack", "assets/images/characters/jack.png");
+JLabel investigator = creerRoleIcone(
+        "Investigator",
+        assetPath("assets/images/characters/investigator_new.png")
+);
+
+JLabel jack = creerRoleIcone(
+        "Jack",
+        assetPath("assets/images/characters/jack_new.png")
+);
 
         investigator.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -316,5 +323,12 @@ private void afficherAttenteJoueur() {
     
     waitDialog.add(p);
     waitDialog.setVisible(true); 
+}
+private String assetPath(String path) {
+    if (path.startsWith("/")) {
+        path = path.substring(1);
+    }
+
+    return System.getProperty("user.dir") + "/" + path;
 }
 }

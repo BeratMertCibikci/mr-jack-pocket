@@ -117,8 +117,9 @@ public class ChoixModePanel extends JPanel {
         dialog.setLayout(new BorderLayout());
 
         JPanel backgroundPanel = new JPanel() {
-            private Image parcheminImage = new ImageIcon("assets/images/action_message/choix_du_role.png").getImage();
-
+private Image parcheminImage = new ImageIcon(
+        System.getProperty("user.dir") + "/assets/images/action_message/choix_du_role.png"
+).getImage();
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -141,15 +142,15 @@ public class ChoixModePanel extends JPanel {
         panelRoles.setOpaque(false);
         panelRoles.setBorder(BorderFactory.createEmptyBorder(125, 0, 0, 0));
 
-        JLabel investigator = creerRoleIconeParchemin(
-                "Investigator",
-                "assets/images/characters/investigator_new.png"
-        );
+JLabel investigator = creerRoleIconeParchemin(
+        "Investigator",
+        System.getProperty("user.dir") + "/assets/images/characters/investigator_new.png"
+);
 
-        JLabel jack = creerRoleIconeParchemin(
-                "Jack",
-                "assets/images/characters/jack_new.png"
-        );
+JLabel jack = creerRoleIconeParchemin(
+        "Jack",
+        System.getProperty("user.dir") + "/assets/images/characters/jack_new.png"
+);
 
         investigator.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override

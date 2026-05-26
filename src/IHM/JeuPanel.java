@@ -258,8 +258,9 @@ public class JeuPanel extends JPanel {
         pauseDialog.setUndecorated(true);
 
         JPanel pausePanel = new JPanel() {
-            private Image backgroundImage = new ImageIcon("assets/images/action_message/pause.png").getImage();
-
+           private Image backgroundImage = new ImageIcon(
+        System.getProperty("user.dir") + "/assets/images/action_message/pause.png"
+).getImage();
             {
                 setOpaque(false);
             }

@@ -424,6 +424,7 @@ public class JeuPanel extends JPanel {
     }
 
     private boolean sauvegarderAvecDialogue(Component parent) {
+<<<<<<< HEAD
         String filename = JOptionPane.showInputDialog(
                 parent, "Nom du fichier de sauvegarde :", "Sauvegarder", JOptionPane.QUESTION_MESSAGE);
 
@@ -437,6 +438,42 @@ public class JeuPanel extends JPanel {
 
         gameEngine.saveGame(filename);
         JOptionPane.showMessageDialog(parent, "Partie sauvegardée : " + filename, "Sauvegarde", JOptionPane.INFORMATION_MESSAGE);
+=======
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setDialogTitle("Sauvegarder la partie");
+
+        fileChooser.setFileFilter(
+                new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Fichiers sauvegarde (*.sav)",
+                        "sav"
+                )
+        );
+
+        int result = fileChooser.showSaveDialog(parent);
+
+        if (result != JFileChooser.APPROVE_OPTION) {
+            return false;
+        }
+
+        java.io.File selectedFile = fileChooser.getSelectedFile();
+
+        String path = selectedFile.getAbsolutePath();
+
+        if (!path.toLowerCase().endsWith(".sav")) {
+            path += ".sav";
+        }
+
+        gameEngine.saveGame(path);
+
+        JOptionPane.showMessageDialog(
+                parent,
+                "Partie sauvegardée :\n" + path,
+                "Sauvegarde",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+>>>>>>> origin/develop
         return true;
     }
 

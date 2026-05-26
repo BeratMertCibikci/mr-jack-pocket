@@ -1,15 +1,16 @@
 package IHM;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class ParcheminDialog {
 
     private static final int DIALOG_W = 520;
     private static final int DIALOG_H = 560;
+    private static final String ROTATION_CHOICE_TITLE = "RotationChoice";
 
     public static void showMessage(Component parent, String title, String message) {
         JDialog dialog = creerDialog(parent, title);
@@ -142,19 +143,25 @@ public class ParcheminDialog {
     public static int demanderRotation(Component parent) {
         final int[] result = {0};
 
-        JDialog dialog = creerDialog(parent, "Rotate");
+        Window owner = SwingUtilities.getWindowAncestor(parent);
+
+        JDialog dialog = new JDialog(owner, ROTATION_CHOICE_TITLE, Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setUndecorated(true);
+        dialog.setSize(420, 300);
+        dialog.setResizable(false);
+        dialog.setBackground(new Color(0, 0, 0, 0));
 
         JPanel panel = new BackgroundParchmentPanel("rotate2.png");
         panel.setLayout(null);
         panel.setOpaque(false);
 
-        JButton oneButton = creerBoutonTransparent("1");
-        JButton twoButton = creerBoutonTransparent("2");
-        JButton threeButton = creerBoutonTransparent("3");
+        JButton oneButton = creerPetitBoutonTransparent("1");
+        JButton twoButton = creerPetitBoutonTransparent("2");
+        JButton threeButton = creerPetitBoutonTransparent("3");
 
-        oneButton.setBounds(120, 450, 80, 45);
-        twoButton.setBounds(220, 450, 80, 45);
-        threeButton.setBounds(320, 450, 80, 45);
+        oneButton.setBounds(82, 185, 72, 42);
+        twoButton.setBounds(174, 185, 72, 42);
+        threeButton.setBounds(266, 185, 72, 42);
 
         oneButton.addActionListener(e -> {
             result[0] = 1;
@@ -176,6 +183,7 @@ public class ParcheminDialog {
         panel.add(threeButton);
 
         dialog.setContentPane(panel);
+        positionnerDialogEnHautDroite(parent, dialog);
         afficherAvecFondAssombri(parent, dialog);
 
         return result[0];
@@ -193,11 +201,35 @@ public class ParcheminDialog {
         return dialog;
     }
 
+    private static void positionnerDialogEnHautDroite(Component parent, JDialog dialog) {
+        Window window = SwingUtilities.getWindowAncestor(parent);
+
+        if (window == null) {
+            dialog.setLocationRelativeTo(parent);
+            return;
+        }
+
+        try {
+            Point windowLocation = window.getLocationOnScreen();
+
+            int marginRight = 35;
+            int marginTop = 95;
+
+            int x = windowLocation.x + window.getWidth() - dialog.getWidth() - marginRight;
+            int y = windowLocation.y + marginTop;
+
+            dialog.setLocation(x, y);
+
+        } catch (IllegalComponentStateException e) {
+            dialog.setLocationRelativeTo(parent);
+        }
+    }
+
     public static void afficherAvecFondAssombri(Component parent, JDialog dialog) {
         Window window = SwingUtilities.getWindowAncestor(parent);
 
         if (!(window instanceof JFrame)) {
-            dialog.setLocationRelativeTo(parent);
+            positionnerDialogSelonType(parent, dialog);
             dialog.setVisible(true);
             return;
         }
@@ -236,10 +268,20 @@ public class ParcheminDialog {
             }
         });
 
-        dialog.setLocationRelativeTo(parent);
+        positionnerDialogSelonType(parent, dialog);
         dialog.setVisible(true);
 
         retirerOverlay(layeredPane, darkOverlay);
+    }
+
+    private static void positionnerDialogSelonType(Component parent, JDialog dialog) {
+        if (ROTATION_CHOICE_TITLE.equals(dialog.getTitle())) {
+            if (dialog.getLocation().x == 0 && dialog.getLocation().y == 0) {
+                positionnerDialogEnHautDroite(parent, dialog);
+            }
+        } else {
+            dialog.setLocationRelativeTo(parent);
+        }
     }
 
     private static void retirerOverlay(JLayeredPane layeredPane, JPanel darkOverlay) {
@@ -286,6 +328,12 @@ public class ParcheminDialog {
         bouton.setBorderPainted(false);
         bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        return bouton;
+    }
+
+    private static JButton creerPetitBoutonTransparent(String texte) {
+        JButton bouton = creerBoutonTransparent(texte);
+        bouton.setFont(new Font("Serif", Font.BOLD, 18));
         return bouton;
     }
 

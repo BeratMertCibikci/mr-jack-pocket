@@ -12,6 +12,7 @@ public class JeuPanel extends JPanel {
     private GameEngine gameEngine;
     private GameState gameState;
     private FenetrePrincipale fenetre;
+    private String playerRole;
 
     private CardLayout cardLayout;
     private JPanel mainContainer;
@@ -23,6 +24,12 @@ public class JeuPanel extends JPanel {
 
     private JackInfoPanel jackInfoPanel;
     private JPanel rightGamePanel;
+
+    private PlateauPanel plateauPanel;
+    private InfoJeuPanel infoJeuPanel;
+    private TimeTokensPanel timeTokensPanel;
+    private AlibiPanel alibiPanel;
+    private ActionPanel actionPanel;
 
     private boolean premierAffichage = true;
 
@@ -86,6 +93,7 @@ public class JeuPanel extends JPanel {
     ) {
         this.mode = mode;
         this.fenetre = fenetre;
+        this.playerRole = player1Role;
 
         if (loadedEngine != null) {
             gameEngine = loadedEngine;
@@ -107,18 +115,24 @@ public class JeuPanel extends JPanel {
         gameScreen = new JPanel(new BorderLayout());
         gameScreen.setBackground(new Color(25, 25, 25));
 
-        JLabel titre = new JLabel("Mr Jack Pocket : " + mode, SwingConstants.CENTER);
+        String titreText = "Mr Jack Pocket : " + mode;
+        if (mode == GameMode.HUMAN_NETWORK) {
+            titreText = "Mr Jack Pocket - Réseau [" + player1Role + "]";
+        }
+        JLabel titre = new JLabel(titreText, SwingConstants.CENTER);
+
         titre.setFont(new Font("Arial", Font.BOLD, 16));
         titre.setForeground(new Color(245, 235, 210));
         titre.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 
-        PlateauPanel plateauPanel = new PlateauPanel(gameState);
-        InfoJeuPanel infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
-        TimeTokensPanel timeTokensPanel = new TimeTokensPanel(gameState);
-        AlibiPanel alibiPanel = new AlibiPanel();
+        plateauPanel = new PlateauPanel(gameState);
+        infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
+        timeTokensPanel = new TimeTokensPanel(gameState);
+        alibiPanel = new AlibiPanel();
 
         jackInfoPanel = new JackInfoPanel(gameEngine, mode, player1Role);
-        ActionPanel actionPanel = new ActionPanel(
+
+        actionPanel = new ActionPanel(
                 gameEngine,
                 infoJeuPanel,
                 plateauPanel,
@@ -174,8 +188,17 @@ public class JeuPanel extends JPanel {
         rightGamePanel.add(Box.createVerticalStrut(15));
         rightGamePanel.add(alibiPanel);
         rightGamePanel.add(Box.createVerticalStrut(8));
-        rightGamePanel.add(jackInfoPanel);
-        rightGamePanel.add(Box.createVerticalStrut(8));
+
+        if (mode == GameMode.HUMAN_NETWORK) {
+            if ("Jack".equalsIgnoreCase(player1Role)) {
+                rightGamePanel.add(jackInfoPanel);
+                rightGamePanel.add(Box.createVerticalStrut(8));
+            }
+        } else {
+            rightGamePanel.add(jackInfoPanel);
+            rightGamePanel.add(Box.createVerticalStrut(8));
+        }
+
         rightGamePanel.add(actionPanel);
         rightGamePanel.add(Box.createVerticalGlue());
 
@@ -196,6 +219,9 @@ public class JeuPanel extends JPanel {
         add(mainContainer, BorderLayout.CENTER);
 
         if (mode == GameMode.IA_VS_IA) {
+            premierAffichage = false;
+            cardLayout.show(mainContainer, "GAME");
+        } else if (mode == GameMode.HUMAN_NETWORK) {
             premierAffichage = false;
             cardLayout.show(mainContainer, "GAME");
         } else {
@@ -513,6 +539,12 @@ public class JeuPanel extends JPanel {
     }
 
     private void afficherTransitionTour(String titreTransition) {
+        if (mode == GameMode.HUMAN_NETWORK) {
+            rafraichirPanneauDroite();
+            cardLayout.show(mainContainer, "GAME");
+            return;
+        }
+
         if (mode == GameMode.IA_VS_IA) {
             rafraichirPanneauDroite();
             cardLayout.show(mainContainer, "GAME");
@@ -538,7 +570,34 @@ public class JeuPanel extends JPanel {
     }
 
     public void rafraichirToutesLesVues() {
-        // Ağdan yeni veri geldiğinde ekranı yeniler
+        if (plateauPanel != null) {
+            plateauPanel.setGameState(gameEngine.getGameState());
+        }
+
+        if (timeTokensPanel != null) {
+            timeTokensPanel.setGameState(gameEngine.getGameState());
+        }
+
+        if (plateauPanel != null) {
+            plateauPanel.rafraichir();
+        }
+
+        if (infoJeuPanel != null) {
+            infoJeuPanel.rafraichir();
+        }
+
+        if (timeTokensPanel != null) {
+            timeTokensPanel.rafraichir();
+        }
+
+        if (jackInfoPanel != null) {
+            jackInfoPanel.rafraichir();
+        }
+
+        if (actionPanel != null) {
+            actionPanel.rafraichir();
+        }
+
         this.revalidate();
         this.repaint();
     }

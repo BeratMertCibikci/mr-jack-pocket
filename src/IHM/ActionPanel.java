@@ -570,8 +570,9 @@ public class ActionPanel extends JPanel {
             }
         };
 
-        bouton.setFont(new Font("Arial", Font.BOLD, 13));
-        bouton.setForeground(new Color(245, 235, 210));
+      bouton.setFont(new Font("Arial", Font.BOLD, 11));
+bouton.setMargin(new Insets(2, 2, 2, 2));
+bouton.setForeground(new Color(245, 235, 210));
 
         bouton.setOpaque(false);
         bouton.setContentAreaFilled(false);

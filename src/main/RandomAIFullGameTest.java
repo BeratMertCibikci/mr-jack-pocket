@@ -12,21 +12,21 @@ public class RandomAIFullGameTest {
 
         RandomAI randomAI = new RandomAI();
 
-        System.out.println("=== Random AI Full Game Test Started ===");
-        System.out.println("Jack identity: " + engine.getGameState().getJackCharacter().getName());
+        //System.out.println("=== Random AI Full Game Test Started ===");
+        //System.out.println("Jack identity: " + engine.getGameState().getJackCharacter().getName());
 
         while (!engine.getGameState().isGameOver()) {
-            System.out.println();
-            System.out.println("========== ROUND " + engine.getRoundNumber() + " ==========");
+            //System.out.println();
+            //System.out.println("========== ROUND " + engine.getRoundNumber() + " ==========");
 
             while (!engine.isRoundOver() && !engine.getGameState().isGameOver()) {
-                System.out.println("--------------------------------");
+                //System.out.println("--------------------------------");
                 randomAI.play(engine);
             }
 
             if (!engine.getGameState().isGameOver()) {
-                System.out.println("--------------------------------");
-                System.out.println("Ending round " + engine.getRoundNumber() + "...");
+                //System.out.println("--------------------------------");
+                //System.out.println("Ending round " + engine.getRoundNumber() + "...");
 
                 engine.endRound();
 
@@ -34,9 +34,9 @@ public class RandomAIFullGameTest {
             }
         }
 
-        System.out.println();
-        System.out.println("=== Random AI Full Game Test Finished ===");
-        System.out.println("Winner: " + engine.getGameState().getWinner());
+        //System.out.println();
+        //System.out.println("=== Random AI Full Game Test Finished ===");
+        //System.out.println("Winner: " + engine.getGameState().getWinner());
     }
 
     private static void printRoundSummary(GameEngine engine) {

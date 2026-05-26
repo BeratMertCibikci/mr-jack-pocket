@@ -18,9 +18,9 @@ public class RandomAI implements AIPlayer {
 
         AIMove selectedMove = legalMoves.get(random.nextInt(legalMoves.size()));
 
-        System.out.println("[RandomAI] Current player: " + engine.getCurrentPlayer());
-        System.out.println("[RandomAI] Legal move count: " + legalMoves.size());
-        System.out.println("[RandomAI] Selected move: " + selectedMove);
+        //System.out.println("[RandomAI] Current player: " + engine.getCurrentPlayer());
+        //System.out.println("[RandomAI] Legal move count: " + legalMoves.size());
+        //System.out.println("[RandomAI] Selected move: " + selectedMove);
 
         MoveApplier.apply(engine, selectedMove);
 

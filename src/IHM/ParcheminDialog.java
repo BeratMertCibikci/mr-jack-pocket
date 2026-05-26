@@ -332,4 +332,31 @@ public class ParcheminDialog {
             g2.dispose();
         }
     }
+
+    public static void EchangeErreurMessage(Component parent) {
+        JDialog dialog = creerDialog(parent, "Échange");
+
+        JPanel panel = new BackgroundParchmentPanel("echange_erreur.png");
+        panel.setLayout(null);
+        panel.setOpaque(false);
+
+        JLabel messageLabel = new JLabel(
+                "<html><div style='text-align:center;'>Vous devez sélectionner<br>deux cartes différentes.</div></html>",
+                SwingConstants.CENTER
+        );
+
+        messageLabel.setFont(new Font("Serif", Font.BOLD, 28));
+        messageLabel.setForeground(new Color(45, 30, 18));
+        messageLabel.setBounds(65, 245, 390, 110);
+
+        JButton okButton = creerBoutonTransparent("Continuer");
+        okButton.setBounds(185, 495, 150, 38);
+        okButton.addActionListener(e -> dialog.dispose());
+
+        panel.add(messageLabel);
+        panel.add(okButton);
+
+        dialog.setContentPane(panel);
+        afficherAvecFondAssombri(parent, dialog);
+    }
 }

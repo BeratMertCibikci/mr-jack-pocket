@@ -1029,12 +1029,7 @@ public class ActionPanel extends JPanel {
                 Tile deuxiemeCarte = tile;
 
                 if (premiereCarte[0] == deuxiemeCarte) {
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Vous devez sélectionner deux cartes différentes.",
-                            "Echange",
-                            JOptionPane.WARNING_MESSAGE
-                    );
+                    ParcheminDialog.EchangeErreurMessage(plateauPanel);
                     return;
                 }
 

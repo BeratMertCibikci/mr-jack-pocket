@@ -686,12 +686,7 @@ bouton.setForeground(new Color(245, 235, 210));
                     }
 
                     if (actionEnCours) {
-                        JOptionPane.showMessageDialog(
-                                tokenPanel,
-                                "Une action est déjà en cours. Terminez-la avant de choisir un autre token.",
-                                "Action en cours",
-                                JOptionPane.WARNING_MESSAGE
-                        );
+                        ParcheminDialog.ActionEnCoursMessage(plateauPanel);
                         return;
                     }
 

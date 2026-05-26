@@ -407,4 +407,31 @@ public class ParcheminDialog {
         dialog.setContentPane(panel);
         afficherAvecFondAssombri(parent, dialog);
     }
+
+    public static void ActionEnCoursMessage(Component parent) {
+        JDialog dialog = creerDialog(parent, "Action en cours");
+
+        JPanel panel = new BackgroundParchmentPanel("action_erreur.png");
+        panel.setLayout(null);
+        panel.setOpaque(false);
+
+        JLabel messageLabel = new JLabel(
+                "<html><div style='text-align:center;'>Une action est déjà en cours.<br>Terminez-la avant de choisir<br>un autre token.</div></html>",
+                SwingConstants.CENTER
+        );
+
+        messageLabel.setFont(new Font("Serif", Font.BOLD, 24));
+        messageLabel.setForeground(new Color(45, 30, 18));
+        messageLabel.setBounds(60, 245, 400, 125);
+
+        JButton okButton = creerBoutonTransparent("Continuer");
+        okButton.setBounds(185, 495, 150, 38);
+        okButton.addActionListener(e -> dialog.dispose());
+
+        panel.add(messageLabel);
+        panel.add(okButton);
+
+        dialog.setContentPane(panel);
+        afficherAvecFondAssombri(parent, dialog);
+    }
 }

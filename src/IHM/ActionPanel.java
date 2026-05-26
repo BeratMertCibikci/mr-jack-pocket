@@ -8,17 +8,14 @@ import ai.EvaluationPerspective;
 import ai.MinimaxAI;
 import engine.ActionType;
 import engine.GameEngine;
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.function.Consumer;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
-
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
@@ -785,7 +782,6 @@ public class ActionPanel extends JPanel {
             );
         }
     }
-
     private void verifierChangementDeJoueurEtTransition(String joueurAvantAction) {
         if (mode != GameMode.HUMAN_VS_HUMAN) {
             return;
@@ -1227,12 +1223,13 @@ public class ActionPanel extends JPanel {
             try {
                 String joueurAvantAction = String.valueOf(gameEngine.getCurrentPlayer());
 
-                currentAI.play(gameEngine);
+                AIMove playedMove = currentAI.play(gameEngine);
 
                 plateauPanel.setTileSelectionListener(null);
                 actionEnCours = false;
 
                 rafraichirToutesLesVues();
+                highlightAIMove(playedMove);
 
                 if (gameEngine.isRoundOver() && !gameEngine.getGameState().isGameOver()) {
                     if (mode != GameMode.IA_VS_IA || !autoAIEnabled) {
@@ -1691,5 +1688,31 @@ public class ActionPanel extends JPanel {
 
         dialog.setContentPane(panel);
         ParcheminDialog.afficherAvecFondAssombri(plateauPanel, dialog);
+    }
+    private void highlightAIMove(AIMove move) {
+        if (move == null || plateauPanel == null) {
+            return;
+        }
+
+        switch (move.getActionType()) {
+            case ROTATE:
+                plateauPanel.highlightTileTemporarily(
+                        move.getRow(),
+                        move.getCol()
+                );
+                break;
+
+            case EXCHANGE:
+                plateauPanel.highlightTilesTemporarily(
+                        move.getRowA(),
+                        move.getColA(),
+                        move.getRowB(),
+                        move.getColB()
+                );
+                break;
+
+            default:
+                break;
+        }
     }
 }

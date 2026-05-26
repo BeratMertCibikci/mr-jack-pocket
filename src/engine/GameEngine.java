@@ -1,6 +1,7 @@
 package engine;
 
 import java.io.Serializable;
+import model.AlibiCards;
 import model.GameCharacter;
 import model.GameState;
 import model.Tile;
@@ -84,16 +85,14 @@ public class GameEngine implements Serializable {
         ensureGameRunning();
         return actionEngine.investigatorDrawsAlibiCardById(cardId);
     }
-
-    public void jackDrawsAlibi() {
-        ensureGameRunning();
-        actionEngine.jackDrawsAlibi();
-    }
-    public void jackDrawsAlibiCardById(int cardId) {
-        ensureGameRunning();
-        actionEngine.jackDrawsAlibiCardById(cardId);
-    }
-
+public AlibiCards jackDrawsAlibi() {
+    ensureGameRunning();
+    return actionEngine.jackDrawsAlibi();
+}
+public AlibiCards jackDrawsAlibiCardById(int cardId) {
+    ensureGameRunning();
+    return actionEngine.jackDrawsAlibiCardById(cardId);
+}
     public void rotateTile(Tile tile, int rotations) {
         ensureGameRunning();
         actionEngine.rotateTile(tile, rotations);

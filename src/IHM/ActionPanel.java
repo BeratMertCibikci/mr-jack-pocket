@@ -16,6 +16,7 @@ import java.io.File;
 import java.util.function.Consumer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import model.AlibiCards;
 import model.GameCharacter;
 import model.Tile;
 import model.Token;
@@ -820,11 +821,107 @@ public class ActionPanel extends JPanel {
             }
 
         } else {
-            gameEngine.jackDrawsAlibi();
+    AlibiCards drawnCard = gameEngine.jackDrawsAlibi();
 
-            ParcheminDialog.JackAlibiMessage(plateauPanel);
-        }
+    ParcheminDialog.JackAlibiMessage(plateauPanel);
+
+    if (drawnCard != null && drawnCard.getCharacter() != null) {
+
+        afficherAlibiJack(drawnCard);
+
+    }}};
+    private void afficherAlibiJack(AlibiCards card) {
+    if (card == null || card.getCharacter() == null) {
+        return;
     }
+
+    JDialog dialog = new JDialog(
+            SwingUtilities.getWindowAncestor(plateauPanel),
+            "Alibi Jack",
+            Dialog.ModalityType.APPLICATION_MODAL
+    );
+
+    dialog.setUndecorated(true);
+    dialog.setSize(520, 560);
+    dialog.setResizable(false);
+    dialog.setBackground(new Color(0, 0, 0, 0));
+
+    JPanel panel = new JPanel(null) {
+        private BufferedImage background;
+
+        {
+            String chemin = System.getProperty("user.dir")
+                    + "/assets/images/action_message/alibi_piochée.png";
+
+            try {
+                background = ImageIO.read(new File(chemin));
+            } catch (Exception e) {
+                System.out.println("Image alibi_piochee non trouvée : " + chemin);
+                background = null;
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+
+            Graphics2D g2 = (Graphics2D) g.create();
+
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            if (background != null) {
+                g2.drawImage(background, 0, 0, getWidth(), getHeight(), null);
+            } else {
+                g2.setColor(new Color(238, 218, 175));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 28, 28);
+            }
+
+            g2.dispose();
+        }
+    };
+
+    panel.setOpaque(false);
+
+    GameCharacter character = card.getCharacter();
+
+    JLabel imageLabel = new JLabel("", SwingConstants.CENTER);
+    imageLabel.setBounds(180, 205, 160, 160);
+
+    ImageIcon characterIcon = chargerImageAlibiCharacter(character);
+
+    if (characterIcon != null) {
+        imageLabel.setIcon(characterIcon);
+    } else {
+        imageLabel.setText(character.getName());
+        imageLabel.setFont(new Font("Serif", Font.BOLD, 18));
+        imageLabel.setForeground(new Color(45, 32, 20));
+    }
+
+JLabel hourglassLabel = new JLabel(
+        "Sablier : " + card.getHourglassValue(),
+        SwingConstants.CENTER
+);
+
+hourglassLabel.setFont(new Font("Serif", Font.BOLD, 28));
+hourglassLabel.setForeground(new Color(45, 32, 20));
+hourglassLabel.setOpaque(true);
+hourglassLabel.setBackground(new Color(232, 202, 145));
+hourglassLabel.setBorder(BorderFactory.createLineBorder(new Color(95, 65, 35), 2));
+hourglassLabel.setBounds(160, 392, 200, 48);
+
+    JButton okButton = creerBoutonAlibi("Continuer");
+    okButton.setBounds(185, 495, 150, 38);
+    okButton.addActionListener(e -> dialog.dispose());
+
+    panel.add(imageLabel);
+    panel.add(hourglassLabel);
+    panel.add(okButton);
+
+    dialog.setContentPane(panel);
+    ParcheminDialog.afficherAvecFondAssombri(plateauPanel, dialog);
+}
 
     private void traiterJoker() {
         boolean jackTurn = gameEngine.getGameState().getTurnManager().isJackTurn();
@@ -919,33 +1016,53 @@ public class ActionPanel extends JPanel {
         jokerDialog.setContentPane(panel);
         jokerDialog.setVisible(true);
     }
-
-    private void resoudreJokerAvecDetective(String detectiveName) {
-        try {
-            gameEngine.moveDetectiveWithJoker(detectiveName);
-
-            actionEnCours = false;
-            plateauPanel.clearDetectiveMoveSelection();
-            rafraichirToutesLesVues();
-
-            if (gameEngine.isRoundOver()) {
-                verifierFinDeRoundEtTransition();
-            } else {
-                verifierChangementDeJoueurEtTransition(dernierJoueurAffiche);
-            }
-
-        } catch (Exception ex) {
-            actionEnCours = false;
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    ex.getMessage(),
-                    "Erreur Joker",
-                    JOptionPane.ERROR_MESSAGE
-            );
-        }
+    private int getDetectivePosition(String detectiveName) {
+    if ("Holmes".equals(detectiveName)) {
+        return gameEngine.getGameState().getDetectiveTokens().getHolmes().getPosition();
     }
 
+    if ("Watson".equals(detectiveName)) {
+        return gameEngine.getGameState().getDetectiveTokens().getWatson().getPosition();
+    }
+
+    if ("Toby".equals(detectiveName)) {
+        return gameEngine.getGameState().getDetectiveTokens().getToby().getPosition();
+    }
+
+    return -1;
+}
+
+   private void resoudreJokerAvecDetective(String detectiveName) {
+    try {
+        int oldPosition = getDetectivePosition(detectiveName);
+
+        gameEngine.moveDetectiveWithJoker(detectiveName);
+
+        plateauPanel.setGhostDetectivePosition(detectiveName, oldPosition);
+
+        actionEnCours = false;
+        plateauPanel.clearDetectiveMoveSelection();
+        plateauPanel.setTileSelectionListener(null);
+
+        rafraichirToutesLesVues();
+
+        if (gameEngine.isRoundOver()) {
+            verifierFinDeRoundEtTransition();
+        } else {
+            verifierChangementDeJoueurEtTransition(dernierJoueurAffiche);
+        }
+
+    } catch (Exception ex) {
+        actionEnCours = false;
+
+        JOptionPane.showMessageDialog(
+                this,
+                ex.getMessage(),
+                "Erreur Joker",
+                JOptionPane.ERROR_MESSAGE
+        );
+    }
+}
     private void preparerRotate(String joueurAvantAction) {
         plateauPanel.clearDetectiveMoveSelection();
 
@@ -1071,6 +1188,7 @@ public class ActionPanel extends JPanel {
         } else {
             currentPosition = gameEngine.getGameState().getDetectiveTokens().getToby().getPosition();
         }
+        plateauPanel.setGhostDetectivePosition(detectiveName, currentPosition);
 
         java.util.List<Integer> positions = new java.util.ArrayList<>();
         positions.add((currentPosition + 1) % 12);

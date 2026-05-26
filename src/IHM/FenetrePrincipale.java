@@ -1,12 +1,12 @@
 package IHM;
 
-import reseau.GameClient;
-import reseau.GameServer;
-import reseau.Message;
 import ai.AIDifficulty;
 import engine.GameEngine;
 import java.awt.*;
 import javax.swing.*;
+import reseau.GameClient;
+import reseau.GameServer;
+import reseau.Message;
 
 public class FenetrePrincipale extends JFrame {
 
@@ -124,38 +124,38 @@ public class FenetrePrincipale extends JFrame {
     }
 
     public void chargerJeuDepuisMenu() {
-        String filename = JOptionPane.showInputDialog(
-                this,
-                "Nom du fichier à charger :",
-                "Charger une partie",
-                JOptionPane.QUESTION_MESSAGE
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setDialogTitle("Charger une partie");
+
+        fileChooser.setFileFilter(
+                new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Fichiers sauvegarde (*.sav)",
+                        "sav"
+                )
         );
 
-        if (filename == null) {
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result != JFileChooser.APPROVE_OPTION) {
             return;
         }
 
-        filename = filename.trim();
+        java.io.File selectedFile = fileChooser.getSelectedFile();
 
-        if (filename.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Nom de fichier invalide.",
-                    "Erreur chargement",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            return;
-        }
+        String path = selectedFile.getAbsolutePath();
 
-        GameEngine loadedEngine = GameEngine.loadGame(filename);
+        GameEngine loadedEngine = GameEngine.loadGame(path);
 
         if (loadedEngine == null) {
+
             JOptionPane.showMessageDialog(
                     this,
                     "Impossible de charger la partie.",
                     "Erreur chargement",
                     JOptionPane.ERROR_MESSAGE
             );
+
             return;
         }
 

@@ -116,21 +116,24 @@ public class JeuPanel extends JPanel {
         gameScreen.setBackground(new Color(25, 25, 25));
 
         String titreText = "Mr Jack Pocket : " + mode;
-        if (mode == GameMode.HUMAN_NETWORK) {
-            titreText = "Mr Jack Pocket - Réseau [" + player1Role + "]";
-        }
-        JLabel titre = new JLabel(titreText, SwingConstants.CENTER);
 
+        if (mode == GameMode.HUMAN_NETWORK) {
+            titreText = "Mr Jack Pocket - Réseau [" + playerRole + "]";
+        }
+
+        JLabel titre = new JLabel(titreText, SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 16));
         titre.setForeground(new Color(245, 235, 210));
         titre.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 
         plateauPanel = new PlateauPanel(gameState);
-        infoJeuPanel = new InfoJeuPanel(gameEngine, mode, player1Role);
+        plateauPanel.setLocalPlayerRole(playerRole);
+
+        infoJeuPanel = new InfoJeuPanel(gameEngine, mode, playerRole);
         timeTokensPanel = new TimeTokensPanel(gameState);
         alibiPanel = new AlibiPanel();
 
-        jackInfoPanel = new JackInfoPanel(gameEngine, mode, player1Role);
+        jackInfoPanel = new JackInfoPanel(gameEngine, mode, playerRole);
 
         actionPanel = new ActionPanel(
                 gameEngine,
@@ -143,7 +146,7 @@ public class JeuPanel extends JPanel {
                 mode,
                 investigatorDifficulty,
                 jackDifficulty,
-                player1Role
+                playerRole
         );
 
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -174,12 +177,8 @@ public class JeuPanel extends JPanel {
         actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         alibiPanel.setPreferredSize(new Dimension(220, 210));
-        //alibiPanel.setMaximumSize(new Dimension(220, 250));
 
         jackInfoPanel.setPreferredSize(new Dimension(220, 150));
-        //jackInfoPanel.setMaximumSize(new Dimension(220, 180));
-
-        //int actionPanelHeight = Math.max(300, getHeight() - 420);
 
         actionPanel.setPreferredSize(new Dimension(220, 320));
         actionPanel.setMaximumSize(new Dimension(220, 320));
@@ -190,7 +189,7 @@ public class JeuPanel extends JPanel {
         rightGamePanel.add(Box.createVerticalStrut(8));
 
         if (mode == GameMode.HUMAN_NETWORK) {
-            if ("Jack".equalsIgnoreCase(player1Role)) {
+            if ("Jack".equalsIgnoreCase(playerRole)) {
                 rightGamePanel.add(jackInfoPanel);
                 rightGamePanel.add(Box.createVerticalStrut(8));
             }
@@ -280,9 +279,6 @@ public class JeuPanel extends JPanel {
         };
 
         pausePanel.setLayout(new BoxLayout(pausePanel, BoxLayout.Y_AXIS));
-
-        // Görselde üstte "Pause" yazısı zaten var.
-        // Bu değerler butonları ortadaki boş alana yerleştiriyor.
         pausePanel.setBorder(BorderFactory.createEmptyBorder(220, 75, 60, 75));
 
         JButton resumeButton = creerBoutonPauseParchemin("Continuer");
@@ -365,6 +361,7 @@ public class JeuPanel extends JPanel {
 
         return bouton;
     }
+
     private JButton creerBoutonPauseParchemin(String texte) {
         JButton bouton = new JButton(texte);
 
@@ -564,30 +561,42 @@ public class JeuPanel extends JPanel {
 
         cardLayout.show(mainContainer, "TRANSITION");
     }
-    
+
     public GameEngine getGameEngine() {
         return this.gameEngine;
     }
 
+    public void appliquerEtatReseau(GameState nouveauState) {
+        if (nouveauState == null) {
+            return;
+        }
+
+        this.gameState = nouveauState;
+        this.gameEngine.setGameState(nouveauState);
+
+        rafraichirToutesLesVues();
+
+        if (mode == GameMode.HUMAN_NETWORK) {
+            cardLayout.show(mainContainer, "GAME");
+        }
+    }
+
     public void rafraichirToutesLesVues() {
+        this.gameState = gameEngine.getGameState();
+
         if (plateauPanel != null) {
-            plateauPanel.setGameState(gameEngine.getGameState());
+            plateauPanel.setGameState(gameState);
+            plateauPanel.setLocalPlayerRole(playerRole);
+            plateauPanel.rafraichir();
         }
 
         if (timeTokensPanel != null) {
-            timeTokensPanel.setGameState(gameEngine.getGameState());
-        }
-
-        if (plateauPanel != null) {
-            plateauPanel.rafraichir();
+            timeTokensPanel.setGameState(gameState);
+            timeTokensPanel.rafraichir();
         }
 
         if (infoJeuPanel != null) {
             infoJeuPanel.rafraichir();
-        }
-
-        if (timeTokensPanel != null) {
-            timeTokensPanel.rafraichir();
         }
 
         if (jackInfoPanel != null) {
@@ -596,6 +605,11 @@ public class JeuPanel extends JPanel {
 
         if (actionPanel != null) {
             actionPanel.rafraichir();
+        }
+
+        if (rightGamePanel != null) {
+            rightGamePanel.revalidate();
+            rightGamePanel.repaint();
         }
 
         this.revalidate();

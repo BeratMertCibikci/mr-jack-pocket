@@ -23,6 +23,7 @@ public class PlateauPanel extends JPanel {
     private Timer highlightTimer;
     private String ghostDetectiveName;
     private int ghostDetectivePosition = -1;
+    private String localPlayerRole = "Investigator";
 
     /*
     private static final int PANEL_W = 920;
@@ -100,6 +101,10 @@ public class PlateauPanel extends JPanel {
 
     public void setGameState(GameState gameState) {
         this.gameState = gameState;
+    }
+
+    public void setLocalPlayerRole(String localPlayerRole) {
+        this.localPlayerRole = localPlayerRole;
     }
 
     public void rafraichir() {
@@ -707,6 +712,9 @@ private JComponent creerGhostBadgeDetective(String detectiveName) {
     }
 
     private void ajouterJackHourglassesVertical() {
+        if (!"Jack".equals(localPlayerRole)) {
+        return;
+    }
         int hourglassSize = Math.max(28, boardSize / 10);
         String joueur = gameState.getTurnManager().getCurrentPlayer();
 

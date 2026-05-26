@@ -21,6 +21,8 @@ public class PlateauPanel extends JPanel {
 
     private java.util.List<String> highlightedTiles = new java.util.ArrayList<>();
     private Timer highlightTimer;
+    private String ghostDetectiveName;
+    private int ghostDetectivePosition = -1;
 
     /*
     private static final int PANEL_W = 920;
@@ -308,6 +310,17 @@ public class PlateauPanel extends JPanel {
         messageLabel.setBounds(x, y, largeur, hauteur);
         add(messageLabel, 0);
     }
+    public void setGhostDetectivePosition(String detectiveName, int position) {
+        this.ghostDetectiveName = detectiveName;
+        this.ghostDetectivePosition = position;
+        rafraichir();
+    }
+
+    public void clearGhostDetectivePosition() {
+        this.ghostDetectiveName = null;
+        this.ghostDetectivePosition = -1;
+        rafraichir();
+    }
 
     private ImageIcon chargerImagePersonnage(String nom, Orientation orientation) {
         String nomFichier = nom.toLowerCase()
@@ -478,6 +491,10 @@ public class PlateauPanel extends JPanel {
 
             boolean highlighted = highlightedDetectivePositions.contains(position);
             boolean contientDetective = false;
+            boolean contientGhost = ghostDetectiveName != null
+                && ghostDetectivePosition == position
+                && !isDetectiveCurrentlyAtPosition(ghostDetectiveName, position);   
+            
 
             if (highlighted) {
                 panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -499,6 +516,10 @@ public class PlateauPanel extends JPanel {
                     panel.add(creerBadgeDetective("T"));
                     contientDetective = true;
                 }
+                if (contientGhost) {
+                    panel.add(creerGhostBadgeDetective(ghostDetectiveName));
+                    contientDetective = true;
+                }
             }
 
             if (!contientDetective) {
@@ -508,7 +529,25 @@ public class PlateauPanel extends JPanel {
             add(panel);
         }
     }
+private boolean isDetectiveCurrentlyAtPosition(String detectiveName, int position) {
+    if ("Holmes".equals(detectiveName)) {
+        return gameState.getDetectiveTokens().getHolmes().getPosition() == position;
+    }
 
+    if ("Watson".equals(detectiveName)) {
+        return gameState.getDetectiveTokens().getWatson().getPosition() == position;
+    }
+
+    if ("Toby".equals(detectiveName)) {
+        return gameState.getDetectiveTokens().getToby().getPosition() == position;
+    }
+
+    return false;
+}
+
+private JComponent creerGhostBadgeDetective(String detectiveName) {
+    return new DetectiveTokenPanel(detectiveName, true);
+}
     private JButton creerBoutonPositionDetective(int position) {
         JButton bouton = new JButton("●") {
             @Override

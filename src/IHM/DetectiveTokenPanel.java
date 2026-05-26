@@ -1,18 +1,24 @@
 package IHM;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class DetectiveTokenPanel extends JPanel {
 
     private String nom;
     private BufferedImage image;
+    private boolean ghost;
 
     public DetectiveTokenPanel(String nom) {
+        this(nom, false);
+    }
+
+    public DetectiveTokenPanel(String nom, boolean ghost) {
         this.nom = nom;
+        this.ghost = ghost;
         this.image = chargerImageDetective(nom);
 
         setPreferredSize(new Dimension(60, 60));
@@ -28,6 +34,9 @@ public class DetectiveTokenPanel extends JPanel {
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D) g.create();
+        if (ghost) {
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.35f));
+    }
 
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);

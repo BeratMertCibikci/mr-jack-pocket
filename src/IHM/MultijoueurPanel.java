@@ -14,6 +14,7 @@ public class MultijoueurPanel extends JPanel {
     public MultijoueurPanel(FenetrePrincipale fenetre) {
         this.fenetre = fenetre;
         this.boutonClickMusique = new BoutonClickMusique();
+        // Java'nın hafıza (çerez) yöneticisi
         this.prefs = Preferences.userNodeForPackage(MultijoueurPanel.class);
 
         String cheminImage = System.getProperty("user.dir") + "/assets/images/deneme2.png";
@@ -108,7 +109,7 @@ public class MultijoueurPanel extends JPanel {
                 boutonClickMusique.jouerClick();
                 dialog.dispose();
                 fenetre.demarrerReseauHost("Investigator");
-                afficherAttenteJoueur();
+                afficherAttenteJoueur(); 
             }
         });
 
@@ -118,7 +119,7 @@ public class MultijoueurPanel extends JPanel {
                 boutonClickMusique.jouerClick();
                 dialog.dispose();
                 fenetre.demarrerReseauHost("Jack");
-                afficherAttenteJoueur();
+                afficherAttenteJoueur(); 
             }
         });
 
@@ -130,10 +131,9 @@ public class MultijoueurPanel extends JPanel {
         dialog.setVisible(true);
     }
 
-    
     private void afficherDialogConnexion() {
         JDialog dialog = new JDialog(fenetre, "Rejoindre une partie", true);
-        dialog.setSize(380, 360);
+        dialog.setSize(350, 250);
         dialog.setLocationRelativeTo(fenetre);
         dialog.setLayout(new BorderLayout());
         dialog.getContentPane().setBackground(new Color(35, 35, 35));
@@ -141,19 +141,18 @@ public class MultijoueurPanel extends JPanel {
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setOpaque(false);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 10, 40));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
 
-        // IP alanı
         JLabel ipLabel = new JLabel("Adresse IP du Host :");
         ipLabel.setForeground(new Color(245, 235, 210));
         ipLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Hafızadan son girilen IP'yi çekiyoruz (Yoksa localhost yazar)
         String lastIp = prefs.get("last_ip", "localhost");
         JTextField ipField = new JTextField(lastIp);
         ipField.setMaximumSize(new Dimension(200, 30));
         ipField.setHorizontalAlignment(JTextField.CENTER);
 
-        // Port alanı (sabit)
         JLabel portLabel = new JLabel("Port (Fixe) :");
         portLabel.setForeground(new Color(245, 235, 210));
         portLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -161,81 +160,30 @@ public class MultijoueurPanel extends JPanel {
         JTextField portField = new JTextField("8080");
         portField.setMaximumSize(new Dimension(100, 30));
         portField.setHorizontalAlignment(JTextField.CENTER);
-        portField.setEditable(false);
+        portField.setEditable(false); // Port değiştirilemez!
         portField.setBackground(new Color(100, 100, 100));
 
-        // ROL SEÇİMİ — Client kendi rolünü seçer
-        JLabel roleLabel = new JLabel("Votre rôle :");
-        roleLabel.setForeground(new Color(245, 235, 210));
-        roleLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        roleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JPanel rolePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
-        rolePanel.setOpaque(false);
-        rolePanel.setMaximumSize(new Dimension(280, 45));
-
-        JRadioButton rbInvestigator = new JRadioButton("Investigator");
-        JRadioButton rbJack = new JRadioButton("Jack");
-
-        rbInvestigator.setForeground(new Color(245, 235, 210));
-        rbInvestigator.setBackground(new Color(35, 35, 35));
-        rbInvestigator.setFocusPainted(false);
-        rbJack.setForeground(new Color(245, 235, 210));
-        rbJack.setBackground(new Color(35, 35, 35));
-        rbJack.setFocusPainted(false);
-
-        
-        String lastRole = prefs.get("last_client_role", "Investigator");
-        if ("Jack".equals(lastRole)) {
-            rbJack.setSelected(true);
-        } else {
-            rbInvestigator.setSelected(true);
-        }
-
-        ButtonGroup roleGroup = new ButtonGroup();
-        roleGroup.add(rbInvestigator);
-        roleGroup.add(rbJack);
-
-        rolePanel.add(rbInvestigator);
-        rolePanel.add(rbJack);
-
-        // Uyarı: host ile aynı rolü seçme
-        JLabel warnLabel = new JLabel("⚠ Seçtiğiniz rol Host'tan farklı olmalı");
-        warnLabel.setForeground(new Color(212, 175, 55));
-        warnLabel.setFont(new Font("Arial", Font.ITALIC, 11));
-        warnLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         formPanel.add(ipLabel);
-        formPanel.add(Box.createVerticalStrut(8));
+        formPanel.add(Box.createVerticalStrut(10));
         formPanel.add(ipField);
-        formPanel.add(Box.createVerticalStrut(15));
+        formPanel.add(Box.createVerticalStrut(20));
         formPanel.add(portLabel);
-        formPanel.add(Box.createVerticalStrut(8));
+        formPanel.add(Box.createVerticalStrut(10));
         formPanel.add(portField);
-        formPanel.add(Box.createVerticalStrut(15));
-        formPanel.add(roleLabel);
-        formPanel.add(Box.createVerticalStrut(5));
-        formPanel.add(rolePanel);
-        formPanel.add(Box.createVerticalStrut(5));
-        formPanel.add(warnLabel);
 
         JButton connectBtn = new JButton("Connexion");
         connectBtn.setFocusPainted(false);
         connectBtn.setBackground(new Color(55, 45, 35));
         connectBtn.setForeground(new Color(245, 235, 210));
-        connectBtn.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
 
         connectBtn.addActionListener(e -> {
             boutonClickMusique.jouerClick();
             String ip = ipField.getText().trim();
-            String role = rbJack.isSelected() ? "Jack" : "Investigator";
-
             if (!ip.isEmpty()) {
+                // Başarılı girişte IP'yi hafızaya kaydet
                 prefs.put("last_ip", ip);
-                prefs.put("last_client_role", role);
                 dialog.dispose();
-                
-                fenetre.demarrerReseauClient(ip, role);
+                fenetre.demarrerReseauClient(ip);
             }
         });
 
@@ -266,11 +214,17 @@ public class MultijoueurPanel extends JPanel {
             java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
                 java.net.NetworkInterface iface = interfaces.nextElement();
-                if (iface.isLoopback() || !iface.isUp()) continue;
+                
+                
+                if (iface.isLoopback() || !iface.isUp()) {
+                    continue;
+                }
 
                 java.util.Enumeration<java.net.InetAddress> addresses = iface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     java.net.InetAddress addr = addresses.nextElement();
+                    
+                    
                     if (addr instanceof java.net.Inet4Address) {
                         return addr.getHostAddress();
                     }
@@ -281,7 +235,6 @@ public class MultijoueurPanel extends JPanel {
         }
         return "127.0.0.1";
     }
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -289,30 +242,29 @@ public class MultijoueurPanel extends JPanel {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         }
     }
-
-    private void afficherAttenteJoueur() {
-        JDialog waitDialog = new JDialog(fenetre, "Attente", false);
-        waitDialog.setSize(400, 200);
-        waitDialog.setLocationRelativeTo(fenetre);
-
-        JPanel p = new JPanel(new GridLayout(3, 1));
-        p.setBackground(new Color(25, 25, 25));
-
-        JLabel l1 = new JLabel("En attente d'un adversaire...", SwingConstants.CENTER);
-        l1.setForeground(Color.WHITE);
-
-        JLabel l2 = new JLabel("Votre adresse IP : " + getLocalIP(), SwingConstants.CENTER);
-        l2.setForeground(new Color(212, 175, 55));
-        l2.setFont(new Font("Arial", Font.BOLD, 18));
-
-        JLabel l3 = new JLabel("Port : 8080", SwingConstants.CENTER);
-        l3.setForeground(Color.GRAY);
-
-        p.add(l1);
-        p.add(l2);
-        p.add(l3);
-
-        waitDialog.add(p);
-        waitDialog.setVisible(true);
-    }
+private void afficherAttenteJoueur() {
+    JDialog waitDialog = new JDialog(fenetre, "Attente", false);
+    waitDialog.setSize(400, 200);
+    waitDialog.setLocationRelativeTo(fenetre);
+    
+    JPanel p = new JPanel(new GridLayout(3, 1));
+    p.setBackground(new Color(25, 25, 25));
+    
+    JLabel l1 = new JLabel("En attente d'un adversaire...", SwingConstants.CENTER);
+    l1.setForeground(Color.WHITE);
+    
+    JLabel l2 = new JLabel("Votre adresse IP : " + getLocalIP(), SwingConstants.CENTER);
+    l2.setForeground(new Color(212, 175, 55));
+    l2.setFont(new Font("Arial", Font.BOLD, 18));
+    
+    JLabel l3 = new JLabel("Port : 8080", SwingConstants.CENTER);
+    l3.setForeground(Color.GRAY);
+    
+    p.add(l1);
+    p.add(l2);
+    p.add(l3);
+    
+    waitDialog.add(p);
+    waitDialog.setVisible(true); 
+}
 }

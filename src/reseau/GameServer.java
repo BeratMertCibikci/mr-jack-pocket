@@ -27,11 +27,12 @@ public class GameServer {
             while (clients.size() < 2) {
                 Socket socket = serverSocket.accept();
                 System.out.println("New connection: " + socket.getInetAddress());
-
+                
                 ClientHandler handler = new ClientHandler(socket, this);
                 clients.add(handler);
                 new Thread(handler).start();
             }
+
         } catch (IOException e) {
             System.err.println("Server error: " + e.getMessage());
         }
@@ -49,6 +50,7 @@ public class GameServer {
         gameEngine = new GameEngine(player1Role);
         gameEngine.startGame();
         gameStarted = true;
+
         broadcastUpdate();
         System.out.println("Game started and state broadcasted.");
     }
@@ -64,110 +66,63 @@ public class GameServer {
 
     public synchronized void handleAction(Message msg) {
         try {
-            boolean shouldBroadcast = processMessageOnEngine(msg);
-
-            if (shouldBroadcast) {
-                broadcastUpdate();
-            }
+            processMessageOnEngine(msg);
+            broadcastUpdate();
         } catch (Exception e) {
             System.err.println("Action error: " + e.getMessage());
         }
     }
 
-    private boolean processMessageOnEngine(Message msg) {
-        if (gameEngine == null || msg == null) {
-            return false;
-        }
-
+    private void processMessageOnEngine(Message msg) {
         if (msg.getType() == Message.MessageType.ACTION_SELECT) {
-           
-            return false;
-        }
-
-        if (msg.getType() == Message.MessageType.UNDO) {
-            gameEngine.undo();
-            return true;
-        }
-
-        if (msg.getType() == Message.MessageType.REDO) {
-            gameEngine.redo();
-            return true;
-        }
-
-        if (msg.getType() == Message.MessageType.ACTION_EXECUTE) {
-            executeAction(msg);
-            finishRoundIfNeeded();
-            return true;
-        }
-
-        return false;
-    }
-
-    private void executeAction(Message msg) {
-        // Token seçimi ve hamle aynı server işleminde yapılır.
-        // ActionEngine böylece doğru selectedActionToken ile çalışır.
-        gameEngine.selectActionToken(msg.getTokenIndex());
-
-        ActionType type = msg.getActionType();
-
-        if (type == null) {
-            throw new IllegalArgumentException("Action type cannot be null.");
-        }
-
-        switch (type) {
-            case HOLMES:
-                gameEngine.moveHolmes(msg.getSteps());
-                break;
-
-            case WATSON:
-                gameEngine.moveWatson(msg.getSteps());
-                break;
-
-            case TOBY:
-                gameEngine.moveToby(msg.getSteps());
-                break;
-
-            case ROTATE:
-                Tile serverTileToRotate = gameEngine.getGameState()
-                        .getBoard()
-                        .getTile(msg.getTileA().getRow(), msg.getTileA().getCol());
-                gameEngine.rotateTile(serverTileToRotate, msg.getRotations());
-                break;
-
-            case EXCHANGE:
-                Tile serverTileA = gameEngine.getGameState()
-                        .getBoard()
-                        .getTile(msg.getTileA().getRow(), msg.getTileA().getCol());
-                Tile serverTileB = gameEngine.getGameState()
-                        .getBoard()
-                        .getTile(msg.getTileB().getRow(), msg.getTileB().getCol());
-                gameEngine.exchangeTiles(serverTileA, serverTileB);
-                break;
-
-            case ALIBI:
-                if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
-                    gameEngine.investigatorDrawsAlibi();
-                } else {
-                    gameEngine.jackDrawsAlibi();
-                }
-                break;
-
-            case JOKER:
-                if (msg.getDetectiveName() != null && !msg.getDetectiveName().isEmpty()) {
-                    gameEngine.moveDetectiveWithJoker(msg.getDetectiveName());
-                } else {
-                    gameEngine.skipJokerMove();
-                }
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unsupported action type: " + type);
-        }
-    }
-
-    private void finishRoundIfNeeded() {
-        if (!gameEngine.getGameState().isGameOver() && gameEngine.isRoundOver()) {
-            gameEngine.endRound();
+            gameEngine.selectActionToken(msg.getTokenIndex());
+        } 
+        else if (msg.getType() == Message.MessageType.ACTION_EXECUTE) {
+            ActionType type = msg.getActionType();
+            
+            switch (type) {
+                case HOLMES:
+                    gameEngine.moveHolmes(msg.getSteps());
+                    break;
+                case WATSON:
+                    gameEngine.moveWatson(msg.getSteps());
+                    break;
+                case TOBY:
+                    gameEngine.moveToby(msg.getSteps());
+                    break;
+                case ROTATE:
+                    Tile serverTileToRotate = gameEngine.getGameState().getBoard().getTile(
+                        msg.getTileA().getRow(), 
+                        msg.getTileA().getCol()
+                    );
+                    gameEngine.rotateTile(serverTileToRotate, msg.getRotations());
+                    break;
+                case EXCHANGE:
+                    Tile serverTileA = gameEngine.getGameState().getBoard().getTile(
+                        msg.getTileA().getRow(), 
+                        msg.getTileA().getCol()
+                    );
+                    Tile serverTileB = gameEngine.getGameState().getBoard().getTile(
+                        msg.getTileB().getRow(), 
+                        msg.getTileB().getCol()
+                    );
+                    gameEngine.exchangeTiles(serverTileA, serverTileB);
+                    break;
+                case ALIBI:
+                    if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
+                        gameEngine.investigatorDrawsAlibi();
+                    } else {
+                        gameEngine.jackDrawsAlibi();
+                    }
+                    break;
+                case JOKER:
+                    if (msg.getDetectiveName() != null && !msg.getDetectiveName().isEmpty()) {
+                        gameEngine.moveDetectiveWithJoker(msg.getDetectiveName());
+                    } else {
+                        gameEngine.skipJokerMove();
+                    }
+                    break;
+            }
         }
     }
 
@@ -183,9 +138,7 @@ public class GameServer {
             this.server = server;
         }
 
-        public String getRole() {
-            return role;
-        }
+        public String getRole() { return role; }
 
         public void sendMessage(Message msg) {
             try {

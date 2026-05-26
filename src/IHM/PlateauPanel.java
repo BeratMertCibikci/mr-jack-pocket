@@ -190,7 +190,7 @@ public class PlateauPanel extends JPanel {
                 imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-                if (tile.isEliminated() || tile.isEmptySide() || (character != null && character.isEliminated())) {
+                if (tile.isEliminated() || tile.isEmptySide()) {
                     ImageIcon dosIcon;
 
                     if (tile.getCharacter() != null
@@ -222,10 +222,18 @@ public class PlateauPanel extends JPanel {
 
                 final int l = li;
                 final int c = ci;
+                final Orientation orientation = tile.getOrientation();
+                final String nomFinal = nom;
 
                 cartePanel.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override
                     public void mousePressed(java.awt.event.MouseEvent e) {
+                        System.out.println(
+                                "Carte cliquée : " + nomFinal
+                                        + " position (" + l + "," + c + ")"
+                                        + " orientation : " + orientation
+                        );
+
                         if (tileSelectionListener != null) {
                             tileSelectionListener.onTileSelected(tile);
                         }
@@ -642,81 +650,68 @@ public class PlateauPanel extends JPanel {
         return point;
     }
 
+    private BufferedImage sharpenImage(BufferedImage image) {
+        float[] sharpenKernel = {
+                0f, -0.4f, 0f,
+                -0.4f, 2.6f, -0.4f,
+                0f, -0.4f, 0f
+        };
+
+        java.awt.image.Kernel kernel = new java.awt.image.Kernel(3, 3, sharpenKernel);
+        java.awt.image.ConvolveOp op = new java.awt.image.ConvolveOp(
+                kernel,
+                java.awt.image.ConvolveOp.EDGE_NO_OP,
+                null
+        );
+
+        return op.filter(image, null);
+    }
+
     private void ajouterJackHourglassesVertical() {
-    int hourglassSize = Math.max(28, boardSize / 10);
-
-    Window window = SwingUtilities.getWindowAncestor(this);
-
-    if (window instanceof FenetrePrincipale) {
-        FenetrePrincipale fp = (FenetrePrincipale) window;
-
-        if (fp.getNetworkClient() != null) {
-            if (!"Jack".equals(fp.getNetworkRole())) {
-                return;
-            }
-        } else {
-            String joueur = gameState.getTurnManager().getCurrentPlayer();
-
-            if (!joueur.equals("Jack")) {
-                return;
-            }
-        }
-    } else {
+        int hourglassSize = Math.max(28, boardSize / 10);
         String joueur = gameState.getTurnManager().getCurrentPlayer();
 
         if (!joueur.equals("Jack")) {
             return;
         }
-    }
 
-    int count;
+        int count;
 
-    try {
-        count = gameState.getWinConditionChecker().calculateJackHourglassTotal(
-                gameState.getAlibiDeckManager(),
-                gameState.getJackPlayerState()
-        );
-    } catch (Exception e) {
-        return;
-    }
-
-    JPanel hourglassContainer = new JPanel();
-    hourglassContainer.setOpaque(false);
-    hourglassContainer.setLayout(new BoxLayout(hourglassContainer, BoxLayout.Y_AXIS));
-
-    int containerW = hourglassSize;
-    int targetX = getWidth() - 95;
-
-    hourglassContainer.setBounds(targetX, boardY, containerW, boardSize);
-
-    for (int i = 1; i <= 6; i++) {
-        JLabel iconLabel = new JLabel();
-        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        String fileName = i <= count ? "hourglass_full.png" : "hourglass_empty.png";
-        String chemin = System.getProperty("user.dir") + "/assets/images/" + fileName;
-
-        File fichierImage = new File(chemin);
-
-        if (fichierImage.exists()) {
-            ImageIcon icon = new ImageIcon(chemin);
-            Image img = icon.getImage().getScaledInstance(
-                    hourglassSize,
-                    hourglassSize,
-                    Image.SCALE_SMOOTH
+        try {
+            count = gameState.getWinConditionChecker().calculateJackHourglassTotal(
+                    gameState.getAlibiDeckManager(),
+                    gameState.getJackPlayerState()
             );
-            iconLabel.setIcon(new ImageIcon(img));
-        } else {
-            iconLabel.setText(i <= count ? "Dolu" : "Bos");
-            iconLabel.setForeground(Color.WHITE);
+        } catch (Exception e) {
+            return;
         }
 
-        hourglassContainer.add(iconLabel);
-        hourglassContainer.add(Box.createVerticalStrut(hourglassSize / 2));
-    }
+        JPanel hourglassContainer = new JPanel();
+        hourglassContainer.setOpaque(false);
+        hourglassContainer.setLayout(new BoxLayout(hourglassContainer, BoxLayout.Y_AXIS));
 
-    add(hourglassContainer, 0);
-}
+        int containerW = hourglassSize;
+        int targetX = getWidth() - 95;
+        hourglassContainer.setBounds(targetX, boardY, containerW, boardSize);
+
+        for (int i = 1; i <= 6; i++) {
+            JLabel iconLabel = new JLabel();
+            iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            String fileName = i <= count ? "hourglass_full.png" : "hourglass_empty.png";
+            String chemin = System.getProperty("user.dir") + "/assets/images/" + fileName;
+
+            ImageIcon icon = new ImageIcon(chemin);
+            Image img = icon.getImage().getScaledInstance(hourglassSize, hourglassSize, Image.SCALE_SMOOTH);
+
+            iconLabel.setIcon(new ImageIcon(img));
+
+            hourglassContainer.add(iconLabel);
+            hourglassContainer.add(Box.createVerticalStrut(hourglassSize / 2));
+        }
+
+        add(hourglassContainer, 0);
+    }
 
     private void ajouterFlecheDirection() {
         int flecheW = 120;

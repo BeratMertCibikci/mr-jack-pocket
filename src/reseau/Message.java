@@ -14,8 +14,6 @@ public class Message implements Serializable {
         ACTION_SELECT,
         ACTION_EXECUTE,
         UPDATE_STATE,
-        UNDO,
-        REDO,
         ERROR
     }
 
@@ -30,17 +28,13 @@ public class Message implements Serializable {
     private Tile tileB;
     private int rotations;
     private GameCharacter accusedCharacter;
-    private GameCharacter characterPayload;
+
     private Object gameStatePayload;
 
     public Message(MessageType type, String senderRole) {
         this.type = type;
         this.senderRole = senderRole;
     }
-
-
-    public GameCharacter getCharacterPayload() { return characterPayload; }
-    public void setCharacterPayload(GameCharacter cp) { this.characterPayload = cp; }
 
     public MessageType getType() { return type; }
     public String getSenderRole() { return senderRole; }

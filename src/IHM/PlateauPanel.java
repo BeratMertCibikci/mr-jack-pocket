@@ -1,15 +1,14 @@
 package IHM;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
-
-import model.GameState;
-import model.Tile;
+import javax.swing.*;
 import model.GameCharacter;
+import model.GameState;
 import model.Orientation;
+import model.Tile;
 
 public class PlateauPanel extends JPanel {
 
@@ -23,6 +22,7 @@ public class PlateauPanel extends JPanel {
     private java.util.List<String> highlightedTiles = new java.util.ArrayList<>();
     private Timer highlightTimer;
 
+    /*
     private static final int PANEL_W = 920;
     private static final int PANEL_H = 760;
 
@@ -31,6 +31,13 @@ public class PlateauPanel extends JPanel {
     private static final int BOARD_W = 574;
     private static final int BOARD_H = 574;
     private static final int CARD_SIZE = 190;
+    */
+
+    private int boardX;
+    private int boardY;
+    private int boardSize;
+
+    private int cardSize;
 
     private static final int DETECTIVE_SIZE = 70;
     private static final int DETECTIVE_MARGIN = 25;
@@ -74,12 +81,19 @@ public class PlateauPanel extends JPanel {
         this.gameState = gameState;
 
         setLayout(null);
-        setPreferredSize(new Dimension(PANEL_W, PANEL_H));
-        setMaximumSize(new Dimension(PANEL_W, PANEL_H));
+        //setPreferredSize(new Dimension(PANEL_W, PANEL_H));
+        //setMaximumSize(new Dimension(PANEL_W, PANEL_H));
         setBackground(couleurFondTourActuel());
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         afficherPlateau();
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                rafraichir();
+            }
+        });
     }
 
     public void setGameState(GameState gameState) {
@@ -109,11 +123,28 @@ public class PlateauPanel extends JPanel {
     }
 
     private void afficherPlateau() {
+        int leftSpace = 120;
+        int rightSpace = 260;
+
+        int availableWidth = getWidth();
+        int availableHeight = getHeight();
+
+        int availableBoardWidth = availableWidth - leftSpace - rightSpace;
+
+        boardSize = Math.min(availableBoardWidth, availableHeight) - 180;
+
+        boardSize = Math.max(boardSize, 420);
+
+        boardX = leftSpace + (availableBoardWidth - boardSize) / 2;
+        boardY = (availableHeight - boardSize) / 2;
+
+        cardSize = boardSize / 3;
+
         Tile[][] board = gameState.getBoard().getBoardForUI();
 
         JPanel boardPanel = new JPanel(new GridLayout(3, 3, 2, 2));
         boardPanel.setOpaque(false);
-        boardPanel.setBounds(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
+        boardPanel.setBounds(boardX, boardY, boardSize, boardSize);
 
         for (int li = 0; li < 3; li++) {
             for (int ci = 0; ci < 3; ci++) {
@@ -294,7 +325,7 @@ public class PlateauPanel extends JPanel {
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_SIZE, CARD_SIZE);
+            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, cardSize, cardSize);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -325,7 +356,7 @@ public class PlateauPanel extends JPanel {
                 return null;
             }
 
-            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, CARD_SIZE, CARD_SIZE);
+            BufferedImage imageRedimensionnee = redimensionnerImageCover(imageOriginale, cardSize, cardSize);
             BufferedImage imageTournee = tournerImage(imageRedimensionnee, orientation);
 
             return new ImageIcon(imageTournee);
@@ -510,12 +541,12 @@ public class PlateauPanel extends JPanel {
     }
 
     private int getXDetective(int position) {
-        int left = BOARD_X - DETECTIVE_SIZE - DETECTIVE_MARGIN;
-        int right = BOARD_X + BOARD_W + DETECTIVE_MARGIN;
+        int left = boardX - DETECTIVE_SIZE - DETECTIVE_MARGIN;
+        int right = boardX + boardSize + DETECTIVE_MARGIN;
 
-        int x0 = BOARD_X + BOARD_W / 6 - DETECTIVE_SIZE / 2;
-        int x1 = BOARD_X + BOARD_W / 2 - DETECTIVE_SIZE / 2;
-        int x2 = BOARD_X + (5 * BOARD_W) / 6 - DETECTIVE_SIZE / 2;
+        int x0 = boardX + boardSize / 6 - DETECTIVE_SIZE / 2;
+        int x1 = boardX + boardSize / 2 - DETECTIVE_SIZE / 2;
+        int x2 = boardX + (5 * boardSize) / 6 - DETECTIVE_SIZE / 2;
 
         switch (position) {
             case 0:
@@ -544,18 +575,19 @@ public class PlateauPanel extends JPanel {
     }
 
     private int getYDetective(int position) {
-        int top = BOARD_Y - DETECTIVE_SIZE - DETECTIVE_MARGIN + 2;
-        int bottom = BOARD_Y + BOARD_H + DETECTIVE_MARGIN;
+        int top = boardY - DETECTIVE_SIZE - DETECTIVE_MARGIN + 2;
+        int bottom = boardY + boardSize + DETECTIVE_MARGIN;
 
-        int y0 = BOARD_Y + BOARD_H / 6 - DETECTIVE_SIZE / 2;
-        int y1 = BOARD_Y + BOARD_H / 2 - DETECTIVE_SIZE / 2;
-        int y2 = BOARD_Y + (5 * BOARD_H) / 6 - DETECTIVE_SIZE / 2;
+        int y0 = boardY + boardSize / 6 - DETECTIVE_SIZE / 2;
+        int y1 = boardY + boardSize / 2 - DETECTIVE_SIZE / 2;
+        int y2 = boardY + (5 * boardSize) / 6 - DETECTIVE_SIZE / 2;
 
         switch (position) {
             case 0:
             case 1:
             case 2:
-                return top - 25;
+                //return top - 25;
+                return top;
             case 3:
                 return y0;
             case 4:
@@ -611,69 +643,87 @@ public class PlateauPanel extends JPanel {
     }
 
     private void ajouterJackHourglassesVertical() {
-      
-        Window window = SwingUtilities.getWindowAncestor(this);
-        if (window instanceof FenetrePrincipale) {
-            FenetrePrincipale fp = (FenetrePrincipale) window;
-            if (fp.getNetworkClient() != null) { 
-                if (!"Jack".equals(fp.getNetworkRole())) {
-                    return; }
-            } else {
-                
-                String joueur = gameState.getTurnManager().getCurrentPlayer();
-                if (!joueur.equals("Jack")) {
-                    return;
-                }
+    int hourglassSize = Math.max(28, boardSize / 10);
+
+    Window window = SwingUtilities.getWindowAncestor(this);
+
+    if (window instanceof FenetrePrincipale) {
+        FenetrePrincipale fp = (FenetrePrincipale) window;
+
+        if (fp.getNetworkClient() != null) {
+            if (!"Jack".equals(fp.getNetworkRole())) {
+                return;
+            }
+        } else {
+            String joueur = gameState.getTurnManager().getCurrentPlayer();
+
+            if (!joueur.equals("Jack")) {
+                return;
             }
         }
+    } else {
+        String joueur = gameState.getTurnManager().getCurrentPlayer();
 
-        int count;
-        try {
-            count = gameState.getWinConditionChecker().calculateJackHourglassTotal(
-                    gameState.getAlibiDeckManager(),
-                    gameState.getJackPlayerState()
-            );
-        } catch (Exception e) {
+        if (!joueur.equals("Jack")) {
             return;
         }
+    }
 
-        JPanel hourglassContainer = new JPanel();
-        hourglassContainer.setOpaque(false);
-        hourglassContainer.setLayout(new BoxLayout(hourglassContainer, BoxLayout.Y_AXIS));
+    int count;
 
-        int containerW = 60;
-        int targetX = PANEL_W - containerW + 180;
-        hourglassContainer.setBounds(targetX, BOARD_Y, containerW, BOARD_H);
+    try {
+        count = gameState.getWinConditionChecker().calculateJackHourglassTotal(
+                gameState.getAlibiDeckManager(),
+                gameState.getJackPlayerState()
+        );
+    } catch (Exception e) {
+        return;
+    }
 
-        for (int i = 1; i <= 6; i++) {
-            JLabel iconLabel = new JLabel();
-            iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    JPanel hourglassContainer = new JPanel();
+    hourglassContainer.setOpaque(false);
+    hourglassContainer.setLayout(new BoxLayout(hourglassContainer, BoxLayout.Y_AXIS));
 
-            String fileName = i <= count ? "hourglass_full.png" : "hourglass_empty.png";
-            String chemin = System.getProperty("user.dir") + "/assets/images/" + fileName;
+    int containerW = hourglassSize;
+    int targetX = getWidth() - 95;
 
-            File fichierImage = new File(chemin);
-            if (fichierImage.exists()) {
-                ImageIcon icon = new ImageIcon(chemin);
-                Image img = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
-                iconLabel.setIcon(new ImageIcon(img));
-            } else {
-                iconLabel.setText(i <= count ? "Dolu" : "Bos");
-                iconLabel.setForeground(Color.WHITE);
-            }
+    hourglassContainer.setBounds(targetX, boardY, containerW, boardSize);
 
-            hourglassContainer.add(iconLabel);
-            hourglassContainer.add(Box.createVerticalStrut(38));
+    for (int i = 1; i <= 6; i++) {
+        JLabel iconLabel = new JLabel();
+        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        String fileName = i <= count ? "hourglass_full.png" : "hourglass_empty.png";
+        String chemin = System.getProperty("user.dir") + "/assets/images/" + fileName;
+
+        File fichierImage = new File(chemin);
+
+        if (fichierImage.exists()) {
+            ImageIcon icon = new ImageIcon(chemin);
+            Image img = icon.getImage().getScaledInstance(
+                    hourglassSize,
+                    hourglassSize,
+                    Image.SCALE_SMOOTH
+            );
+            iconLabel.setIcon(new ImageIcon(img));
+        } else {
+            iconLabel.setText(i <= count ? "Dolu" : "Bos");
+            iconLabel.setForeground(Color.WHITE);
         }
 
-        add(hourglassContainer, 0);
+        hourglassContainer.add(iconLabel);
+        hourglassContainer.add(Box.createVerticalStrut(hourglassSize / 2));
     }
+
+    add(hourglassContainer, 0);
+}
 
     private void ajouterFlecheDirection() {
         int flecheW = 120;
         int flecheH = 80;
-        int targetX = PANEL_W - flecheW + 50; 
-        int targetY = 30; 
+
+        int targetX = boardX + boardSize + 20; 
+        int targetY = boardY - 75; 
 
         JPanel flechePanel = new JPanel() {
             @Override

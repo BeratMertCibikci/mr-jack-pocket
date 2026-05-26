@@ -139,20 +139,29 @@ public class JeuPanel extends JPanel {
         pauseButton.addActionListener(e -> afficherPauseMenu());
         topPanel.add(pauseButton, BorderLayout.EAST);
 
+        rightGamePanel = new JPanel();
+        rightGamePanel.setOpaque(false);
+        rightGamePanel.setPreferredSize(new Dimension(240, 0));
+        rightGamePanel.setLayout(new BoxLayout(rightGamePanel, BoxLayout.Y_AXIS));
+        rightGamePanel.setMinimumSize(new Dimension(240, 0));
+
         alibiPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         jackInfoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         actionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        alibiPanel.setPreferredSize(new Dimension(220, 250));
-        alibiPanel.setMaximumSize(new Dimension(220, 250));
+        alibiPanel.setPreferredSize(new Dimension(220, 210));
+        //alibiPanel.setMaximumSize(new Dimension(220, 250));
 
-        jackInfoPanel.setPreferredSize(new Dimension(220, 180));
-        jackInfoPanel.setMaximumSize(new Dimension(220, 180));
+        jackInfoPanel.setPreferredSize(new Dimension(220, 150));
+        //jackInfoPanel.setMaximumSize(new Dimension(220, 180));
 
-        actionPanel.setPreferredSize(new Dimension(220, 360));
-        actionPanel.setMaximumSize(new Dimension(220, 360));
+        //int actionPanelHeight = Math.max(300, getHeight() - 420);
 
-        rightGamePanel.add(Box.createVerticalStrut(30));
+        actionPanel.setPreferredSize(new Dimension(220, 320));
+        actionPanel.setMaximumSize(new Dimension(220, 320));
+        actionPanel.setAlignmentY(Component.TOP_ALIGNMENT);
+
+        rightGamePanel.add(Box.createVerticalStrut(15));
         rightGamePanel.add(alibiPanel);
         rightGamePanel.add(Box.createVerticalStrut(15));
 
@@ -217,26 +226,45 @@ public class JeuPanel extends JPanel {
                 Dialog.ModalityType.APPLICATION_MODAL
         );
 
-        pauseDialog.setSize(320, 460);
+        pauseDialog.setSize(420, 560);
         pauseDialog.setLocationRelativeTo(this);
         pauseDialog.setResizable(false);
+        pauseDialog.setUndecorated(true);
 
-        JPanel pausePanel = new JPanel();
+        JPanel pausePanel = new JPanel() {
+            private Image backgroundImage = new ImageIcon("assets/images/action_message/pause.png").getImage();
+
+            {
+                setOpaque(false);
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+
+                g2.dispose();
+            }
+        };
+
         pausePanel.setLayout(new BoxLayout(pausePanel, BoxLayout.Y_AXIS));
-        pausePanel.setBackground(new Color(25, 25, 25));
-        pausePanel.setBorder(BorderFactory.createEmptyBorder(35, 50, 35, 50));
 
-        JLabel titre = new JLabel("Pause");
-        titre.setFont(new Font("Arial", Font.BOLD, 28));
-        titre.setForeground(new Color(245, 235, 210));
-        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Görselde üstte "Pause" yazısı zaten var.
+        // Bu değerler butonları ortadaki boş alana yerleştiriyor.
+        pausePanel.setBorder(BorderFactory.createEmptyBorder(220, 75, 60, 75));
 
-        JButton resumeButton = creerBoutonPause("Reprendre");
-        JButton saveButton = creerBoutonPause("Sauvegarder");
-        JButton settingsButton = creerBoutonPause("Paramètres");
-        JButton reglesButton = creerBoutonPause("Règles");
-        JButton saveQuitButton = creerBoutonPause("Sauvegarder & Quitter");
-        JButton retourMenuButton = creerBoutonPause("Menu Principal");
+        JButton resumeButton = creerBoutonPauseParchemin("Resume");
+        JButton saveButton = creerBoutonPauseParchemin("Save");
+        JButton settingsButton = creerBoutonPauseParchemin("Settings");
+        JButton reglesButton = creerBoutonPauseParchemin("Game Rules");
+        JButton saveQuitButton = creerBoutonPauseParchemin("Save and Quit");
+        JButton retourMenuButton = creerBoutonPauseParchemin("Return to Menu");
 
         resumeButton.addActionListener(e -> pauseDialog.dispose());
 
@@ -252,34 +280,90 @@ public class JeuPanel extends JPanel {
 
         settingsButton.addActionListener(e -> afficherSettingsDialog(pauseDialog));
 
-        reglesButton.addActionListener(e -> JOptionPane.showMessageDialog(
-                pauseDialog, "Règles du jeu à afficher ici.", "Règles", JOptionPane.INFORMATION_MESSAGE));
+        reglesButton.addActionListener(e -> {
+            JDialog rulesDialog = new JDialog(
+                    pauseDialog,
+                    "Règles du jeu",
+                    Dialog.ModalityType.APPLICATION_MODAL
+            );
+
+            rulesDialog.setSize(700, 700);
+            rulesDialog.setLocationRelativeTo(pauseDialog);
+            rulesDialog.setResizable(false);
+
+            ReglesPanel reglesPanel = new ReglesPanel(() -> rulesDialog.dispose());
+
+            rulesDialog.setContentPane(reglesPanel);
+            rulesDialog.setVisible(true);
+        });
 
         retourMenuButton.addActionListener(e -> {
             pauseDialog.dispose();
             fenetre.afficherMenu();
         });
 
-        pausePanel.add(titre);
-        pausePanel.add(Box.createVerticalStrut(25));
         pausePanel.add(resumeButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(saveButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(settingsButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(reglesButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(saveQuitButton);
-        pausePanel.add(Box.createVerticalStrut(12));
+        pausePanel.add(Box.createVerticalStrut(8));
         pausePanel.add(retourMenuButton);
 
         pauseDialog.setContentPane(pausePanel);
         pauseDialog.setVisible(true);
     }
 
+
+
+    private JButton creerBoutonPause(String texte) {
+        JButton bouton = new JButton(texte);
+        bouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bouton.setMaximumSize(new Dimension(220, 45));
+        bouton.setPreferredSize(new Dimension(220, 45));
+        bouton.setFont(new Font("Arial", Font.BOLD, 16));
+        bouton.setForeground(new Color(245, 235, 210));
+        bouton.setBackground(new Color(55, 45, 35));
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        bouton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        return bouton;
+    }
+    private JButton creerBoutonPauseParchemin(String texte) {
+        JButton bouton = new JButton(texte);
+
+        bouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bouton.setMaximumSize(new Dimension(230, 34));
+        bouton.setPreferredSize(new Dimension(230, 34));
+
+        bouton.setFont(new Font("Serif", Font.BOLD, 16));
+        bouton.setForeground(new Color(35, 20, 8));
+
+        bouton.setFocusPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        bouton.setOpaque(false);
+        bouton.setContentAreaFilled(false);
+
+        bouton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(70, 38, 12), 2),
+                BorderFactory.createEmptyBorder(4, 12, 4, 12)
+        ));
+
+        return bouton;
+    }
+
     private void afficherSettingsDialog(JDialog parentDialog) {
-        JDialog settingsDialog = new JDialog(parentDialog, "Settings", Dialog.ModalityType.APPLICATION_MODAL);
+        JDialog settingsDialog = new JDialog(
+                parentDialog,
+                "Settings",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+
         settingsDialog.setSize(360, 260);
         settingsDialog.setLocationRelativeTo(parentDialog);
         settingsDialog.setResizable(false);
@@ -319,7 +403,11 @@ public class JeuPanel extends JPanel {
             fenetre.toggleMusique();
             musiqueCheckBox.setSelected(fenetre.estMusiqueActivee());
         });
-        volumeSlider.addChangeListener(e -> fenetre.changerVolumeMusique(volumeSlider.getValue()));
+
+        volumeSlider.addChangeListener(e -> {
+            fenetre.changerVolumeMusique(volumeSlider.getValue());
+        });
+
         fermerButton.addActionListener(e -> settingsDialog.dispose());
 
         panel.add(titre);
@@ -333,20 +421,6 @@ public class JeuPanel extends JPanel {
 
         settingsDialog.setContentPane(panel);
         settingsDialog.setVisible(true);
-    }
-
-    private JButton creerBoutonPause(String texte) {
-        JButton bouton = new JButton(texte);
-        bouton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        bouton.setMaximumSize(new Dimension(220, 45));
-        bouton.setPreferredSize(new Dimension(220, 45));
-        bouton.setFont(new Font("Arial", Font.BOLD, 16));
-        bouton.setForeground(new Color(245, 235, 210));
-        bouton.setBackground(new Color(55, 45, 35));
-        bouton.setFocusPainted(false);
-        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        bouton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
-        return bouton;
     }
 
     private boolean sauvegarderAvecDialogue(Component parent) {

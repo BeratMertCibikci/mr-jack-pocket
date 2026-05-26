@@ -305,7 +305,7 @@ public class ActionPanel extends JPanel {
         JButton redoButton = creerBoutonControle("Redo", new Color(55, 55, 70));
         redoButton.addActionListener(e -> {
             try {
-                boutonClickMusique.jouerClick();
+                boutonClickMusique.jouerClickAction();
 
                 
                 if (isNetworkGame()) {
@@ -329,7 +329,7 @@ public class ActionPanel extends JPanel {
 
             hintButton.addActionListener(e -> {
                 try {
-                    boutonClickMusique.jouerClick();
+                    boutonClickMusique.jouerClickAction();
                     afficherConseilIA();
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(
@@ -349,7 +349,7 @@ public class ActionPanel extends JPanel {
 
             nextAIButton.addActionListener(e -> {
                 try {
-                    boutonClickMusique.jouerClick();
+                    boutonClickMusique.jouerClickAction();
 
                     if (!isAITurn()) {
                         JOptionPane.showMessageDialog(
@@ -382,7 +382,7 @@ public class ActionPanel extends JPanel {
             autoAIButton = creerBoutonControle("Auto IA", new Color(45, 85, 45));
 
             autoAIButton.addActionListener(e -> {
-                boutonClickMusique.jouerClick();
+                boutonClickMusique.jouerClickAction();
 
                 autoAIEnabled = !autoAIEnabled;
                 updateAutoAIButtonText();
@@ -396,7 +396,7 @@ public class ActionPanel extends JPanel {
 
             JButton speedButton = creerBoutonControle(getAutoSpeedText(), new Color(55, 70, 90));
             speedButton.addActionListener(e -> {
-                boutonClickMusique.jouerClick();
+                boutonClickMusique.jouerClickAction();
 
                 if (autoAIDelayMs == 1000) {
                     autoAIDelayMs = 700;
@@ -684,7 +684,7 @@ public class ActionPanel extends JPanel {
                         return;
                     }
 
-                    boutonClickMusique.jouerClick();
+                    boutonClickMusique.jouerClickAction();
 
                     plateauPanel.clearTileHighlight();
 
@@ -911,10 +911,13 @@ public class ActionPanel extends JPanel {
             synchroniserGameStateDansVues();
             plateauPanel.rafraichir();
             if (eliminated != null) {
+                ParcheminDialog.InspecteurAlibiMessage(plateauPanel);
+
                 afficherAlibiDetective(eliminated);
             } else {
                 JOptionPane.showMessageDialog(this, "Le paquet Alibi est vide.", "Alibi", JOptionPane.INFORMATION_MESSAGE);
             }
+
         } else {
             GameCharacter drawn = gameEngine.jackDrawsAlibi();
             synchroniserGameStateDansVues();
@@ -1074,125 +1077,154 @@ public class ActionPanel extends JPanel {
         }
     }
 
-    private void preparerRotate(String joueurAvantAction) {
-        plateauPanel.clearDetectiveMoveSelection();
-        JOptionPane.showMessageDialog(this, "Sélectionnez une carte à tourner sur le plateau.", "Rotate", JOptionPane.INFORMATION_MESSAGE);
+   private void preparerRotate(String joueurAvantAction) {
+    plateauPanel.clearDetectiveMoveSelection();
 
-        plateauPanel.setTileSelectionListener(tile -> {
-            try {
-                if (isNetworkGame() && !checkNetworkTurn()) {
-                    JOptionPane.showMessageDialog(this, "Ce n'est pas votre tour.", "Erreur", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
+    ParcheminDialog.showMessage(
+            plateauPanel,
+            "Rotate",
+            "Sélectionnez une carte à tourner sur le plateau."
+    );
 
-                String[] choix = {"1", "2", "3"};
-                String reponse = (String) JOptionPane.showInputDialog(this, "Combien de fois voulez-vous tourner ?", "Rotate", JOptionPane.QUESTION_MESSAGE, null, choix, choix[0]);
+    plateauPanel.setTileSelectionListener(tile -> {
+        try {
+            if (isNetworkGame() && !checkNetworkTurn()) {
+                ParcheminDialog.showMessage(
+                        plateauPanel,
+                        "Erreur",
+                        "Ce n'est pas votre tour."
+                );
+                return;
+            }
 
-                if (reponse == null) {
-                    actionEnCours = false;
-                    plateauPanel.setTileSelectionListener(null);
-                    return;
-                }
+            int rotations = ParcheminDialog.demanderRotation(plateauPanel);
 
-                int rotations = Integer.parseInt(reponse);
-                int row = tile.getRow();
-                int col = tile.getCol();
+            if (rotations == 0) {
+                ParcheminDialog.showMessage(
+                        plateauPanel,
+                        "Action obligatoire",
+                        "L'action Rotate est déjà choisie. Sélectionnez une rotation pour terminer l'action."
+                );
+                return;
+            }
 
-                // ─── AĞ OYUNU: sadece server'a gönder ────────────────────────
-                if (isNetworkGame()) {
-                    Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
-            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
-                    exeMsg.setActionType(ActionType.ROTATE);
-                    exeMsg.setTileA(tile);
-                    exeMsg.setRotations(rotations);
-                    plateauPanel.highlightTileTemporarily(row, col);
-                    sendNetworkMessage(exeMsg);
-                    plateauPanel.setTileSelectionListener(null);
-                    actionEnCours = false;
-                    return; // güncelleme server broadcast'inden gelecek
-                }
+            int row = tile.getRow();
+            int col = tile.getCol();
 
-                // ─── LOCAL OYUN ───────────────────────────────────────────────
-                gameEngine.rotateTile(tile, rotations);
-                JOptionPane.showMessageDialog(this, "Carte tournée : " + tile.getCharacter().getName() + " (" + row + "," + col + ") " + rotations + " fois.", "Rotate", JOptionPane.INFORMATION_MESSAGE);
+            if (isNetworkGame()) {
+                Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                exeMsg.setActionType(ActionType.ROTATE);
+                exeMsg.setTileA(tile);
+                exeMsg.setRotations(rotations);
 
-                plateauPanel.setTileSelectionListener(null);
-                actionEnCours = false;
-                rafraichirToutesLesVues();
+                sendNetworkMessage(exeMsg);
+
                 plateauPanel.highlightTileTemporarily(row, col);
-                continuerApresHighlight(joueurAvantAction);
-
-            } catch (Exception ex) {
-                actionEnCours = false;
                 plateauPanel.setTileSelectionListener(null);
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erreur Rotate", JOptionPane.ERROR_MESSAGE);
+                actionEnCours = false;
+
+                return;
             }
-        });
-    }
 
+            gameEngine.rotateTile(tile, rotations);
 
-    private void preparerExchange(String joueurAvantAction) {
-        plateauPanel.clearDetectiveMoveSelection();
-        JOptionPane.showMessageDialog(this, "Sélectionnez deux cartes à échanger sur le plateau.", "Exchange", JOptionPane.INFORMATION_MESSAGE);
+            plateauPanel.setTileSelectionListener(null);
+            actionEnCours = false;
 
-        final Tile[] premiereCarte = new Tile[1];
+            rafraichirToutesLesVues();
+            plateauPanel.highlightTileTemporarily(row, col);
+            continuerApresHighlight(joueurAvantAction);
 
-        plateauPanel.setTileSelectionListener(tile -> {
-            try {
-                if (isNetworkGame() && !checkNetworkTurn()) {
-                    JOptionPane.showMessageDialog(this, "Ce n'est pas votre tour.", "Erreur", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
+        } catch (Exception ex) {
+            actionEnCours = false;
+            plateauPanel.setTileSelectionListener(null);
 
-                if (premiereCarte[0] == null) {
-                    premiereCarte[0] = tile;
-                    JOptionPane.showMessageDialog(this, "Première carte sélectionnée : " + tile.getCharacter().getName() + "\nSélectionnez maintenant la deuxième carte.", "Exchange", JOptionPane.INFORMATION_MESSAGE);
-                    return;
-                }
+            ParcheminDialog.showMessage(
+                    plateauPanel,
+                    "Erreur Rotate",
+                    ex.getMessage()
+            );
+        }
+    });
+}
+private void preparerExchange(String joueurAvantAction) {
+    plateauPanel.clearDetectiveMoveSelection();
 
-                Tile deuxiemeCarte = tile;
+    ParcheminDialog.EchangeMessage(plateauPanel);
 
-                if (premiereCarte[0] == deuxiemeCarte) {
-                    JOptionPane.showMessageDialog(this, "Vous devez sélectionner deux cartes différentes.", "Exchange", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
+    final Tile[] premiereCarte = new Tile[1];
 
-                int row1 = premiereCarte[0].getRow();
-                int col1 = premiereCarte[0].getCol();
-                int row2 = deuxiemeCarte.getRow();
-                int col2 = deuxiemeCarte.getCol();
+    plateauPanel.setTileSelectionListener(tile -> {
+        try {
+            if (isNetworkGame() && !checkNetworkTurn()) {
+                ParcheminDialog.showMessage(
+                        plateauPanel,
+                        "Erreur",
+                        "Ce n'est pas votre tour."
+                );
+                return;
+            }
 
-                // ─── AĞ OYUNU: sadece server'a gönder ────────────────────────
-                if (isNetworkGame()) {
-                    Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
-            exeMsg.setTokenIndex(selectedNetworkTokenIndex);
-                    exeMsg.setActionType(ActionType.EXCHANGE);
-                    exeMsg.setTileA(premiereCarte[0]);
-                    exeMsg.setTileB(deuxiemeCarte);
-                    plateauPanel.highlightTilesTemporarily(row1, col1, row2, col2);
-                    sendNetworkMessage(exeMsg);
-                    plateauPanel.setTileSelectionListener(null);
-                    actionEnCours = false;
-                    return; // güncelleme server broadcast'inden gelecek
-                }
+            if (premiereCarte[0] == null) {
+                premiereCarte[0] = tile;
+                ParcheminDialog.Echange2Message(plateauPanel);
+                return;
+            }
 
-                // ─── LOCAL OYUN ───────────────────────────────────────────────
-                gameEngine.exchangeTiles(premiereCarte[0], deuxiemeCarte);
-                JOptionPane.showMessageDialog(this, "Cartes échangées : (" + row1 + "," + col1 + ") et (" + row2 + "," + col2 + ")", "Exchange", JOptionPane.INFORMATION_MESSAGE);
+            Tile deuxiemeCarte = tile;
 
-                plateauPanel.setTileSelectionListener(null);
-                actionEnCours = false;
-                rafraichirToutesLesVues();
+            if (premiereCarte[0] == deuxiemeCarte) {
+                ParcheminDialog.showMessage(
+                        plateauPanel,
+                        "Echange",
+                        "Vous devez sélectionner deux cartes différentes."
+                );
+                return;
+            }
+
+            int row1 = premiereCarte[0].getRow();
+            int col1 = premiereCarte[0].getCol();
+            int row2 = deuxiemeCarte.getRow();
+            int col2 = deuxiemeCarte.getCol();
+
+            if (isNetworkGame()) {
+                Message exeMsg = new Message(Message.MessageType.ACTION_EXECUTE, humanRole);
+                exeMsg.setTokenIndex(selectedNetworkTokenIndex);
+                exeMsg.setActionType(ActionType.EXCHANGE);
+                exeMsg.setTileA(premiereCarte[0]);
+                exeMsg.setTileB(deuxiemeCarte);
+
+                sendNetworkMessage(exeMsg);
+
                 plateauPanel.highlightTilesTemporarily(row1, col1, row2, col2);
-                continuerApresHighlight(joueurAvantAction);
-
-            } catch (Exception ex) {
-                actionEnCours = false;
                 plateauPanel.setTileSelectionListener(null);
-                JOptionPane.showMessageDialog(this, "Erreur Exchange: " + ex.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+                actionEnCours = false;
+
+                return;
             }
-        });
-    }
+
+            gameEngine.exchangeTiles(premiereCarte[0], deuxiemeCarte);
+
+            plateauPanel.setTileSelectionListener(null);
+            actionEnCours = false;
+
+            rafraichirToutesLesVues();
+            plateauPanel.highlightTilesTemporarily(row1, col1, row2, col2);
+            continuerApresHighlight(joueurAvantAction);
+
+        } catch (Exception ex) {
+            actionEnCours = false;
+            plateauPanel.setTileSelectionListener(null);
+
+            ParcheminDialog.showMessage(
+                    plateauPanel,
+                    "Erreur Echange",
+                    ex.getMessage()
+            );
+        }
+    });
+}
 
     private void preparerDeplacementDetective(String detectiveName, String joueurAvantAction) {
         int currentPosition;
@@ -1647,85 +1679,187 @@ public class ActionPanel extends JPanel {
 
 
     private void afficherWitnessPhaseDialog() {
-        boolean jackVisible = isJackVisibleForWitnessPhase();
-        String message;
+    boolean jackVisible = isJackVisibleForWitnessPhase();
 
-        if (jackVisible) {
-            message =
-                    "Witness Phase\n\n"
-                            + "Jack est-il visible ?\n\n"
-                            + "OUI\n\n"
-                            + "Jack est visible par au moins un détective.";
-        } else {
-            message =
-                    "Witness Phase\n\n"
-                            + "Jack est-il visible ?\n\n"
-                            + "NON\n\n"
-                            + "Jack n'est visible par aucun détective.";
-        }
-
-        JOptionPane.showMessageDialog(
-                this,
-                message,
-                "Witness Phase",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
-    private void afficherAlibiDetective(GameCharacter character) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(new Color(70, 70, 70));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JLabel titleLabel = new JLabel("Carte Alibi piochée");
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        titleLabel.setForeground(new Color(245, 235, 210));
-
-        JLabel imageLabel = new JLabel();
-        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
+    ParcheminDialog.showWitnessPhaseMessage(
+            plateauPanel,
+            jackVisible
+    );
+}
+    private ImageIcon chargerImageAlibiCharacter(GameCharacter character) {
         String nomFichier = character.getName().toLowerCase()
                 .replace(".", "")
+                .replace("'", "")
+                .replace("-", "_")
                 .replace(" ", "_");
 
         String chemin = "assets/images/characters/identity_" + nomFichier + ".png"; 
         File fichier = new File(chemin);
 
         if (!fichier.exists()) {
-        chemin = "src/assets/images/characters/identity_" + nomFichier + ".png";
-        fichier = new File(chemin);
-        }
-        if (fichier.exists()) {
-            ImageIcon icon = new ImageIcon(chemin);
-            Image image = icon.getImage().getScaledInstance(90, 90, Image.SCALE_SMOOTH);
-            imageLabel.setIcon(new ImageIcon(image));
-            imageLabel.setText("");
-        } else {
-            imageLabel.setText(character.getColor());
-            imageLabel.setFont(new Font("Arial", Font.BOLD, 18));
-            imageLabel.setForeground(new Color(245, 235, 210));
-            System.err.println("Aranan yol bulunamadi: " + chemin);
+            System.out.println("Image alibi identity non trouvée : " + chemin);
+            return null;
         }
 
-        JLabel eliminatedLabel = new JLabel("Éliminé");
-        eliminatedLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        eliminatedLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        eliminatedLabel.setForeground(new Color(212, 175, 55));
+        try {
+            BufferedImage imageOriginale = ImageIO.read(fichier);
 
-        panel.add(titleLabel);
-        panel.add(Box.createVerticalStrut(8));
-        panel.add(imageLabel);
-        panel.add(Box.createVerticalStrut(8));
-        panel.add(eliminatedLabel);
+            if (imageOriginale == null) {
+                return null;
+            }
 
-        JOptionPane.showMessageDialog(
-                this,
-                panel,
-                "Alibi",
-                JOptionPane.PLAIN_MESSAGE
+            BufferedImage imageFinale = redimensionnerImageAlibi(imageOriginale, 155, 155);
+            return new ImageIcon(imageFinale);
+
+        } catch (Exception e) {
+            System.out.println("Erreur image alibi identity : " + e.getMessage());
+            return null;
+        }
+    }
+
+    private BufferedImage redimensionnerImageAlibi(BufferedImage imageOriginale, int largeurMax, int hauteurMax) {
+        int largeurOriginale = imageOriginale.getWidth();
+        int hauteurOriginale = imageOriginale.getHeight();
+
+        double ratioLargeur = (double) largeurMax / largeurOriginale;
+        double ratioHauteur = (double) hauteurMax / hauteurOriginale;
+        double ratio = Math.min(ratioLargeur, ratioHauteur);
+
+        int nouvelleLargeur = (int) Math.round(largeurOriginale * ratio);
+        int nouvelleHauteur = (int) Math.round(hauteurOriginale * ratio);
+
+        BufferedImage imageRedimensionnee = new BufferedImage(
+                largeurMax,
+                hauteurMax,
+                BufferedImage.TYPE_INT_ARGB
         );
+
+        Graphics2D g = imageRedimensionnee.createGraphics();
+
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int x = (largeurMax - nouvelleLargeur) / 2;
+        int y = (hauteurMax - nouvelleHauteur) / 2;
+
+        g.drawImage(imageOriginale, x, y, nouvelleLargeur, nouvelleHauteur, null);
+        g.dispose();
+
+        return imageRedimensionnee;
+    }
+
+    private JButton creerBoutonAlibi(String texte) {
+        JButton bouton = new JButton(texte) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (getModel().isPressed()) {
+                    g2.setColor(new Color(95, 65, 35, 210));
+                } else if (getModel().isRollover()) {
+                    g2.setColor(new Color(150, 105, 55, 200));
+                } else {
+                    g2.setColor(new Color(120, 82, 42, 165));
+                }
+
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+
+                g2.setColor(new Color(55, 35, 20, 230));
+                g2.setStroke(new BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
+
+                g2.dispose();
+
+                super.paintComponent(g);
+            }
+        };
+
+        bouton.setFont(new Font("Serif", Font.BOLD, 22));
+        bouton.setForeground(new Color(35, 22, 12));
+        bouton.setFocusPainted(false);
+        bouton.setOpaque(false);
+        bouton.setContentAreaFilled(false);
+        bouton.setBorderPainted(false);
+        bouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        return bouton;
+    }
+
+    private void afficherAlibiDetective(GameCharacter character) {
+        JDialog dialog = new JDialog(
+                SwingUtilities.getWindowAncestor(plateauPanel),
+                "Alibi",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+
+        dialog.setUndecorated(true);
+        dialog.setSize(520, 560);
+        dialog.setResizable(false);
+        dialog.setBackground(new Color(0, 0, 0, 0));
+
+        JPanel panel = new JPanel(null) {
+            private BufferedImage background;
+
+            {
+                String chemin = System.getProperty("user.dir")
+                        + "/assets/images/action_message/alibi_piochée.png";
+
+                try {
+                    background = ImageIO.read(new File(chemin));
+                } catch (Exception e) {
+                    System.out.println("Image alibi_piochee non trouvée : " + chemin);
+                    background = null;
+                }
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                Graphics2D g2 = (Graphics2D) g.create();
+
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (background != null) {
+                    g2.drawImage(background, 0, 0, getWidth(), getHeight(), null);
+                } else {
+                    g2.setColor(new Color(238, 218, 175));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 28, 28);
+                }
+
+                g2.dispose();
+            }
+        };
+
+        panel.setOpaque(false);
+
+        JLabel imageLabel = new JLabel("", SwingConstants.CENTER);
+        imageLabel.setBounds(180, 218, 160, 160);
+
+        ImageIcon characterIcon = chargerImageAlibiCharacter(character);
+
+        if (characterIcon != null) {
+            imageLabel.setIcon(characterIcon);
+        } else {
+            imageLabel.setText(character.getName());
+            imageLabel.setFont(new Font("Serif", Font.BOLD, 18));
+            imageLabel.setForeground(new Color(45, 32, 20));
+        }
+
+        JButton okButton = creerBoutonAlibi("Continuer");
+        okButton.setBounds(185, 495, 150, 38);
+        okButton.addActionListener(e -> dialog.dispose());
+
+        panel.add(imageLabel);
+        panel.add(okButton);
+
+        dialog.setContentPane(panel);
+        ParcheminDialog.afficherAvecFondAssombri(plateauPanel, dialog);
     }
     private void envoyerActionReseau(ActionType type, Tile tileA, Tile tileB, int steps, int rotations, String detectiveName) {
         if (!isNetworkGame()) return;

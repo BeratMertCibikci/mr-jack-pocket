@@ -259,12 +259,12 @@ public class JeuPanel extends JPanel {
         // Bu değerler butonları ortadaki boş alana yerleştiriyor.
         pausePanel.setBorder(BorderFactory.createEmptyBorder(220, 75, 60, 75));
 
-        JButton resumeButton = creerBoutonPauseParchemin("Resume");
-        JButton saveButton = creerBoutonPauseParchemin("Save");
-        JButton settingsButton = creerBoutonPauseParchemin("Settings");
-        JButton reglesButton = creerBoutonPauseParchemin("Game Rules");
-        JButton saveQuitButton = creerBoutonPauseParchemin("Save and Quit");
-        JButton retourMenuButton = creerBoutonPauseParchemin("Return to Menu");
+        JButton resumeButton = creerBoutonPauseParchemin("Continuer");
+        JButton saveButton = creerBoutonPauseParchemin("Télécharger");
+        JButton settingsButton = creerBoutonPauseParchemin("Paramètres");
+        JButton reglesButton = creerBoutonPauseParchemin("Règles du jeu");
+        JButton saveQuitButton = creerBoutonPauseParchemin("Télécharger et quitter");
+        JButton retourMenuButton = creerBoutonPauseParchemin("Retour au menu");
 
         resumeButton.addActionListener(e -> pauseDialog.dispose());
 

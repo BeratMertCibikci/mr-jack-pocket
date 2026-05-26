@@ -21,6 +21,7 @@ import model.GameCharacter;
 import model.Tile;
 import model.Token;
 import reseau.Message;
+import model.HourglassCalculator;
 
 public class ActionPanel extends JPanel {
 
@@ -1757,22 +1758,49 @@ hourglassLabel.setBounds(160, 392, 200, 48);
         updateAutoAIButtonText();
 
         String winner = gameEngine.getGameState().getWinner();
-        String message;
+        Window window = SwingUtilities.getWindowAncestor(this);
 
-        if ("Investigator".equals(winner)) {
-            message = "L'Investigator gagne la partie.";
-        } else if ("Jack".equals(winner)) {
-            message = "Jack gagne la partie.";
+        if (window instanceof FenetrePrincipale) {
+            FenetrePrincipale fenetre = (FenetrePrincipale) window;
+            String jackNom = "Inconnu";
+
+            if (gameEngine.getGameState().getJackCharacter() != null) {
+                jackNom = gameEngine.getGameState().getJackCharacter().getName();
+            }
+
+            int suspectsRestants = 0;
+            for (GameCharacter character : gameEngine.getGameState().getCharacters()) {
+                if (!character.isEliminated()) suspectsRestants++;
+            }
+
+            int hourglasses = HourglassCalculator.calculateActualJackHourglasses(
+                gameEngine.getGameState().getAlibiDeckManager(),
+                gameEngine.getGameState().getJackPlayerState()
+            );
+            
+            FinPartiePanel finPanel = new FinPartiePanel(fenetre, winner, jackNom, suspectsRestants, hourglasses);
+
+            fenetre.setContentPane(finPanel);
+            fenetre.revalidate();
+            fenetre.repaint();
         } else {
-            message = "La partie est terminée.";
-        }
+            String message;
+            
+            if ("Investigator".equals(winner)) {
+                message = "L'investigateur gagne la partie.";
+            } else if ("Jack".equals(winner)) {
+                message = "Jack gagne la partie.";
+            } else {
+                message = "La partie est terminée.";
+            }
 
-        JOptionPane.showMessageDialog(
+            JOptionPane.showMessageDialog(
                 this,
                 message,
-                "Game Over",
+                "Jeu terminé",
                 JOptionPane.INFORMATION_MESSAGE
-        );
+            );
+        }
     }
 
     private boolean isJackVisibleForWitnessPhase() {

@@ -25,6 +25,7 @@ public class FenetrePrincipale extends JFrame {
         setSize(1280, 850);
         setMinimumSize(new Dimension(1200, 800));
         setLocationRelativeTo(null);
+        Toolkit.getDefaultToolkit().setDynamicLayout(true);
 
         Color popupBackground = new Color(45, 45, 45);
         Color popupText = new Color(245, 235, 210);

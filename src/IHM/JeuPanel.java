@@ -128,6 +128,9 @@ public class JeuPanel extends JPanel {
         titre.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 
         plateauPanel = new PlateauPanel(gameState);
+
+        plateauPanel.setNetworkGame(mode == GameMode.HUMAN_NETWORK);
+        
         plateauPanel.setLocalPlayerRole(playerRole);
 
         infoJeuPanel = new InfoJeuPanel(gameEngine, mode, playerRole);

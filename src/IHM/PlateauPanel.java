@@ -25,6 +25,12 @@ public class PlateauPanel extends JPanel {
     private int ghostDetectivePosition = -1;
     private String localPlayerRole = "Investigator";
 
+    private Timer resizeTimer;
+
+    private static final java.util.Map<String, BufferedImage> imageCache = new java.util.HashMap<>();
+
+    private boolean networkGame = false;
+
     /*
     private static final int PANEL_W = 920;
     private static final int PANEL_H = 760;
@@ -83,6 +89,8 @@ public class PlateauPanel extends JPanel {
     public PlateauPanel(GameState gameState) {
         this.gameState = gameState;
 
+        setDoubleBuffered(true);
+
         setLayout(null);
         //setPreferredSize(new Dimension(PANEL_W, PANEL_H));
         //setMaximumSize(new Dimension(PANEL_W, PANEL_H));
@@ -94,7 +102,17 @@ public class PlateauPanel extends JPanel {
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentResized(java.awt.event.ComponentEvent e) {
-                rafraichir();
+
+                if (resizeTimer != null && resizeTimer.isRunning()) {
+                    resizeTimer.stop();
+                }
+
+                resizeTimer = new Timer(40, ev -> {
+                    rafraichir();
+                });
+
+                resizeTimer.setRepeats(false);
+                resizeTimer.start();
             }
         });
     }
@@ -350,7 +368,12 @@ public class PlateauPanel extends JPanel {
         }
 
         try {
-            BufferedImage imageOriginale = ImageIO.read(fichierImage);
+            BufferedImage imageOriginale = imageCache.get(fichierImage.getAbsolutePath());
+
+            if (imageOriginale == null) {
+                imageOriginale = ImageIO.read(fichierImage);
+                imageCache.put(fichierImage.getAbsolutePath(), imageOriginale);
+            }
 
             if (imageOriginale == null) {
                 System.out.println("Image illisible : " + fichierImage.getAbsolutePath());
@@ -381,7 +404,12 @@ public class PlateauPanel extends JPanel {
         }
 
         try {
-            BufferedImage imageOriginale = ImageIO.read(fichierImage);
+            BufferedImage imageOriginale = imageCache.get(fichierImage.getAbsolutePath());
+
+            if (imageOriginale == null) {
+                imageOriginale = ImageIO.read(fichierImage);
+                imageCache.put(fichierImage.getAbsolutePath(), imageOriginale);
+            }
 
             if (imageOriginale == null) {
                 System.out.println("Image dos illisible : " + fichierImage.getAbsolutePath());
@@ -718,9 +746,9 @@ private JComponent creerGhostBadgeDetective(String detectiveName) {
     }
 
     private void ajouterJackHourglassesVertical() {
-        if (!"Jack".equals(localPlayerRole)) {
+        if (networkGame && !"Jack".equals(localPlayerRole)) {
         return;
-    }
+        }
         int hourglassSize = Math.max(28, boardSize / 10);
         String joueur = gameState.getTurnManager().getCurrentPlayer();
 
@@ -802,5 +830,9 @@ private JComponent creerGhostBadgeDetective(String detectiveName) {
         flechePanel.setOpaque(false);
         flechePanel.setBounds(targetX, targetY, flecheW, flecheH);
         add(flechePanel, 0);
+    }
+
+    public void setNetworkGame(boolean networkGame) {
+        this.networkGame = networkGame;
     }
 }

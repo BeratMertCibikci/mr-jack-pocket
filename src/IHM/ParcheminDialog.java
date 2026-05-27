@@ -106,23 +106,40 @@ public class ParcheminDialog {
     }
 
     public static void showWitnessPhaseMessage(Component parent, boolean jackVisible) {
-        JDialog dialog = creerDialog(parent, "Witness Phase");
+        JDialog dialog = creerDialogWitness(parent);
 
-        JPanel panel = new BackgroundParchmentPanel("witness_phase.png");
+        JPanel panel = new BackgroundParchmentPanel("witness_phase_new.png");
         panel.setLayout(null);
         panel.setOpaque(true);
 
         JLabel questionLabel = new JLabel("Jack est-il visible ?", SwingConstants.CENTER);
-        questionLabel.setFont(new Font("Serif", Font.BOLD, 30));
+        questionLabel.setFont(new Font("Serif", Font.BOLD, 34));
         questionLabel.setForeground(new Color(45, 30, 18));
-        questionLabel.setBounds(65, 220, 390, 45);
+        questionLabel.setBounds(120, 125, 380, 50);
+
+        JLabel imageLabel = new JLabel("", SwingConstants.CENTER);
+        imageLabel.setBounds(295, 195, 240, 325);
+
+        String imageName = jackVisible
+                ? "witness_jack_visible.png"
+                : "witness_jack_hidden.png";
+
+        ImageIcon witnessIcon = chargerImageWitness(imageName, 220, 300);
+
+        if (witnessIcon != null) {
+            imageLabel.setIcon(witnessIcon);
+        } else {
+            imageLabel.setText(jackVisible ? "Jack visible" : "Jack caché");
+            imageLabel.setFont(new Font("Serif", Font.BOLD, 24));
+            imageLabel.setForeground(new Color(45, 30, 18));
+        }
 
         JLabel answerLabel = new JLabel(jackVisible ? "OUI" : "NON", SwingConstants.CENTER);
-        answerLabel.setFont(new Font("Serif", Font.BOLD, 40));
+        answerLabel.setFont(new Font("Serif", Font.BOLD, 44));
         answerLabel.setForeground(jackVisible
                 ? new Color(75, 45, 20)
                 : new Color(120, 35, 25));
-        answerLabel.setBounds(160, 285, 200, 55);
+        answerLabel.setBounds(95, 215, 180, 60);
 
         JLabel descriptionLabel = new JLabel(
                 jackVisible
@@ -131,15 +148,16 @@ public class ParcheminDialog {
                 SwingConstants.CENTER
         );
 
-        descriptionLabel.setFont(new Font("Serif", Font.BOLD, 24));
+        descriptionLabel.setFont(new Font("Serif", Font.BOLD, 21));
         descriptionLabel.setForeground(new Color(45, 30, 18));
-        descriptionLabel.setBounds(70, 355, 380, 85);
+        descriptionLabel.setBounds(55, 270, 260, 90);
 
         JButton okButton = creerBoutonTransparent("Continuer");
-        okButton.setBounds(185, 495, 150, 38);
+        okButton.setBounds(235, 625, 150, 38);
         okButton.addActionListener(e -> dialog.dispose());
 
         panel.add(questionLabel);
+        panel.add(imageLabel);
         panel.add(answerLabel);
         panel.add(descriptionLabel);
         panel.add(okButton);
@@ -205,6 +223,18 @@ public class ParcheminDialog {
         dialog.setSize(DIALOG_W, DIALOG_H);
         dialog.setResizable(false);
         dialog.setBackground(PARCHMENT_BG);
+
+        return dialog;
+    }
+
+    private static JDialog creerDialogWitness(Component parent) {
+        Window owner = SwingUtilities.getWindowAncestor(parent);
+
+        JDialog dialog = new JDialog(owner, "Witness Phase", Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setUndecorated(true);
+        dialog.setSize(620, 720);
+        dialog.setResizable(false);
+        dialog.setBackground(new Color(0, 0, 0, 0));
 
         return dialog;
     }
@@ -462,5 +492,38 @@ public class ParcheminDialog {
 
         dialog.setContentPane(panel);
         afficherAvecFondAssombri(parent, dialog);
+    }
+
+    private static ImageIcon chargerImageWitness(String nomFichier, int largeur, int hauteur) {
+        String chemin = System.getProperty("user.dir")
+                + "/assets/images/action_message/"
+                + nomFichier;
+
+        File fichier = new File(chemin);
+
+        if (!fichier.exists()) {
+            System.out.println("Image witness non trouvée : " + chemin);
+            return null;
+        }
+
+        try {
+            BufferedImage imageOriginale = ImageIO.read(fichier);
+
+            if (imageOriginale == null) {
+                return null;
+            }
+
+            Image imageRedimensionnee = imageOriginale.getScaledInstance(
+                    largeur,
+                    hauteur,
+                    Image.SCALE_SMOOTH
+            );
+
+            return new ImageIcon(imageRedimensionnee);
+
+        } catch (Exception e) {
+            System.out.println("Erreur image witness : " + e.getMessage());
+            return null;
+        }
     }
 }

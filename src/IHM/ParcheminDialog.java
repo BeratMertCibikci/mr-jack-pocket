@@ -337,49 +337,67 @@ public class ParcheminDialog {
         return bouton;
     }
 
-    private static class BackgroundParchmentPanel extends JPanel {
+private static class BackgroundParchmentPanel extends JPanel {
 
-        private BufferedImage background;
+    private BufferedImage background;
 
-        public BackgroundParchmentPanel(String fileName) {
-            setOpaque(false);
+    public BackgroundParchmentPanel(String fileName) {
+        setOpaque(false);
 
-            String chemin = System.getProperty("user.dir")
-                    + "/assets/images/action_message/"
-                    + fileName;
+        String resourcePath = "/assets/images/action_message/" + fileName;
+        String filePath = System.getProperty("user.dir")
+                + "/assets/images/action_message/"
+                + fileName;
 
-            try {
-                background = ImageIO.read(new File(chemin));
-            } catch (Exception e) {
-                System.out.println("Parchemin image non trouvée : " + chemin);
-                background = null;
-            }
-        }
+        try {
+            File file = new File(filePath);
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-
-            Graphics2D g2 = (Graphics2D) g.create();
-
-            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            if (background != null) {
-                g2.drawImage(background, 0, 0, getWidth(), getHeight(), null);
+            if (file.exists()) {
+                background = ImageIO.read(file);
             } else {
-                g2.setColor(new Color(238, 218, 175));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 28, 28);
+                java.io.InputStream inputStream =
+                        ParcheminDialog.class.getResourceAsStream(resourcePath);
 
-                g2.setColor(new Color(120, 92, 50));
-                g2.setStroke(new BasicStroke(3));
-                g2.drawRoundRect(8, 8, getWidth() - 16, getHeight() - 16, 24, 24);
+                if (inputStream != null) {
+                    background = ImageIO.read(inputStream);
+                    inputStream.close();
+                } else {
+                    System.out.println("Parchemin image non trouvée : " + filePath);
+                    System.out.println("Resource aussi introuvable : " + resourcePath);
+                    background = null;
+                }
             }
 
-            g2.dispose();
+        } catch (Exception e) {
+            System.out.println("Erreur chargement parchemin : " + fileName + " -> " + e.getMessage());
+            background = null;
         }
     }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        Graphics2D g2 = (Graphics2D) g.create();
+
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if (background != null) {
+            g2.drawImage(background, 0, 0, getWidth(), getHeight(), null);
+        } else {
+            g2.setColor(new Color(238, 218, 175));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 28, 28);
+
+            g2.setColor(new Color(120, 92, 50));
+            g2.setStroke(new BasicStroke(3));
+            g2.drawRoundRect(8, 8, getWidth() - 16, getHeight() - 16, 24, 24);
+        }
+
+        g2.dispose();
+    }
+}
 
     public static void EchangeErreurMessage(Component parent) {
         JDialog dialog = creerDialog(parent, "Échange");

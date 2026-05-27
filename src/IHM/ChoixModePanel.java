@@ -72,8 +72,7 @@ public class ChoixModePanel extends JPanel {
 
         humainVsHumainButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();
-            afficherChoixRoleIcones(fenetre, GameMode.HUMAN_VS_HUMAN);
-        });
+            fenetre.lancerJeu(GameMode.HUMAN_VS_HUMAN, "Investigator");        });
 
         humainVsIAButton.addActionListener(e -> {
             boutonClickMusique.jouerClick();

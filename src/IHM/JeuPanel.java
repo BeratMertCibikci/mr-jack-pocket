@@ -158,14 +158,16 @@ public class JeuPanel extends JPanel {
         topPanel.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
         topPanel.add(titre, BorderLayout.CENTER);
 
-        JButton pauseButton = new JButton("⏸");
-        pauseButton.setFont(new Font("Arial", Font.BOLD, 14));
+        JButton pauseButton = new JButton("Pause");
+        pauseButton.setFont(new Font("Arial", Font.BOLD, 12));
         pauseButton.setForeground(new Color(245, 235, 210));
         pauseButton.setBackground(new Color(55, 45, 35));
+        pauseButton.setOpaque(true);
+        pauseButton.setContentAreaFilled(true);
         pauseButton.setFocusPainted(false);
         pauseButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         pauseButton.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
-        pauseButton.setPreferredSize(new Dimension(50, 24));
+        pauseButton.setPreferredSize(new Dimension(75, 26));
         pauseButton.addActionListener(e -> afficherPauseMenu());
 
         topPanel.add(pauseButton, BorderLayout.EAST);
@@ -248,41 +250,94 @@ public class JeuPanel extends JPanel {
         });
     }
 
-    private void afficherPauseMenu() {
-        JDialog pauseDialog = new JDialog(
-                SwingUtilities.getWindowAncestor(this),
-                "Pause",
-                Dialog.ModalityType.APPLICATION_MODAL
-        );
+ private void afficherPauseMenu() {
+    JDialog pauseDialog = new JDialog(
+            SwingUtilities.getWindowAncestor(this),
+            "Pause",
+            Dialog.ModalityType.APPLICATION_MODAL
+    );
 
-        pauseDialog.setSize(420, 560);
-        pauseDialog.setLocationRelativeTo(this);
-        pauseDialog.setResizable(false);
-        pauseDialog.setUndecorated(true);
+    pauseDialog.setSize(420, 560);
+    pauseDialog.setLocationRelativeTo(this);
+    pauseDialog.setResizable(false);
+    pauseDialog.setUndecorated(true);
+    pauseDialog.setBackground(new Color(238, 218, 175));
 
-        JPanel pausePanel = new JPanel() {
-           private Image backgroundImage = new ImageIcon(
-        System.getProperty("user.dir") + "/assets/images/action_message/pause.png"
-).getImage();
-            {
-                setOpaque(false);
+    JPanel pausePanel = new JPanel() {
+        private Image backgroundImage = chargerPauseImage();
+
+        {
+            setOpaque(true);
+            setBackground(new Color(238, 218, 175));
+        }
+
+        private Image chargerPauseImage() {
+            String filePath = System.getProperty("user.dir")
+                    + "/assets/images/action_message/pause.png";
+
+            String resourcePath = "/assets/images/action_message/pause.png";
+
+            try {
+                java.io.File file = new java.io.File(filePath);
+
+                if (file.exists()) {
+                    return javax.imageio.ImageIO.read(file);
+                }
+
+                try (java.io.InputStream inputStream =
+                             JeuPanel.class.getResourceAsStream(resourcePath)) {
+                    if (inputStream != null) {
+                        return javax.imageio.ImageIO.read(inputStream);
+                    }
+                }
+
+                System.out.println("Pause image non trouvée : " + filePath);
+                System.out.println("Pause resource aussi introuvable : " + resourcePath);
+                return null;
+
+            } catch (Exception e) {
+                System.out.println("Erreur image pause : " + e.getMessage());
+                return null;
             }
+        }
 
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
 
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Graphics2D g2 = (Graphics2D) g.create();
 
+            g2.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BICUBIC
+            );
+            g2.setRenderingHint(
+                    RenderingHints.KEY_RENDERING,
+                    RenderingHints.VALUE_RENDER_QUALITY
+            );
+            g2.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+            );
+
+            g2.setColor(new Color(238, 218, 175));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+
+            if (backgroundImage != null) {
                 g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            } else {
+                g2.setColor(new Color(120, 92, 50));
+                g2.setStroke(new BasicStroke(3));
+                g2.drawRect(8, 8, getWidth() - 16, getHeight() - 16);
 
-                g2.dispose();
+                g2.setColor(new Color(45, 30, 18));
+                g2.setFont(new Font("Serif", Font.BOLD, 42));
+                g2.drawString("Pause", 145, 95);
             }
-        };
 
+            g2.dispose();
+        }
+    };
         pausePanel.setLayout(new BoxLayout(pausePanel, BoxLayout.Y_AXIS));
         pausePanel.setBorder(BorderFactory.createEmptyBorder(220, 75, 60, 75));
 

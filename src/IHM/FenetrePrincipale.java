@@ -198,48 +198,76 @@ musique.jouerMusique(
     public void demarrerReseauClient(String ipAddress, String role) {
         new Thread(() -> {
             GameClient createdClient = new GameClient(ipAddress, 8080, role, msg -> {
-                if (msg.getType() == Message.MessageType.UPDATE_STATE) {
-                    GameState state = (GameState) msg.getGameStatePayload();
-                    handleNetworkUpdate(state, role, msg);
-                }
-            });
+    if (msg.getType() == Message.MessageType.UPDATE_STATE) {
+        GameState state = (GameState) msg.getGameStatePayload();
+        handleNetworkUpdate(state, role, msg);
+        return;
+    }
 
+    if (msg.getType() == Message.MessageType.ERROR) {
+        Object payload = msg.getGameStatePayload();
+
+        String errorMessage = payload instanceof String
+                ? (String) payload
+                : "Action impossible.";
+
+        JOptionPane.showMessageDialog(
+                this,
+                errorMessage,
+                "Erreur réseau",
+                JOptionPane.WARNING_MESSAGE
+        );
+    }
+});
             this.networkClient = createdClient;
         }).start();
     }
 
     private void handleNetworkUpdate(GameState state, String role, Message msg) {
-        if (state == null) {
-            return;
-        }
-
-        if (activeJeuPanel == null) {
-            GameEngine proxyEngine = new GameEngine(state);
-            proxyEngine.setGameState(state);
-
-            activeJeuPanel = new JeuPanel(
-                    GameMode.HUMAN_NETWORK,
-                    role,
-                    this,
-                    proxyEngine
-            );
-
-            mainPanel.add(activeJeuPanel, "jeu");
-            cardLayout.show(mainPanel, "jeu");
-
-        } else {
-            activeJeuPanel.appliquerEtatReseau(state);
-        }
-
-        if (activeJeuPanel != null && msg != null && msg.hasHighlight()) {
-            activeJeuPanel.appliquerHighlightReseau(msg);
-        }
-
-        revalidate();
-        repaint();
-
-        fermerDialogsOuverts();
+    if (state == null) {
+        return;
     }
+
+    if (activeJeuPanel == null) {
+        GameEngine proxyEngine = new GameEngine(state);
+        proxyEngine.setGameState(state);
+
+        activeJeuPanel = new JeuPanel(
+                GameMode.HUMAN_NETWORK,
+                role,
+                this,
+                proxyEngine
+        );
+
+        mainPanel.add(activeJeuPanel, "jeu");
+        cardLayout.show(mainPanel, "jeu");
+
+    } else {
+        activeJeuPanel.appliquerEtatReseau(state);
+    }
+
+    if (activeJeuPanel != null && msg != null) {
+        if (msg.hasHighlight()) {
+            activeJeuPanel.appliquerHighlightReseau(msg);
+        } else {
+            activeJeuPanel.clearHighlightReseau();
+        }
+    }
+
+    if (msg != null && msg.getCharacterPayload() != null) {
+        JOptionPane.showMessageDialog(
+                this,
+                "Carte Alibi piochée : " + msg.getCharacterPayload().getName(),
+                "Alibi",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    revalidate();
+    repaint();
+
+    fermerDialogsOuverts();
+}
 
     private void fermerDialogsOuverts() {
         for (Window window : Window.getWindows()) {

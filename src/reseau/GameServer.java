@@ -10,8 +10,19 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import model.Tile;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import model.GameCharacter;
+import model.AlibiCards;
 
 public class GameServer {
+
+    private Deque<String> undoOwners = new ArrayDeque<>();
+    private Deque<String> redoOwners = new ArrayDeque<>();
+
+    private GameCharacter lastAlibiCharacter;
+
+
     private int port;
     private ServerSocket serverSocket;
     private List<ClientHandler> clients = new ArrayList<>();
@@ -75,12 +86,27 @@ public class GameServer {
         Message updateMsg = new Message(Message.MessageType.UPDATE_STATE, "Server");
         updateMsg.setGameStatePayload(gameEngine.getGameState());
 
+        updateMsg.setCharacterPayload(lastAlibiCharacter);
+        lastAlibiCharacter = null;
+
+
         copyLastHighlightTo(updateMsg);
 
         for (ClientHandler client : clients) {
             client.sendMessage(updateMsg);
         }
     }
+
+    private void sendErrorToRole(String role, String message) {
+    for (ClientHandler client : clients) {
+        if (client.getRole() != null && client.getRole().equalsIgnoreCase(role)) {
+            Message errorMsg = new Message(Message.MessageType.ERROR, "Server");
+            errorMsg.setGameStatePayload(message);
+            client.sendMessage(errorMsg);
+            return;
+        }
+    }
+}
 
     private void copyLastHighlightTo(Message updateMsg) {
         if (lastHighlightMessage == null || !lastHighlightMessage.hasHighlight()) {
@@ -117,43 +143,89 @@ public class GameServer {
     }
 
     private void rememberHighlightIfNeeded(Message msg) {
-        if (msg == null || !msg.hasHighlight()) {
-            return;
-        }
-
-        lastHighlightMessage = msg;
+    if (msg == null) {
+        lastHighlightMessage = null;
+        return;
     }
 
+    if (msg.hasHighlight()) {
+        lastHighlightMessage = msg;
+    } else {
+        lastHighlightMessage = null;
+    }
+}
+
     private boolean processMessageOnEngine(Message msg) {
-        if (gameEngine == null || msg == null) {
-            return false;
-        }
-
-        if (msg.getType() == Message.MessageType.ACTION_SELECT) {
-            return false;
-        }
-
-        if (msg.getType() == Message.MessageType.UNDO) {
-            gameEngine.undo();
-            lastHighlightMessage = null;
-            return true;
-        }
-
-        if (msg.getType() == Message.MessageType.REDO) {
-            gameEngine.redo();
-            lastHighlightMessage = null;
-            return true;
-        }
-
-        if (msg.getType() == Message.MessageType.ACTION_EXECUTE) {
-            executeAction(msg);
-            finishRoundIfNeeded();
-            return true;
-        }
-
+    if (gameEngine == null || msg == null) {
         return false;
     }
 
+    if (msg.getType() == Message.MessageType.ACTION_SELECT) {
+        return false;
+    }
+
+    if (msg.getType() == Message.MessageType.UNDO) {
+        if (undoOwners.isEmpty()) {
+            sendErrorToRole(msg.getSenderRole(), "Aucun coup à annuler.");
+            return false;
+        }
+
+        String lastOwner = undoOwners.peek();
+
+        if (!lastOwner.equalsIgnoreCase(msg.getSenderRole())) {
+            sendErrorToRole(
+                    msg.getSenderRole(),
+                    "Vous ne pouvez annuler que votre propre coup."
+            );
+            return false;
+        }
+
+        gameEngine.undo();
+
+        String owner = undoOwners.pop();
+        redoOwners.push(owner);
+
+        lastHighlightMessage = null;
+        return true;
+    }
+
+    if (msg.getType() == Message.MessageType.REDO) {
+        if (redoOwners.isEmpty()) {
+            sendErrorToRole(msg.getSenderRole(), "Aucun coup à rejouer.");
+            return false;
+        }
+
+        String redoOwner = redoOwners.peek();
+
+        if (!redoOwner.equalsIgnoreCase(msg.getSenderRole())) {
+            sendErrorToRole(
+                    msg.getSenderRole(),
+                    "Vous ne pouvez rejouer que votre propre coup."
+            );
+            return false;
+        }
+
+        gameEngine.redo();
+
+        String owner = redoOwners.pop();
+        undoOwners.push(owner);
+
+        lastHighlightMessage = null;
+        return true;
+    }
+
+    if (msg.getType() == Message.MessageType.ACTION_EXECUTE) {
+        executeAction(msg);
+        finishRoundIfNeeded();
+
+        undoOwners.push(msg.getSenderRole());
+        redoOwners.clear();
+
+        return true;
+    }
+
+    return false;
+}
     private void executeAction(Message msg) {
         gameEngine.selectActionToken(msg.getTokenIndex());
 
@@ -235,12 +307,19 @@ public class GameServer {
     }
 
     private void executeAlibi() {
-        if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
-            gameEngine.investigatorDrawsAlibi();
-        } else {
-            gameEngine.jackDrawsAlibi();
+    lastAlibiCharacter = null;
+
+    if (gameEngine.getGameState().getTurnManager().isInvestigatorTurn()) {
+        GameCharacter eliminated = gameEngine.investigatorDrawsAlibi();
+        lastAlibiCharacter = eliminated;
+    } else {
+        AlibiCards drawnCard = gameEngine.jackDrawsAlibi();
+
+        if (drawnCard != null) {
+            lastAlibiCharacter = drawnCard.getCharacter();
         }
     }
+}
 
     private void executeJoker(Message msg) {
         if (msg.getDetectiveName() != null && !msg.getDetectiveName().isEmpty()) {

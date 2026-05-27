@@ -282,52 +282,62 @@ public class ActionPanel extends JPanel {
         }
 
         JButton undoButton = creerBoutonControle("Undo", new Color(55, 55, 70));
-        undoButton.addActionListener(e -> {
-            try {
-                boutonClickMusique.jouerClickAction();
+undoButton.addActionListener(e -> {
+    try {
+        boutonClickMusique.jouerClickAction();
 
-                actionEnCours = false;
-                plateauPanel.clearDetectiveMoveSelection();
-                plateauPanel.setTileSelectionListener(null);
+        actionEnCours = false;
+        plateauPanel.clearDetectiveMoveSelection();
+        plateauPanel.setTileSelectionListener(null);
 
-                gameEngine.undo();
-                rafraichirToutesLesVues();
+        if (isNetworkGame()) {
+            sendNetworkMessage(new Message(Message.MessageType.UNDO, humanRole));
+            return;
+        }
 
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur undo",
-                        JOptionPane.ERROR_MESSAGE
-                );
-            }
-        });
+        gameEngine.undo();
+        rafraichirToutesLesVues();
 
-        add(undoButton);
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(
+                this,
+                ex.getMessage(),
+                "Erreur undo",
+                JOptionPane.ERROR_MESSAGE
+        );
+    }
+});
 
-        JButton redoButton = creerBoutonControle("Redo", new Color(55, 55, 70));
-        redoButton.addActionListener(e -> {
-            try {
-                boutonClickMusique.jouerClickAction();
+add(undoButton);
 
-                actionEnCours = false;
-                plateauPanel.clearDetectiveMoveSelection();
-                plateauPanel.setTileSelectionListener(null);
+JButton redoButton = creerBoutonControle("Redo", new Color(55, 55, 70));
+redoButton.addActionListener(e -> {
+    try {
+        boutonClickMusique.jouerClickAction();
 
-                gameEngine.redo();
-                rafraichirToutesLesVues();
+        actionEnCours = false;
+        plateauPanel.clearDetectiveMoveSelection();
+        plateauPanel.setTileSelectionListener(null);
 
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        ex.getMessage(),
-                        "Erreur redo",
-                        JOptionPane.ERROR_MESSAGE
-                );
-            }
-        });
+        if (isNetworkGame()) {
+            sendNetworkMessage(new Message(Message.MessageType.REDO, humanRole));
+            return;
+        }
 
-        add(redoButton);
+        gameEngine.redo();
+        rafraichirToutesLesVues();
+
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(
+                this,
+                ex.getMessage(),
+                "Erreur redo",
+                JOptionPane.ERROR_MESSAGE
+        );
+    }
+});
+
+add(redoButton);
 
         if (mode == GameMode.HUMAN_VS_HUMAN || mode == GameMode.HUMAN_VS_IA) {
             JButton hintButton = creerBoutonControle("Conseil IA", new Color(70, 55, 90));

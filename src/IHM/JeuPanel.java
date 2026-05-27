@@ -566,7 +566,12 @@ public class JeuPanel extends JPanel {
 
         cardLayout.show(mainContainer, "TRANSITION");
     }
-
+    
+    public void clearHighlightReseau() {
+    if (plateauPanel != null) {
+        plateauPanel.clearTileHighlight();
+    }
+}
     public GameEngine getGameEngine() {
         return this.gameEngine;
     }

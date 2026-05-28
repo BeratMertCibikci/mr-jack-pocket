@@ -449,7 +449,7 @@ public class JeuPanel extends JPanel {
     private void afficherSettingsDialog(JDialog parentDialog) {
         JDialog settingsDialog = new JDialog(
                 parentDialog,
-                "Settings",
+                "Paramètres",
                 Dialog.ModalityType.APPLICATION_MODAL
         );
 
@@ -462,7 +462,7 @@ public class JeuPanel extends JPanel {
         panel.setBackground(new Color(25, 25, 25));
         panel.setBorder(BorderFactory.createEmptyBorder(25, 35, 25, 35));
 
-        JLabel titre = new JLabel("Settings");
+        JLabel titre = new JLabel("Paramètres");
         titre.setFont(new Font("Arial", Font.BOLD, 24));
         titre.setForeground(new Color(245, 235, 210));
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);

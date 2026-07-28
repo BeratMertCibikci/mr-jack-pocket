@@ -1,8 +1,8 @@
 # mr-jack-pocket
-    javac -d out src/model/*.java src/main/*.java
-    java -cp out main.Main
+    javac -d out src/model/*.java src/main/*.java src/engine/*.java src/ai/*.java src/IHM/*.java src/reseau/*.java
+    java -cp out IHM.FenetrePrincipale
 
-    IHM ÇALIŞTIRMA:
+    IHM:
     javac -d out src/*/*.java
     java -cp out IHM.FenetrePrincipale
 

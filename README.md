@@ -85,7 +85,7 @@ docs/         Class summaries, git workflow, screenshots
 
 ## Team
 
-Built in 2026 by a team of students at Université Grenoble Alpes, with a Git flow of one feature branch per module (see [`docs/git-workflow.md`](docs/git-workflow.md)).
+Built in 2026 by a team of 6 students at Université Grenoble Alpes, with a Git flow of one feature branch per module (see [`docs/git-workflow.md`](docs/git-workflow.md)).
 
 - [@BeratMertCibikci](https://github.com/BeratMertCibikci): team lead, AI, contributions to the model and the interface
 - [@CanErsavass](https://github.com/CanErsavass)

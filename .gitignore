@@ -26,3 +26,7 @@ replay_pid*
 *.class
 .vscode/
 .DS_Store
+
+# Build output and saved games
+out/
+*.sav
